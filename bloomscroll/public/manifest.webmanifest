@@ -1,0 +1,21 @@
+{
+  "name": "Bloomscroll",
+  "short_name": "bloomscroll",
+  "description": "Check health and appearance claims from your feed against real scientific literature.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F1F3EC",
+  "theme_color": "#F1F3EC",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

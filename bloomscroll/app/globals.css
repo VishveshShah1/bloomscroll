@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::selection {
+  background: #2e6b3f;
+  color: #f1f3ec;
+}
+
+/* Frosted glass surface — needs the ambient orbs behind it to read as glass */
+.glass {
+  background: rgba(250, 251, 247, 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 8px 32px rgba(31, 39, 33, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Ambient background orbs */
+.orb {
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+@keyframes drift-a {
+  from { transform: translate3d(-6%, -4%, 0) scale(1); }
+  to { transform: translate3d(7%, 6%, 0) scale(1.12); }
+}
+@keyframes drift-b {
+  from { transform: translate3d(5%, 8%, 0) scale(1.05); }
+  to { transform: translate3d(-7%, -5%, 0) scale(0.95); }
+}
+@keyframes drift-c {
+  from { transform: translate3d(-4%, 6%, 0) scale(0.98); }
+  to { transform: translate3d(6%, -7%, 0) scale(1.1); }
+}
+
+/* Result choreography: cards settle in 3D, badges pop after */
+@keyframes card-in {
+  from { opacity: 0; transform: perspective(900px) translateY(24px) rotateX(-9deg); }
+  to { opacity: 1; transform: perspective(900px) translateY(0) rotateX(0); }
+}
+@keyframes badge-in {
+  from { opacity: 0; transform: scale(0.82); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes draw-mark {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* "backwards" fill (not "both") so finished animations stop applying and the
+   JS tilt transform can take over the card afterwards */
+.anim-card-in {
+  animation: card-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.anim-badge-in {
+  animation: badge-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.anim-rise {
+  animation: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.draw-once path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-mark 0.9s ease-out 0.15s forwards;
+}
+
+/* Hero lines rise with 3D perspective */
+@keyframes rise-3d {
+  from { opacity: 0; transform: perspective(700px) translateY(34px) rotateX(-14deg); }
+  to { opacity: 1; transform: none; }
+}
+.anim-rise3d {
+  animation: rise-3d 0.75s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Floating demo cards in the hero */
+@keyframes float-y {
+  from { transform: translateY(-7px); }
+  to { transform: translateY(7px); }
+}
+.float-slow { animation: float-y 7s ease-in-out infinite alternate; }
+.float-slower { animation: float-y 9s ease-in-out 1s infinite alternate; }
+
+/* The b-mark redraws on hover, and loops while a check is running */
+.wordmark-hover:hover svg path {
+  stroke-dasharray: 1;
+  animation: draw-mark 0.9s ease-out;
+}
+.draw-loop path {
+  stroke-dasharray: 1;
+  animation: draw-mark 1.4s ease-in-out infinite;
+}
+
+/* Bloom intro overlay */
+@keyframes bloom-pop {
+  0% { opacity: 0; transform: scale(0.3); }
+  45% { opacity: 0.9; }
+  100% { opacity: 0.55; transform: scale(1.5); }
+}
+.bloom-circle {
+  animation: bloom-pop 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}

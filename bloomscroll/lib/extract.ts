@@ -1,0 +1,94 @@
+import Anthropic from "@anthropic-ai/sdk";
+import type { ExtractedClaim } from "./types";
+
+// Phase 2: claim extraction via the Anthropic API. Written and ready — the
+// route activates it once ANTHROPIC_API_KEY exists in the environment.
+// Model: the spec's claude-sonnet-4-6, overridable via BLOOMSCROLL_MODEL.
+
+export class MissingKeyError extends Error {}
+
+const MODEL = process.env.BLOOMSCROLL_MODEL ?? "claude-sonnet-4-6";
+
+const SYSTEM = `You extract checkable factual claims from social media content so they can be verified against scientific literature.
+
+Rules:
+- Extract up to 3 claims, prioritizing health, body, and appearance claims.
+- Each claim: one plain, self-contained sentence stating what the content asserts.
+- "category" is one of: "biomedical" (health, body, medicine), "general_scientific" (testable but not biomedical), "not_empirical" (opinion, aesthetic judgment, or untestable).
+- "search_terms": 2-4 proper clinical/scientific search terms for literature databases. Translate slang into real terminology, e.g. "mewing" -> "tongue posture", "orofacial myofunctional therapy"; "bone smashing" -> "bone remodeling", "mechanical loading", "Wolff's law". For not_empirical claims, still give the nearest relevant terms.
+- If the content has nothing checkable, return [].
+
+Respond with ONLY a JSON array, no markdown fences, no commentary:
+[{"claim": "...", "category": "biomedical", "search_terms": ["...", "..."]}]`;
+
+const CATEGORIES = ["biomedical", "general_scientific", "not_empirical"] as const;
+
+function parseClaimsJson(raw: string): ExtractedClaim[] | null {
+  let s = raw.trim();
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) s = fence[1].trim();
+  const start = s.indexOf("[");
+  const end = s.lastIndexOf("]");
+  if (start === -1 || end <= start) return null;
+  try {
+    const parsed: unknown = JSON.parse(s.slice(start, end + 1));
+    if (!Array.isArray(parsed)) return null;
+    const valid: ExtractedClaim[] = [];
+    for (const row of parsed as Record<string, unknown>[]) {
+      if (typeof row?.claim !== "string" || !row.claim.trim()) continue;
+      const category = CATEGORIES.includes(row.category as (typeof CATEGORIES)[number])
+        ? (row.category as ExtractedClaim["category"])
+        : "general_scientific";
+      const terms = Array.isArray(row.search_terms)
+        ? row.search_terms
+            .filter((t): t is string => typeof t === "string" && !!t.trim())
+            .map((t) => t.trim())
+            .slice(0, 4)
+        : [];
+      valid.push({ claim: row.claim.trim(), category, search_terms: terms });
+      if (valid.length === 3) break;
+    }
+    return valid;
+  } catch {
+    return null;
+  }
+}
+
+export async function extractClaims(text: string): Promise<ExtractedClaim[]> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new MissingKeyError("ANTHROPIC_API_KEY is not configured");
+  }
+  const client = new Anthropic();
+  const input = text.slice(0, 9000);
+  let lastRaw = "";
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const messages: Anthropic.MessageParam[] =
+      attempt === 0
+        ? [{ role: "user", content: input }]
+        : [
+            { role: "user", content: input },
+            { role: "assistant", content: lastRaw.slice(0, 2000) || "(empty)" },
+            {
+              role: "user",
+              content:
+                "That was not valid JSON. Respond again with ONLY the JSON array, nothing else.",
+            },
+          ];
+
+    const res = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2048,
+      system: SYSTEM,
+      messages,
+    });
+
+    lastRaw = res.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("");
+    const parsed = parseClaimsJson(lastRaw);
+    if (parsed) return parsed;
+  }
+  throw new Error("Claim extraction returned malformed JSON twice");
+}

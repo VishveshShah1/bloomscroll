@@ -1,0 +1,160 @@
+{
+  "brand": "Northwind Cycles",
+  "tagline": "Custom steel bikes, made by hand in Portland.",
+  "email": "hello@northwindcycles.com",
+  "accentHex": "#FF6347",
+  "accentDeepHex": "#C9513F",
+  "hero": {
+    "leadLine": "Elevate your ride with a custom steel frame from Northwind Cycles.",
+    "accentWord": "Custom Steel",
+    "sub": "Handcrafted road and gravel bikes, brazed to order. Visit our studio for an in-person fit.",
+    "cta1": "Order Now",
+    "cta2": "Visit Studio"
+  },
+  "featured": {
+    "tag": "In-Person Fitting",
+    "title": "Personalized Experience",
+    "notes": "Tailored bike fits to ensure the perfect ride.",
+    "meta": [
+      {
+        "k": "Location",
+        "v": "Portland, Oregon"
+      },
+      {
+        "k": "Waitlist",
+        "v": "Join our build waitlist now."
+      },
+      {
+        "k": "Materials",
+        "v": "High-quality steel frames"
+      }
+    ]
+  },
+  "stats": [
+    {
+      "value": 120,
+      "label": "Custom Frames Built"
+    },
+    {
+      "value": 5,
+      "label": "Years in Business"
+    },
+    {
+      "value": 8,
+      "label": "Expert Bike Mechanics"
+    },
+    {
+      "value": 95,
+      "label": "% Customer Satisfaction"
+    }
+  ],
+  "offerings": {
+    "eyebrow": "Our Bikes",
+    "title": "Custom Steel Bicycles",
+    "lede": "Elevate your cycling experience with custom steel frames from Northwind Cycles.",
+    "items": [
+      {
+        "title": "Road Frames",
+        "notes": "Perfect for fast rides and long distances.",
+        "price": "Rs 640 / unit",
+        "imgSeed": "road bike"
+      },
+      {
+        "title": "Gravel Frames",
+        "notes": "Built for off-road adventures.",
+        "price": "Rs 720 / unit",
+        "imgSeed": "gravel bike"
+      },
+      {
+        "title": "Mountain Frames",
+        "notes": "Durable and capable for any terrain.",
+        "price": "Rs 800 / unit",
+        "imgSeed": "mountain bike"
+      }
+    ]
+  },
+  "process": {
+    "title": "Our Process",
+    "lede": "From design to delivery, your custom steel bike is built just for you.",
+    "imgSeed": "bike build process",
+    "steps": [
+      {
+        "glyph": "1. Design",
+        "title": "Concept",
+        "body": "Work with our team to create the perfect frame."
+      },
+      {
+        "glyph": "2. Build",
+        "title": "Craftsmanship",
+        "body": "High-quality steel frames, brazed by hand."
+      },
+      {
+        "glyph": "3. Fit",
+        "title": "Personalization",
+        "body": "In-person fitting to ensure the perfect fit."
+      },
+      {
+        "glyph": "4. Delivery",
+        "title": "Completion",
+        "body": "Your custom steel bike is ready for you."
+      }
+    ]
+  },
+  "plans": {
+    "eyebrow": "Pricing",
+    "title": "Flexible Plans",
+    "lede": "Choose the plan that best fits your needs.",
+    "items": [
+      {
+        "name": "Standard Plan",
+        "amount": "Rs 899",
+        "unit": "/ month",
+        "lede": "Includes basic customization options.",
+        "features": [
+          "Custom frame design",
+          "Basic fit consultation",
+          "Delivery within 2 weeks"
+        ],
+        "featured": false
+      },
+      {
+        "name": "Premium Plan",
+        "amount": "Rs 1,299",
+        "unit": "/ month",
+        "lede": "Includes advanced customization and personal fitting.",
+        "features": [
+          "Advanced frame design",
+          "Personal fit consultation",
+          "Delivery within 1 week"
+        ],
+        "featured": true
+      }
+    ]
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "lede": "Visit us or contact us for more information.",
+    "imgSeed": "studio interior",
+    "info": [
+      {
+        "k": "Address",
+        "v": "123 NW Hawthorne St, Portland, OR 97201"
+      },
+      {
+        "k": "Hours",
+        "v": "Mon-Fri: 10am-6pm, Sat: 10am-4pm"
+      },
+      {
+        "k": "Contact",
+        "v": "hello@northwindcycles.com | (503) 555-1234"
+      },
+      {
+        "k": "Other",
+        "v": "Join our newsletter for updates."
+      }
+    ],
+    "quote": "At Northwind Cycles, we take pride in crafting each bike with care and precision.",
+    "quoteAuthor": "John Doe, Owner of Northwind Cycles"
+  },
+  "footerNote": "\u00a9 2023 Northwind Cycles. All rights reserved."
+}

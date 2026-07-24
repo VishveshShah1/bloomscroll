@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en" style="--accent: #59d0a8;"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen Roastery | Small-batch coffee, roasted in Bangalore</title>
+<meta name="description" content="Lumen Roastery roasts single-origin Indian coffee in 12 kg batches in Indiranagar, Bangalore. Two drops a week, rested 48 hours, shipped nationwide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0a08;
+    --bg-soft: #14100c;
+    --ink: #f3ede4;
+    --ink-dim: #b0a696;
+    --accent: #e6a15c;
+    --accent-deep: #b9743a;
+    --glass: rgba(255, 249, 240, 0.055);
+    --glass-strong: rgba(255, 249, 240, 0.09);
+    --line: rgba(255, 240, 220, 0.13);
+    --radius: 18px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent); color: #191006; }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+
+  /* ------ background depth layers ------ */
+  .bg-blobs {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; overflow: hidden;
+  }
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(110px); opacity: 0.5;
+    will-change: transform;
+  }
+  .blob-a { width: 46vw; height: 46vw; min-width: 380px; min-height: 380px; top: -12%; left: -8%; background: radial-gradient(circle, #b06a2e 0%, rgba(176,106,46,0) 70%); }
+  .blob-b { width: 38vw; height: 38vw; min-width: 320px; min-height: 320px; top: 34%; right: -10%; background: radial-gradient(circle, #274b46 0%, rgba(39,75,70,0) 70%); opacity: 0.42; }
+  .blob-c { width: 32vw; height: 32vw; min-width: 280px; min-height: 280px; bottom: -14%; left: 24%; background: radial-gradient(circle, #7a3f22 0%, rgba(122,63,34,0) 70%); opacity: 0.38; }
+  #field {
+    position: fixed; inset: 0; z-index: 1;
+    pointer-events: none;
+  }
+  .page { position: relative; z-index: 2; }
+
+  /* ------ nav ------ */
+  .topbar {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+    width: min(1140px, calc(100% - 28px));
+    z-index: 30;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255, 244, 228, 0.09), 0 14px 44px rgba(0, 0, 0, 0.35);
+    transition: background 0.35s ease;
+  }
+  .topbar.solid { background: rgba(18, 14, 10, 0.72); }
+  .topbar nav {
+    display: flex; align-items: center; gap: 26px;
+    padding: 12px 22px;
+  }
+  .brand {
+    font-weight: 700; letter-spacing: 0.01em; text-decoration: none;
+    font-size: 1.06rem; display: flex; align-items: center; gap: 9px;
+  }
+  .brand-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #ffd9a8, var(--accent-deep));
+  }
+  .nav-links { display: flex; gap: 22px; margin-left: auto; }
+  .nav-links a {
+    text-decoration: none; font-size: 0.93rem; color: var(--ink-dim);
+    transition: color 0.2s ease;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+
+  .btn {
+    position: relative; overflow: hidden;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 24px; border-radius: 999px;
+    font-family: inherit; font-size: 0.95rem; font-weight: 600;
+    text-decoration: none; cursor: pointer; border: 1px solid transparent;
+    transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    will-change: transform;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .btn-primary { background: linear-gradient(140deg, #f0b46e, var(--accent-deep)); color: #201206; }
+  .btn-primary:hover { box-shadow: 0 10px 34px rgba(230, 161, 92, 0.35); }
+  .btn-ghost {
+    background: var(--glass); color: var(--ink);
+    border-color: var(--line);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .btn-ghost:hover { background: var(--glass-strong); border-color: rgba(255, 240, 220, 0.26); }
+  .btn-small { padding: 9px 18px; font-size: 0.88rem; }
+  .ripple {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: rgba(255, 255, 255, 0.35); transform: scale(0);
+    animation: ripple 0.55s ease-out forwards;
+  }
+  @keyframes ripple { to { transform: scale(3.4); opacity: 0; } }
+
+  /* ------ layout primitives ------ */
+  .wrap { width: min(1140px, calc(100% - 40px)); margin: 0 auto; }
+  section { position: relative; scroll-margin-top: 96px; }
+  .section-pad { padding: 110px 0; }
+  h1, h2, h3 { line-height: 1.08; letter-spacing: -0.02em; font-weight: 700; }
+  h1 { font-size: clamp(2.5rem, 5.4vw, 4.1rem); }
+  h2 { font-size: clamp(1.9rem, 3.4vw, 2.7rem); margin-bottom: 14px; }
+  h3 { font-size: 1.18rem; }
+  .lede { color: var(--ink-dim); max-width: 56ch; }
+  .eyebrow {
+    display: inline-block; font-size: 0.78rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+
+  /* reveal on scroll */
+  [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+  [data-reveal].in { opacity: 1; transform: translateY(0); }
+
+  /* ------ hero ------ */
+  .hero { min-height: 100dvh; display: flex; align-items: center; padding: 130px 0 80px; }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center;
+  }
+  .hero p.lede { margin: 20px 0 30px; font-size: 1.08rem; }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .accent-word { color: var(--accent); }
+
+  .drop-card {
+    border-radius: var(--radius);
+    background: var(--glass-strong);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255, 244, 228, 0.1), 0 30px 80px rgba(0, 0, 0, 0.45);
+    padding: 26px;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .drop-card .tag {
+    font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px; display: block;
+  }
+  .drop-card h3 { font-size: 1.5rem; margin-bottom: 6px; }
+  .drop-card .notes { color: var(--ink-dim); font-size: 0.95rem; margin-bottom: 20px; }
+  .drop-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .drop-meta div span { display: block; }
+  .drop-meta .k { font-size: 0.74rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  .drop-meta .v { font-weight: 600; font-size: 1.05rem; }
+
+  /* ------ stats band ------ */
+  .stats {
+    border-radius: var(--radius);
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 34px 18px;
+  }
+  .stat { text-align: center; padding: 0 10px; }
+  .stat b { font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 700; color: var(--accent); display: block; line-height: 1.1; }
+  .stat span { color: var(--ink-dim); font-size: 0.88rem; }
+
+  /* ------ beans ------ */
+  .bean-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+  .bean-card {
+    border-radius: var(--radius); overflow: hidden;
+    background: var(--glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--line);
+    transform-style: preserve-3d; will-change: transform;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .bean-card:hover { border-color: rgba(230, 161, 92, 0.45); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); }
+  .bean-card .ph { aspect-ratio: 4 / 3; overflow: hidden; }
+  .bean-card .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+  .bean-card:hover .ph img { transform: scale(1.06); }
+  .bean-body { padding: 22px; }
+  .bean-body .notes { color: var(--ink-dim); font-size: 0.93rem; margin: 8px 0 16px; }
+  .bean-foot { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; }
+  .price { font-weight: 700; color: var(--accent); }
+  .bean-foot a { font-size: 0.88rem; color: var(--ink-dim); text-decoration: none; transition: color 0.2s ease; }
+  .bean-foot a:hover { color: var(--ink); }
+
+  /* ------ process ------ */
+  .process-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 60px; align-items: center; }
+  .process-list { display: flex; flex-direction: column; gap: 6px; margin-top: 30px; }
+  .process-item {
+    display: grid; grid-template-columns: 52px 1fr; gap: 18px; align-items: start;
+    padding: 20px 18px; border-radius: 14px;
+    transition: background 0.25s ease;
+  }
+  .process-item:hover { background: var(--glass); }
+  .process-item .glyph {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--glass-strong); border: 1px solid var(--line);
+    color: var(--accent); font-weight: 700;
+  }
+  .process-item p { color: var(--ink-dim); font-size: 0.94rem; }
+  .process-visual { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); will-change: transform; }
+  .process-visual img { width: 100%; height: 560px; object-fit: cover; }
+
+  /* ------ subscriptions ------ */
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 44px; max-width: 860px; }
+  .plan {
+    border-radius: var(--radius); padding: 34px 30px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--line);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .plan:hover { transform: translateY(-5px); border-color: rgba(255, 240, 220, 0.28); }
+  .plan.featured { border-color: rgba(230, 161, 92, 0.5); background: linear-gradient(160deg, rgba(230, 161, 92, 0.13), rgba(255, 249, 240, 0.04)); }
+  .plan .amount { font-size: 2.3rem; font-weight: 700; margin: 12px 0 4px; }
+  .plan .amount small { font-size: 0.95rem; font-weight: 400; color: var(--ink-dim); }
+  .plan ul { list-style: none; margin: 22px 0 28px; display: flex; flex-direction: column; gap: 10px; }
+  .plan li { color: var(--ink-dim); font-size: 0.95rem; padding-left: 22px; position: relative; }
+  .plan li::before { content: ""; position: absolute; left: 0; top: 8px; width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(140deg, #f0b46e, var(--accent-deep)); }
+
+  /* ------ visit ------ */
+  .visit-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 60px; align-items: center; }
+  .visit-visual { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); will-change: transform; }
+  .visit-visual img { width: 100%; height: 520px; object-fit: cover; }
+  .visit-info { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 30px 0; }
+  .visit-info .cell {
+    background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .visit-info .k { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-dim); display: block; margin-bottom: 6px; }
+
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 22px; margin-top: 44px; max-width: 620px;
+    font-size: 1.12rem; line-height: 1.55;
+  }
+  blockquote footer { font-size: 0.9rem; color: var(--ink-dim); margin-top: 10px; }
+
+  /* ------ footer ------ */
+  .site-footer { border-top: 1px solid var(--line); padding: 54px 0 40px; margin-top: 40px; }
+  .footer-grid { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; flex-wrap: wrap; }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { color: var(--ink-dim); text-decoration: none; font-size: 0.92rem; transition: color 0.2s ease; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .fineprint { color: var(--ink-dim); font-size: 0.85rem; margin-top: 34px; }
+  .fineprint a { color: var(--ink-dim); }
+  .fineprint a:hover { color: var(--ink); }
+
+  /* ------ responsive ------ */
+  @media (max-width: 960px) {
+    .hero-grid, .process-grid, .visit-grid { grid-template-columns: 1fr; gap: 40px; }
+    .bean-grid { grid-template-columns: 1fr; }
+    .plans { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 26px 0; }
+    .process-visual img, .visit-visual img { height: 380px; }
+    .process-visual { order: -1; }
+  }
+  @media (max-width: 760px) {
+    .nav-links { display: none; }
+    .section-pad { padding: 76px 0; }
+    .hero { padding-top: 110px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    [data-reveal] { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body id="top">
+
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-a" data-parallax="0.16" style="transform: translate3d(0px, -0.67px, 0px);"></div>
+    <div class="blob blob-b" data-parallax="-0.1" style="transform: translate3d(0px, 0.42px, 0px);"></div>
+    <div class="blob blob-c" data-parallax="0.08" style="transform: translate3d(0px, -0.33px, 0px);"></div>
+  </div>
+  <canvas id="field" aria-hidden="true"></canvas>
+
+  <div class="page">
+    <header class="topbar" id="topbar">
+      <nav aria-label="Primary">
+        <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Lumen Roastery</a>
+        <div class="nav-links">
+          <a href="#beans">Beans</a>
+          <a href="#process">Process</a>
+          <a href="#subscriptions">Subscriptions</a>
+          <a href="#visit">Tasting room</a>
+        </div>
+        <a class="btn btn-primary btn-small" href="#subscriptions" data-magnetic="">Subscribe</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div data-reveal="" class="in">
+            <h1>Edited headline works.</h1>
+            <p class="lede">Single-origin Indian beans, roasted in 12 kg batches in Indiranagar and rested before they ship.</p>
+            <div class="hero-ctas">
+              <a class="btn btn-primary" href="#subscriptions" data-magnetic="">Start a subscription</a>
+              <a class="btn btn-ghost" href="#beans" data-magnetic="">Browse the beans</a>
+            </div>
+          </div>
+          <aside class="drop-card in" data-tilt="" data-reveal="" aria-label="This week's roast drop" style="transform: perspective(900px) rotateX(-2.92deg) rotateY(-3.79deg) translateZ(6px);">
+            <span class="tag">This week's drop</span>
+            <h3>Attikan Estate, Washed</h3>
+            <p class="notes">Jaggery sweetness, red apple acidity, a long cocoa finish. Roasted Tuesday, rested till Thursday.</p>
+            <div class="drop-meta">
+              <div><span class="k">Elevation</span><span class="v">1,450 m</span></div>
+              <div><span class="k">Roast</span><span class="v">Light+</span></div>
+              <div><span class="k">Batch</span><span class="v">No. 214</span></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section-pad" aria-label="Roastery numbers">
+        <div class="wrap">
+          <div class="stats in" data-reveal="">
+            <div class="stat"><b><span data-counter="312" data-done="1">312</span></b><span>batches roasted this year</span></div>
+            <div class="stat"><b><span data-counter="9" data-done="1">9</span></b><span>estates we buy from directly</span></div>
+            <div class="stat"><b><span data-counter="41" data-done="1">41</span></b><span>cafes brewing our roasts</span></div>
+            <div class="stat"><b><span data-counter="48" data-done="1">48</span>h</b><span>rest before any bag ships</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="beans" class="section-pad">
+        <div class="wrap">
+          <div data-reveal="" class="in">
+            <span class="eyebrow">On the shelf</span>
+            <h2>Three origins, roasted twice a week</h2>
+            <p class="lede">Every lot is cupped before it goes on sale. When an estate's harvest dips, we drop it from the shelf rather than roast around it.</p>
+          </div>
+          <div class="bean-grid">
+            <article class="bean-card in" data-tilt="" data-reveal="" style="transform: perspective(900px) rotateX(-2.94deg) rotateY(-3.8deg) translateZ(6px);">
+              <div class="ph"><img src="https://picsum.photos/seed/lumen-attikan-beans/640/480" width="640" height="480" alt="Freshly roasted Attikan Estate coffee beans" loading="lazy"></div>
+              <div class="bean-body">
+                <h3>Attikan Estate</h3>
+                <p class="notes">Washed arabica from the Biligiri hills. Jaggery, red apple, cocoa.</p>
+                <div class="bean-foot"><span class="price">Rs 640 / 250 g</span><a href="mailto:hello@lumenroastery.in?subject=Order%3A%20Attikan%20Estate">Order this roast</a></div>
+              </div>
+            </article>
+            <article class="bean-card in" data-tilt="" data-reveal="" style="transform: perspective(900px) rotateX(-2.94deg) rotateY(-3.8deg) translateZ(6px);">
+              <div class="ph"><img src="https://picsum.photos/seed/lumen-ratnagiri-pour/640/480" width="640" height="480" alt="Pour-over brewed with Ratnagiri Peaberry" loading="lazy"></div>
+              <div class="bean-body">
+                <h3>Ratnagiri Peaberry</h3>
+                <p class="notes">Honey-processed peaberry. Stone fruit, cane sugar, silky body.</p>
+                <div class="bean-foot"><span class="price">Rs 720 / 250 g</span><a href="mailto:hello@lumenroastery.in?subject=Order%3A%20Ratnagiri%20Peaberry">Order this roast</a></div>
+              </div>
+            </article>
+            <article class="bean-card in" data-tilt="" data-reveal="" style="transform: perspective(900px) rotateX(-2.94deg) rotateY(-3.8deg) translateZ(6px);">
+              <div class="ph"><img src="https://picsum.photos/seed/lumen-malabar-cup/640/480" width="640" height="480" alt="A cup of Monsoon Malabar coffee on a wooden table" loading="lazy"></div>
+              <div class="bean-body">
+                <h3>Monsoon Malabar AA</h3>
+                <p class="notes">Monsooned on the Malabar coast. Dark chocolate, spice, low acidity.</p>
+                <div class="bean-foot"><span class="price">Rs 580 / 250 g</span><a href="mailto:hello@lumenroastery.in?subject=Order%3A%20Monsoon%20Malabar">Order this roast</a></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="process" class="section-pad">
+        <div class="wrap process-grid">
+          <div>
+            <div data-reveal="" class="in">
+              <h2>From estate to shelf in ten days</h2>
+              <p class="lede">Nothing sits in a warehouse. We buy small, roast often, and rest every batch before it leaves the building.</p>
+            </div>
+            <div class="process-list">
+              <div class="process-item in" data-reveal="">
+                <div class="glyph" aria-hidden="true">S</div>
+                <div><h3>Source</h3><p>We buy directly from nine estates across Karnataka, Kerala and Andhra, paying above auction rates for separated lots.</p></div>
+              </div>
+              <div class="process-item in" data-reveal="">
+                <div class="glyph" aria-hidden="true">R</div>
+                <div><h3>Roast</h3><p>Twelve kilograms at a time on a Probat P12, profiled per lot and logged curve by curve.</p></div>
+              </div>
+              <div class="process-item in" data-reveal="">
+                <div class="glyph" aria-hidden="true">D</div>
+                <div><h3>Degas</h3><p>Every batch rests 48 hours before packing so the first brew you make tastes like the cupping table.</p></div>
+              </div>
+              <div class="process-item in" data-reveal="">
+                <div class="glyph" aria-hidden="true">Sh</div>
+                <div><h3>Ship</h3><p>Bags go out Monday and Thursday, nationwide, in valve-sealed kraft with the roast date printed large.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="process-visual in" data-parallax="0.05" data-reveal="" style="transform: translate3d(0px, -0.21px, 0px);">
+            <img src="https://picsum.photos/seed/lumen-roaster-drum/900/1200" width="900" height="1200" alt="Coffee beans tumbling out of a drum roaster" loading="lazy">
+          </div>
+        </div>
+      </section>
+
+      <section id="subscriptions" class="section-pad">
+        <div class="wrap">
+          <div data-reveal="" class="in">
+            <span class="eyebrow">Subscriptions</span>
+            <h2>Fresh coffee on your doorstep, on schedule</h2>
+            <p class="lede">Pause, swap origins or cancel anytime from a link in every dispatch email. No account needed.</p>
+          </div>
+          <div class="plans">
+            <article class="plan in" data-reveal="">
+              <h3>The Regular</h3>
+              <div class="amount">Rs 899 <small>/ month</small></div>
+              <p class="lede">One 250 g bag, twice a month.</p>
+              <ul>
+                <li>Roaster's pick or fixed origin</li>
+                <li>Whole bean or ground to order</li>
+                <li>Free shipping across India</li>
+              </ul>
+              <a class="btn btn-ghost" href="mailto:hello@lumenroastery.in?subject=Subscription%3A%20The%20Regular" data-magnetic="">Choose The Regular</a>
+            </article>
+            <article class="plan featured in" data-reveal="">
+              <h3>The Obsessive</h3>
+              <div class="amount">Rs 1,599 <small>/ month</small></div>
+              <p class="lede">Two 250 g bags, every week it drops.</p>
+              <ul>
+                <li>Every new lot, including micro-lots</li>
+                <li>Cupping notes and brew recipes included</li>
+                <li>First invite to tasting-room sessions</li>
+              </ul>
+              <a class="btn btn-primary" href="mailto:hello@lumenroastery.in?subject=Subscription%3A%20The%20Obsessive" data-magnetic="">Choose The Obsessive</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="visit" class="section-pad">
+        <div class="wrap visit-grid">
+          <div class="visit-visual" data-parallax="0.04" data-reveal="" style="transform: translate3d(0px, -0.17px, 0px);">
+            <img src="https://picsum.photos/seed/lumen-tasting-room/900/1100" width="900" height="1100" alt="The Lumen Roastery tasting room bar in Indiranagar" loading="lazy">
+          </div>
+          <div>
+            <div data-reveal="">
+              <h2>The tasting room</h2>
+              <p class="lede">Eight seats at the bar, every brew method we trust, and whatever came off the roaster this week. Walk-ins welcome; cuppings on Saturdays are ticketed.</p>
+            </div>
+            <div class="visit-info" data-reveal="">
+              <div class="cell"><span class="k">Address</span>412, 12th Main Road, Indiranagar, Bangalore 560008</div>
+              <div class="cell"><span class="k">Hours</span>Tue to Sun, 8:30 am to 7 pm</div>
+              <div class="cell"><span class="k">Cuppings</span>Saturdays, 11 am. Rs 350, redeemable on beans</div>
+              <div class="cell"><span class="k">Contact</span><a href="mailto:hello@lumenroastery.in">hello@lumenroastery.in</a></div>
+            </div>
+            <blockquote data-reveal="">
+              "The Attikan washed is the first Indian coffee I have brewed that tastes like the farm it names."
+              <footer>Meera Krishnan, home brewer and cupping regular</footer>
+            </blockquote>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="footer-grid">
+          <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Lumen Roastery</a>
+          <div class="footer-links">
+            <a href="#beans">Beans</a>
+            <a href="#process">Process</a>
+            <a href="#subscriptions">Subscriptions</a>
+            <a href="#visit">Tasting room</a>
+          </div>
+        </div>
+        <p class="fineprint">Roasted in Bangalore since 2019. Wholesale enquiries: <a href="mailto:wholesale@lumenroastery.in">wholesale@lumenroastery.in</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* Reveal on scroll */
+    var revealEls = document.querySelectorAll("[data-reveal]");
+    if ("IntersectionObserver" in window && !reduced) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            if (e.target.querySelector("[data-counter]") || e.target.hasAttribute("data-counter")) runCounters(e.target);
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.18 });
+      revealEls.forEach(function (el) { io.observe(el); });
+    } else {
+      revealEls.forEach(function (el) { el.classList.add("in"); });
+      runCounters(document);
+    }
+
+    /* Animated counters */
+    function runCounters(scope) {
+      var counters = scope.hasAttribute && scope.hasAttribute("data-counter") ? [scope] : scope.querySelectorAll("[data-counter]");
+      Array.prototype.forEach.call(counters, function (el) {
+        if (el.dataset.done) return;
+        el.dataset.done = "1";
+        var target = parseInt(el.getAttribute("data-counter"), 10) || 0;
+        if (reduced) { el.textContent = target; return; }
+        var start = null;
+        function tick(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / 1300, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased);
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    /* 3D tilt cards */
+    if (!reduced) {
+      document.querySelectorAll("[data-tilt]").forEach(function (card) {
+        var raf = null;
+        card.addEventListener("mousemove", function (e) {
+          var r = card.getBoundingClientRect();
+          var px = (e.clientX - r.left) / r.width - 0.5;
+          var py = (e.clientY - r.top) / r.height - 0.5;
+          if (raf) cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(function () {
+            card.style.transform =
+              "perspective(900px) rotateX(" + (-py * 7).toFixed(2) + "deg) rotateY(" + (px * 9).toFixed(2) + "deg) translateZ(6px)";
+          });
+        });
+        card.addEventListener("mouseleave", function () {
+          if (raf) cancelAnimationFrame(raf);
+          card.style.transition = "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)";
+          card.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0)";
+          setTimeout(function () { card.style.transition = ""; }, 500);
+        });
+      });
+    }
+
+    /* Magnetic buttons */
+    if (!reduced) {
+      document.querySelectorAll("[data-magnetic]").forEach(function (btn) {
+        btn.addEventListener("mousemove", function (e) {
+          var r = btn.getBoundingClientRect();
+          var dx = e.clientX - (r.left + r.width / 2);
+          var dy = e.clientY - (r.top + r.height / 2);
+          btn.style.transform = "translate(" + (dx * 0.18).toFixed(1) + "px," + (dy * 0.22).toFixed(1) + "px)";
+        });
+        btn.addEventListener("mouseleave", function () {
+          btn.style.transform = "translate(0,0)";
+        });
+      });
+    }
+
+    /* Click ripple */
+    document.querySelectorAll(".btn").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        var r = btn.getBoundingClientRect();
+        var s = document.createElement("span");
+        var size = Math.max(r.width, r.height);
+        s.className = "ripple";
+        s.style.width = s.style.height = size + "px";
+        s.style.left = e.clientX - r.left - size / 2 + "px";
+        s.style.top = e.clientY - r.top - size / 2 + "px";
+        btn.appendChild(s);
+        s.addEventListener("animationend", function () { s.remove(); });
+      });
+    });
+
+    /* Parallax with lerp + nav state (single rAF loop) */
+    var parallaxTargets = [];
+    document.querySelectorAll("[data-parallax]").forEach(function (el) {
+      parallaxTargets.push({ el: el, speed: parseFloat(el.getAttribute("data-parallax")) || 0.1, cur: 0 });
+    });
+    var topbar = document.getElementById("topbar");
+    if (!reduced) {
+      (function loop() {
+        var sy = window.scrollY || window.pageYOffset;
+        parallaxTargets.forEach(function (t) {
+          var goal = -sy * t.speed;
+          t.cur += (goal - t.cur) * 0.09;
+          t.el.style.transform = "translate3d(0," + t.cur.toFixed(2) + "px,0)";
+        });
+        if (topbar) topbar.classList.toggle("solid", sy > 40);
+        requestAnimationFrame(loop);
+      })();
+    }
+
+    /* Three.js particle field (guarded: skip silently if CDN unavailable) */
+    if (window.THREE && !reduced) {
+      try {
+        var canvas = document.getElementById("field");
+        var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 60);
+        camera.position.z = 9;
+        var COUNT = 700;
+        var positions = new Float32Array(COUNT * 3);
+        for (var i = 0; i < COUNT; i++) {
+          positions[i * 3] = (Math.random() - 0.5) * 22;
+          positions[i * 3 + 1] = (Math.random() - 0.5) * 14;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
+        }
+        var geo = new THREE.BufferGeometry();
+        geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        var mat = new THREE.PointsMaterial({
+          color: 0xe6a15c, size: 0.045, transparent: true, opacity: 0.55,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        });
+        var points = new THREE.Points(geo, mat);
+        scene.add(points);
+        var mouseX = 0, mouseY = 0;
+        window.addEventListener("pointermove", function (e) {
+          mouseX = e.clientX / window.innerWidth - 0.5;
+          mouseY = e.clientY / window.innerHeight - 0.5;
+        });
+        window.addEventListener("resize", function () {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        (function render(t) {
+          points.rotation.y = t * 0.00004 + mouseX * 0.22;
+          points.rotation.x = Math.sin(t * 0.00003) * 0.08 + mouseY * 0.16;
+          renderer.render(scene, camera);
+          requestAnimationFrame(render);
+        })(0);
+      } catch (err) { /* keep the page clean if WebGL is unavailable */ }
+    }
+  })();
+  </script>
+
+
+</body></html>

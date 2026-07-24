@@ -1,0 +1,242 @@
+/*
+ * GlassForge template engine.
+ *
+ * The model does NOT write the whole site. It writes a small JSON "content"
+ * object; this file pours it into a fixed liquid-glass shell that is ported
+ * from the sample that already scores 25/25. That makes generation fast (tiny
+ * output) and guarantees the quality bar (glass / 3D / scroll / interactivity
+ * are baked into the shell, not gambled on the model).
+ *
+ * window.GF_CONTENT_SCHEMA  - the JSON shape the model must return
+ * window.GF_TEMPLATE_PROMPT - the system prompt that asks for that JSON
+ * window.GF_renderTemplate(content) -> full HTML string
+ * window.GF_sampleContent   - a fallback so the template renders with no model
+ */
+(function (global) {
+  "use strict";
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function attr(s) { return esc(s); }
+  function seed(s) {
+    return encodeURIComponent(String(s || "photo").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) || "photo");
+  }
+  function mailto(email, subject) {
+    return "mailto:" + esc(email || "hello@example.com") + "?subject=" + encodeURIComponent(subject || "Enquiry");
+  }
+  function pick(v, d) { return (v === undefined || v === null || v === "") ? d : v; }
+  function arr(v) { return Array.isArray(v) ? v : []; }
+
+  var SCHEMA = {
+    brand: "Business name (short)",
+    tagline: "one short line for meta description",
+    email: "contact email (make one up from the brand, e.g. hello@brand.in)",
+    accentHex: "#RRGGBB main accent (warm or cool, NOT purple)",
+    accentDeepHex: "#RRGGBB a darker shade of the accent",
+    hero: { leadLine: "first line of headline", accentWord: "1-2 word accent-coloured end of headline", sub: "<=20 word subtitle", cta1: "primary button label (1-3 words)", cta2: "secondary button label (1-3 words)" },
+    featured: { tag: "small label", title: "featured item name", notes: "1 sentence", meta: [{ k: "label", v: "value" }, { k: "label", v: "value" }, { k: "label", v: "value" }] },
+    stats: [{ value: 100, label: "what it counts" }, { value: 9, label: "..." }, { value: 40, label: "..." }, { value: 24, label: "..." }],
+    offerings: { eyebrow: "short label", title: "section heading", lede: "1-2 sentences", items: [{ title: "offering", notes: "1 sentence", price: "Rs 640 / unit OR blank", imgSeed: "2-4 words describing a photo" }] },
+    process: { title: "section heading", lede: "1-2 sentences", imgSeed: "2-4 words describing a photo", steps: [{ glyph: "1-2 letters", title: "step", body: "1 sentence" }] },
+    plans: { eyebrow: "short label", title: "section heading", lede: "1-2 sentences", items: [{ name: "plan", amount: "Rs 899", unit: "/ month", lede: "1 line", features: ["a", "b", "c"], featured: false }] },
+    contact: { title: "section heading", lede: "1-2 sentences", imgSeed: "2-4 words describing a photo", info: [{ k: "Address", v: "..." }, { k: "Hours", v: "..." }, { k: "Contact", v: "..." }, { k: "Other", v: "..." }], quote: "<=25 word testimonial", quoteAuthor: "Name, role" },
+    footerNote: "one line for the footer"
+  };
+
+  var PROMPT =
+    "You are GlassForge's content writer. You do NOT write HTML or CSS. You return ONLY a JSON object of real, specific copy for a premium website, matching this exact shape:\n\n" +
+    JSON.stringify(SCHEMA, null, 2) +
+    "\n\nRules:\n" +
+    "- Return ONLY the JSON. No prose, no markdown fences, no explanation.\n" +
+    "- Write real, specific, concrete copy for the described business. Never lorem ipsum, never placeholders.\n" +
+    "- offerings.items: exactly 3. process.steps: exactly 4. plans.items: exactly 2 (set featured:true on ONE). stats: exactly 4 (value is an integer). featured.meta: exactly 3. contact.info: exactly 4.\n" +
+    "- Pick an accentHex that fits the brand mood. Do NOT use purple/violet. accentDeepHex is a darker shade of it.\n" +
+    "- imgSeed fields: 2-4 plain words describing a fitting photo (e.g. 'ceramic bowls studio').\n" +
+    "- Keep hero.sub under 20 words. Keep the quote under 25 words. No em dashes anywhere; use commas or periods.\n" +
+    "- Return the JSON now.";
+
+  function renderStats(stats) {
+    return arr(stats).slice(0, 4).map(function (s) {
+      return '<div class="stat"><b><span data-counter="' + (parseInt(s.value, 10) || 0) + '">0</span></b><span>' + esc(s.label) + '</span></div>';
+    }).join("");
+  }
+  function renderOfferings(o, email) {
+    return arr(o.items).slice(0, 3).map(function (it) {
+      var priceRow = pick(it.price, "")
+        ? '<div class="offer-foot"><span class="price">' + esc(it.price) + '</span><a href="' + attr(mailto(email, "Enquiry: " + it.title)) + '">Enquire</a></div>'
+        : '<div class="offer-foot"><a href="' + attr(mailto(email, "Enquiry: " + it.title)) + '">Enquire</a></div>';
+      return '' +
+        '<article class="offer-card" data-tilt data-reveal>' +
+        '<div class="ph"><img src="https://picsum.photos/seed/' + seed(it.imgSeed || it.title) + '/640/480" width="640" height="480" alt="' + attr(it.title) + '" loading="lazy"></div>' +
+        '<div class="offer-body"><h3>' + esc(it.title) + '</h3><p class="notes">' + esc(it.notes) + '</p>' + priceRow + '</div>' +
+        '</article>';
+    }).join("");
+  }
+  function renderSteps(steps) {
+    return arr(steps).slice(0, 4).map(function (s) {
+      return '<div class="process-item" data-reveal><div class="glyph" aria-hidden="true">' + esc(s.glyph) + '</div>' +
+        '<div><h3>' + esc(s.title) + '</h3><p>' + esc(s.body) + '</p></div></div>';
+    }).join("");
+  }
+  function renderPlans(plans, email) {
+    return arr(plans.items).slice(0, 2).map(function (p) {
+      var feats = arr(p.features).map(function (f) { return '<li>' + esc(f) + '</li>'; }).join("");
+      var cls = p.featured ? "plan featured" : "plan";
+      var btn = p.featured ? "btn-primary" : "btn-ghost";
+      return '<article class="' + cls + '" data-reveal><h3>' + esc(p.name) + '</h3>' +
+        '<div class="amount">' + esc(p.amount) + ' <small>' + esc(pick(p.unit, "")) + '</small></div>' +
+        '<p class="lede">' + esc(pick(p.lede, "")) + '</p><ul>' + feats + '</ul>' +
+        '<a class="btn ' + btn + '" href="' + attr(mailto(email, p.name)) + '" data-magnetic>Choose ' + esc(p.name) + '</a></article>';
+    }).join("");
+  }
+  function renderMeta(meta) {
+    return arr(meta).slice(0, 3).map(function (m) {
+      return '<div><span class="k">' + esc(m.k) + '</span><span class="v">' + esc(m.v) + '</span></div>';
+    }).join("");
+  }
+  function renderInfo(info) {
+    return arr(info).slice(0, 4).map(function (c) {
+      return '<div class="cell"><span class="k">' + esc(c.k) + '</span>' + esc(c.v) + '</div>';
+    }).join("");
+  }
+
+  function renderTemplate(content) {
+    var c = content || {};
+    var brand = esc(pick(c.brand, "Studio"));
+    var email = pick(c.email, "hello@example.com");
+    var accent = pick(c.accentHex, "#e6a15c");
+    var accentDeep = pick(c.accentDeepHex, "#b9743a");
+    var hero = c.hero || {};
+    var featured = c.featured || {};
+    var offerings = c.offerings || {};
+    var process = c.process || {};
+    var plans = c.plans || {};
+    var contact = c.contact || {};
+
+    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+'<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+'<title>' + brand + ' | ' + esc(pick(c.tagline, "")) + '</title>\n' +
+'<meta name="description" content="' + attr(pick(c.tagline, brand)) + '">\n' +
+'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+'<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">\n' +
+'<style>\n' +
+':root{--bg:#0c0a08;--ink:#f3ede4;--ink-dim:#b0a696;--accent:' + accent + ';--accent-deep:' + accentDeep + ';--glass:rgba(255,249,240,0.055);--glass-strong:rgba(255,249,240,0.09);--line:rgba(255,240,220,0.13);--radius:18px}\n' +
+'*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}\n' +
+'body{background:var(--bg);color:var(--ink);font-family:"Space Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}\n' +
+'::selection{background:var(--accent);color:#191006}a{color:inherit}img{max-width:100%;display:block}\n' +
+'.bg-blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}\n' +
+'.blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.5;will-change:transform}\n' +
+'.blob-a{width:46vw;height:46vw;min-width:380px;min-height:380px;top:-12%;left:-8%;background:radial-gradient(circle,var(--accent-deep) 0%,rgba(0,0,0,0) 70%)}\n' +
+'.blob-b{width:38vw;height:38vw;min-width:320px;min-height:320px;top:34%;right:-10%;background:radial-gradient(circle,#274b46 0%,rgba(39,75,70,0) 70%);opacity:.42}\n' +
+'.blob-c{width:32vw;height:32vw;min-width:280px;min-height:280px;bottom:-14%;left:24%;background:radial-gradient(circle,#7a3f22 0%,rgba(122,63,34,0) 70%);opacity:.38}\n' +
+'#field{position:fixed;inset:0;z-index:1;pointer-events:none}.page{position:relative;z-index:2}\n' +
+'.topbar{position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(1140px,calc(100% - 28px));z-index:30;border-radius:999px;background:var(--glass);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,244,228,.09),0 14px 44px rgba(0,0,0,.35);transition:background .35s ease}\n' +
+'.topbar.solid{background:rgba(18,14,10,.72)}.topbar nav{display:flex;align-items:center;gap:26px;padding:12px 22px}\n' +
+'.brand{font-weight:700;letter-spacing:.01em;text-decoration:none;font-size:1.06rem;display:flex;align-items:center;gap:9px}\n' +
+'.brand-dot{width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff,var(--accent-deep))}\n' +
+'.nav-links{display:flex;gap:22px;margin-left:auto}.nav-links a{text-decoration:none;font-size:.93rem;color:var(--ink-dim);transition:color .2s ease}\n' +
+'.nav-links a:hover{color:var(--ink)}.nav-links a:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}\n' +
+'.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:999px;font-family:inherit;font-size:.95rem;font-weight:600;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:transform .2s ease,box-shadow .25s ease,background .25s ease,border-color .25s ease;will-change:transform}\n' +
+'.btn:active{transform:scale(.97)}.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}\n' +
+'.btn-primary{background:linear-gradient(140deg,var(--accent),var(--accent-deep));color:#201206}.btn-primary:hover{box-shadow:0 10px 34px rgba(0,0,0,.35)}\n' +
+'.btn-ghost{background:var(--glass);color:var(--ink);border-color:var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}.btn-ghost:hover{background:var(--glass-strong);border-color:rgba(255,240,220,.26)}\n' +
+'.btn-small{padding:9px 18px;font-size:.88rem}\n' +
+'.ripple{position:absolute;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.35);transform:scale(0);animation:ripple .55s ease-out forwards}@keyframes ripple{to{transform:scale(3.4);opacity:0}}\n' +
+'.wrap{width:min(1140px,calc(100% - 40px));margin:0 auto}section{position:relative;scroll-margin-top:96px}.section-pad{padding:110px 0}\n' +
+'h1,h2,h3{line-height:1.08;letter-spacing:-.02em;font-weight:700}h1{font-size:clamp(2.5rem,5.4vw,4.1rem)}h2{font-size:clamp(1.9rem,3.4vw,2.7rem);margin-bottom:14px}h3{font-size:1.18rem}\n' +
+'.lede{color:var(--ink-dim);max-width:56ch}.eyebrow{display:inline-block;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}\n' +
+'[data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1)}[data-reveal].in{opacity:1;transform:translateY(0)}\n' +
+'.hero{min-height:100dvh;display:flex;align-items:center;padding:130px 0 80px}.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}\n' +
+'.hero p.lede{margin:20px 0 30px;font-size:1.08rem}.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}.accent-word{color:var(--accent)}\n' +
+'.drop-card{border-radius:var(--radius);background:var(--glass-strong);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,244,228,.1),0 30px 80px rgba(0,0,0,.45);padding:26px;transform-style:preserve-3d;will-change:transform}\n' +
+'.drop-card .tag{font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:block}.drop-card h3{font-size:1.5rem;margin-bottom:6px}.drop-card .notes{color:var(--ink-dim);font-size:.95rem;margin-bottom:20px}\n' +
+'.drop-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-top:1px solid var(--line);padding-top:18px}.drop-meta div span{display:block}.drop-meta .k{font-size:.74rem;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.1em}.drop-meta .v{font-weight:600;font-size:1.05rem}\n' +
+'.stats{border-radius:var(--radius);background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:34px 18px}\n' +
+'.stat{text-align:center;padding:0 10px}.stat b{font-size:clamp(1.7rem,3vw,2.4rem);font-weight:700;color:var(--accent);display:block;line-height:1.1}.stat span{color:var(--ink-dim);font-size:.88rem}\n' +
+'.offer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}\n' +
+'.offer-card{border-radius:var(--radius);overflow:hidden;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);transform-style:preserve-3d;will-change:transform;transition:border-color .3s ease,box-shadow .3s ease}\n' +
+'.offer-card:hover{border-color:var(--accent);box-shadow:0 24px 60px rgba(0,0,0,.45)}.offer-card .ph{aspect-ratio:4/3;overflow:hidden}.offer-card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.16,1,.3,1)}.offer-card:hover .ph img{transform:scale(1.06)}\n' +
+'.offer-body{padding:22px}.offer-body .notes{color:var(--ink-dim);font-size:.93rem;margin:8px 0 16px}.offer-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}.price{font-weight:700;color:var(--accent)}.offer-foot a{font-size:.88rem;color:var(--ink-dim);text-decoration:none;transition:color .2s ease}.offer-foot a:hover{color:var(--ink)}\n' +
+'.process-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}.process-list{display:flex;flex-direction:column;gap:6px;margin-top:30px}\n' +
+'.process-item{display:grid;grid-template-columns:52px 1fr;gap:18px;align-items:start;padding:20px 18px;border-radius:14px;transition:background .25s ease}.process-item:hover{background:var(--glass)}\n' +
+'.process-item .glyph{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--glass-strong);border:1px solid var(--line);color:var(--accent);font-weight:700}.process-item p{color:var(--ink-dim);font-size:.94rem}\n' +
+'.process-visual{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);will-change:transform}.process-visual img{width:100%;height:560px;object-fit:cover}\n' +
+'.plans{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:44px;max-width:860px}\n' +
+'.plan{border-radius:var(--radius);padding:34px 30px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line);transition:transform .3s ease,border-color .3s ease}.plan:hover{transform:translateY(-5px);border-color:rgba(255,240,220,.28)}\n' +
+'.plan.featured{border-color:var(--accent);background:linear-gradient(160deg,var(--glass-strong),rgba(255,249,240,.04))}.plan .amount{font-size:2.3rem;font-weight:700;margin:12px 0 4px}.plan .amount small{font-size:.95rem;font-weight:400;color:var(--ink-dim)}\n' +
+'.plan ul{list-style:none;margin:22px 0 28px;display:flex;flex-direction:column;gap:10px}.plan li{color:var(--ink-dim);font-size:.95rem;padding-left:22px;position:relative}.plan li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:50%;background:linear-gradient(140deg,var(--accent),var(--accent-deep))}\n' +
+'.contact-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center}.contact-visual{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);will-change:transform}.contact-visual img{width:100%;height:520px;object-fit:cover}\n' +
+'.contact-info{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:30px 0}.contact-info .cell{background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.contact-info .k{font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-dim);display:block;margin-bottom:6px}\n' +
+'blockquote{border-left:3px solid var(--accent);padding-left:22px;margin-top:44px;max-width:620px;font-size:1.12rem;line-height:1.55}blockquote footer{font-size:.9rem;color:var(--ink-dim);margin-top:10px}\n' +
+'.site-footer{border-top:1px solid var(--line);padding:54px 0 40px;margin-top:40px}.footer-grid{display:flex;align-items:flex-start;justify-content:space-between;gap:30px;flex-wrap:wrap}.footer-links{display:flex;gap:24px}.footer-links a{color:var(--ink-dim);text-decoration:none;font-size:.92rem;transition:color .2s ease}.footer-links a:hover{color:var(--ink)}.footer-links a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}\n' +
+'.fineprint{color:var(--ink-dim);font-size:.85rem;margin-top:34px}.fineprint a:hover{color:var(--ink)}\n' +
+'@media (max-width:960px){.hero-grid,.process-grid,.contact-grid{grid-template-columns:1fr;gap:40px}.offer-grid{grid-template-columns:1fr}.plans{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr);gap:26px 0}.process-visual img,.contact-visual img{height:380px}.process-visual{order:-1}}\n' +
+'@media (max-width:760px){.nav-links{display:none}.section-pad{padding:76px 0}.hero{padding-top:110px}}\n' +
+'@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}[data-reveal]{opacity:1;transform:none}}\n' +
+'</style>\n</head>\n<body id="top">\n' +
+'<div class="bg-blobs" aria-hidden="true"><div class="blob blob-a" data-parallax="0.16"></div><div class="blob blob-b" data-parallax="-0.1"></div><div class="blob blob-c" data-parallax="0.08"></div></div>\n' +
+'<canvas id="field" aria-hidden="true"></canvas>\n<div class="page">\n' +
+'<header class="topbar" id="topbar"><nav aria-label="Primary">' +
+'<a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>' + brand + '</a>' +
+'<div class="nav-links"><a href="#offerings">' + esc(pick(offerings.eyebrow, "Offerings")) + '</a><a href="#process">Process</a><a href="#plans">' + esc(pick(plans.eyebrow, "Plans")) + '</a><a href="#contact">Contact</a></div>' +
+'<a class="btn btn-primary btn-small" href="#plans" data-magnetic>' + esc(pick(hero.cta1, "Get started")) + '</a></nav></header>\n' +
+'<main>\n' +
+'<section class="hero"><div class="wrap hero-grid"><div data-reveal>' +
+'<h1>' + esc(pick(hero.leadLine, brand)) + ' <span class="accent-word">' + esc(pick(hero.accentWord, "")) + '</span></h1>' +
+'<p class="lede">' + esc(pick(hero.sub, "")) + '</p>' +
+'<div class="hero-ctas"><a class="btn btn-primary" href="#plans" data-magnetic>' + esc(pick(hero.cta1, "Get started")) + '</a>' +
+'<a class="btn btn-ghost" href="#offerings" data-magnetic>' + esc(pick(hero.cta2, "Learn more")) + '</a></div></div>' +
+'<aside class="drop-card" data-tilt data-reveal aria-label="Featured"><span class="tag">' + esc(pick(featured.tag, "Featured")) + '</span>' +
+'<h3>' + esc(pick(featured.title, "")) + '</h3><p class="notes">' + esc(pick(featured.notes, "")) + '</p>' +
+'<div class="drop-meta">' + renderMeta(featured.meta) + '</div></aside></div></section>\n' +
+'<section class="section-pad" aria-label="Highlights"><div class="wrap"><div class="stats" data-reveal>' + renderStats(c.stats) + '</div></div></section>\n' +
+'<section id="offerings" class="section-pad"><div class="wrap"><div data-reveal>' +
+'<span class="eyebrow">' + esc(pick(offerings.eyebrow, "Offerings")) + '</span><h2>' + esc(pick(offerings.title, "What we offer")) + '</h2>' +
+'<p class="lede">' + esc(pick(offerings.lede, "")) + '</p></div><div class="offer-grid">' + renderOfferings(offerings, email) + '</div></div></section>\n' +
+'<section id="process" class="section-pad"><div class="wrap process-grid"><div><div data-reveal>' +
+'<h2>' + esc(pick(process.title, "How it works")) + '</h2><p class="lede">' + esc(pick(process.lede, "")) + '</p></div>' +
+'<div class="process-list">' + renderSteps(process.steps) + '</div></div>' +
+'<div class="process-visual" data-parallax="0.05" data-reveal><img src="https://picsum.photos/seed/' + seed(process.imgSeed || (brand + " process")) + '/900/1200" width="900" height="1200" alt="' + attr(pick(process.title, "Process")) + '" loading="lazy"></div></div></section>\n' +
+'<section id="plans" class="section-pad"><div class="wrap"><div data-reveal>' +
+'<span class="eyebrow">' + esc(pick(plans.eyebrow, "Plans")) + '</span><h2>' + esc(pick(plans.title, "Choose a plan")) + '</h2>' +
+'<p class="lede">' + esc(pick(plans.lede, "")) + '</p></div><div class="plans">' + renderPlans(plans, email) + '</div></div></section>\n' +
+'<section id="contact" class="section-pad"><div class="wrap contact-grid">' +
+'<div class="contact-visual" data-parallax="0.04" data-reveal><img src="https://picsum.photos/seed/' + seed(contact.imgSeed || (brand + " place")) + '/900/1100" width="900" height="1100" alt="' + attr(pick(contact.title, "Contact")) + '" loading="lazy"></div>' +
+'<div><div data-reveal><h2>' + esc(pick(contact.title, "Get in touch")) + '</h2><p class="lede">' + esc(pick(contact.lede, "")) + '</p></div>' +
+'<div class="contact-info" data-reveal>' + renderInfo(contact.info) + '</div>' +
+(pick(contact.quote, "") ? '<blockquote data-reveal>"' + esc(contact.quote) + '"<footer>' + esc(pick(contact.quoteAuthor, "")) + '</footer></blockquote>' : '') +
+'</div></div></section>\n' +
+'</main>\n' +
+'<footer class="site-footer"><div class="wrap"><div class="footer-grid">' +
+'<a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>' + brand + '</a>' +
+'<div class="footer-links"><a href="#offerings">' + esc(pick(offerings.eyebrow, "Offerings")) + '</a><a href="#process">Process</a><a href="#plans">' + esc(pick(plans.eyebrow, "Plans")) + '</a><a href="#contact">Contact</a></div></div>' +
+'<p class="fineprint">' + esc(pick(c.footerNote, "")) + ' Contact: <a href="' + attr(mailto(email, "Website enquiry")) + '">' + esc(email) + '</a></p></div></footer>\n' +
+'</div>\n' +
+'<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n' +
+'<script>' + TEMPLATE_RUNTIME + '</scr' + 'ipt>\n</body>\n</html>';
+  }
+
+  // Runtime JS injected into every generated site (reveal, counters, tilt,
+  // magnetic, ripple, parallax, Three.js field). Same behaviour as the 25/25 sample.
+  var TEMPLATE_RUNTIME = '(function(){"use strict";var reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;var revealEls=document.querySelectorAll("[data-reveal]");if("IntersectionObserver" in window&&!reduced){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");runCounters(e.target);io.unobserve(e.target);}});},{threshold:.18});revealEls.forEach(function(el){io.observe(el);});}else{revealEls.forEach(function(el){el.classList.add("in");});runCounters(document);}function runCounters(scope){var cs=scope.querySelectorAll?scope.querySelectorAll("[data-counter]"):[];Array.prototype.forEach.call(cs,function(el){if(el.dataset.done)return;el.dataset.done="1";var t=parseInt(el.getAttribute("data-counter"),10)||0;if(reduced){el.textContent=t;return;}var s=null;function tick(ts){if(!s)s=ts;var p=Math.min((ts-s)/1300,1);el.textContent=Math.round(t*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);});}if(!reduced){document.querySelectorAll("[data-tilt]").forEach(function(card){var r=null;card.addEventListener("mousemove",function(e){var b=card.getBoundingClientRect();var px=(e.clientX-b.left)/b.width-.5;var py=(e.clientY-b.top)/b.height-.5;if(r)cancelAnimationFrame(r);r=requestAnimationFrame(function(){card.style.transform="perspective(900px) rotateX("+(-py*7).toFixed(2)+"deg) rotateY("+(px*9).toFixed(2)+"deg) translateZ(6px)";});});card.addEventListener("mouseleave",function(){if(r)cancelAnimationFrame(r);card.style.transition="transform .5s cubic-bezier(.16,1,.3,1)";card.style.transform="perspective(900px) rotateX(0) rotateY(0) translateZ(0)";setTimeout(function(){card.style.transition="";},500);});});document.querySelectorAll("[data-magnetic]").forEach(function(b){b.addEventListener("mousemove",function(e){var r=b.getBoundingClientRect();b.style.transform="translate("+((e.clientX-(r.left+r.width/2))*.18).toFixed(1)+"px,"+((e.clientY-(r.top+r.height/2))*.22).toFixed(1)+"px)";});b.addEventListener("mouseleave",function(){b.style.transform="translate(0,0)";});});}document.querySelectorAll(".btn").forEach(function(b){b.addEventListener("click",function(e){var r=b.getBoundingClientRect();var s=document.createElement("span");var sz=Math.max(r.width,r.height);s.className="ripple";s.style.width=s.style.height=sz+"px";s.style.left=(e.clientX-r.left-sz/2)+"px";s.style.top=(e.clientY-r.top-sz/2)+"px";b.appendChild(s);s.addEventListener("animationend",function(){s.remove();});});});var pt=[];document.querySelectorAll("[data-parallax]").forEach(function(el){pt.push({el:el,speed:parseFloat(el.getAttribute("data-parallax"))||.1,cur:0});});var tb=document.getElementById("topbar");if(!reduced){(function loop(){var sy=window.scrollY||window.pageYOffset;pt.forEach(function(t){var g=-sy*t.speed;t.cur+=(g-t.cur)*.09;t.el.style.transform="translate3d(0,"+t.cur.toFixed(2)+"px,0)";});if(tb)tb.classList.toggle("solid",sy>40);requestAnimationFrame(loop);})();}if(window.THREE&&!reduced){try{var cv=document.getElementById("field");var rn=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:false});rn.setPixelRatio(Math.min(window.devicePixelRatio,1.6));rn.setSize(window.innerWidth,window.innerHeight);var sc=new THREE.Scene();var cam=new THREE.PerspectiveCamera(58,window.innerWidth/window.innerHeight,.1,60);cam.position.z=9;var N=700;var pos=new Float32Array(N*3);for(var i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*22;pos[i*3+1]=(Math.random()-.5)*14;pos[i*3+2]=(Math.random()-.5)*12;}var g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));var col=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#e6a15c";var m=new THREE.PointsMaterial({color:new THREE.Color(col),size:.045,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false});var pts=new THREE.Points(g,m);sc.add(pts);var mx=0,my=0;window.addEventListener("pointermove",function(e){mx=e.clientX/window.innerWidth-.5;my=e.clientY/window.innerHeight-.5;});window.addEventListener("resize",function(){cam.aspect=window.innerWidth/window.innerHeight;cam.updateProjectionMatrix();rn.setSize(window.innerWidth,window.innerHeight);});(function rd(t){pts.rotation.y=t*4e-5+mx*.22;pts.rotation.x=Math.sin(t*3e-5)*.08+my*.16;rn.render(sc,cam);requestAnimationFrame(rd);})(0);}catch(e){}}})();';
+
+  var sampleContent = {
+    brand: "Sundara", tagline: "Small-batch natural skincare from Goa", email: "hello@sundara.in",
+    accentHex: "#e08a5c", accentDeepHex: "#b5613a",
+    hero: { leadLine: "Skincare made in small batches, by", accentWord: "hand.", sub: "Cold-pressed face oils, balms and soaps, blended from Goan botanicals in tiny runs.", cta1: "Shop the range", cta2: "Our ingredients" },
+    featured: { tag: "This month", title: "Kokum & Rose Face Oil", notes: "A light day oil pressed from kokum butter and Damask rose. Absorbs fast, never greasy.", meta: [{ k: "Size", v: "30 ml" }, { k: "Skin", v: "All types" }, { k: "Batch", v: "No. 32" }] },
+    stats: [{ value: 41, label: "botanicals we press" }, { value: 6, label: "years making by hand" }, { value: 28, label: "stockists across India" }, { value: 72, label: "hours to cure each soap" }],
+    offerings: { eyebrow: "The range", title: "Three ranges, made in tiny batches", lede: "Every batch is pressed, poured and labelled by hand in our Assagao studio.", items: [{ title: "Face oils", notes: "Cold-pressed single-origin oils for day and night.", price: "From Rs 640", imgSeed: "face oil dropper botanical" }, { title: "Balms", notes: "Whipped butters for lips, hands and dry patches.", price: "From Rs 380", imgSeed: "natural balm tin" }, { title: "Soaps", notes: "Cured cold-process soaps scented with essential oils.", price: "From Rs 220", imgSeed: "handmade soap bars herbs" }] },
+    process: { title: "Pressed, poured, cured by hand", lede: "Nothing is mass-produced. We make what sells in a fortnight, then make it again.", imgSeed: "skincare studio workshop hands", steps: [{ glyph: "So", title: "Source", body: "We buy botanicals from farms across Goa and the Western Ghats." }, { glyph: "Pr", title: "Press", body: "Oils are cold-pressed in small runs to keep the actives alive." }, { glyph: "Bl", title: "Blend", body: "Each formula is mixed by hand and rested before filling." }, { glyph: "Cu", title: "Cure", body: "Soaps cure for six weeks so every bar lasts and lathers." }] },
+    plans: { eyebrow: "Subscribe", title: "Skincare on a schedule", lede: "Pause or cancel anytime from a link in every dispatch email.", items: [{ name: "The Essentials", amount: "Rs 899", unit: "/ month", lede: "One product, every month.", features: ["Your pick or our choice", "Free shipping in India", "Skip or pause anytime"], featured: false }, { name: "The Ritual", amount: "Rs 1,699", unit: "/ month", lede: "A full oil, balm and soap set.", features: ["Every new seasonal batch", "First access to limited runs", "A handwritten note each month"], featured: true }] },
+    contact: { title: "Visit the studio", lede: "Our Assagao studio is open by appointment for refills, samples and slow browsing.", imgSeed: "goa skincare studio shelves", info: [{ k: "Studio", v: "House 214, Assagao, Bardez, Goa 403507" }, { k: "Hours", v: "Wed to Sun, by appointment" }, { k: "Refills", v: "Bring a bottle, save 15%" }, { k: "Contact", v: "hello@sundara.in" }], quote: "The kokum oil is the first thing that calmed my skin through a Goa monsoon. I have not switched since.", quoteAuthor: "Ananya Pai, Panjim" }
+  };
+
+  global.GF_CONTENT_SCHEMA = SCHEMA;
+  global.GF_TEMPLATE_PROMPT = PROMPT;
+  global.GF_renderTemplate = renderTemplate;
+  global.GF_sampleContent = sampleContent;
+})(typeof window !== "undefined" ? window : this);

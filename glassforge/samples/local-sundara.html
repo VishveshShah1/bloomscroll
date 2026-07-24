@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sundara - Premium Skincare from Goa</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header, .hero, .features, .about, .reviews, .contact {
+            backdrop-filter: blur(10px);
+            z-index: 2;
+            position: relative;
+        }
+        .hero, .features, .about, .reviews, .contact {
+            min-height: calc(100vh - 100px);
+        }
+        nav {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        nav a {
+            color: #333;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        .hero {
+            background-image: url('https://picsum.photos/seed/SundaraGoa/1920/1080');
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            text-align: center;
+        }
+        .features {
+            background-color: #fff;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .feature {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            text-align: center;
+            padding: 1rem;
+            position: relative;
+        }
+        .about {
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 2rem;
+        }
+        .process, .stats {
+            width: calc(100% - 3rem);
+        }
+        .reviews {
+            background-color: #fff;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-around;
+        }
+        .contact {
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#hero">Home</a>
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+    <main>
+        <section id="hero" class="hero">
+            <h1>Welcome to Sundara</h1>
+        </section>
+        <section id="features" class="features">
+            <div data-reveal class="feature" data-tilt>
+                <img src="https://picsum.photos/seed/SundaraFaceOil/200/200" alt="Sundara Face Oil">
+                <h3>Cold-Pressed Face Oil</h3>
+            </div>
+            <div data-reveal class="feature" data-tilt>
+                <img src="https://picsum.photos/seed/SundaraBalms/200/200" alt="Sundara Balms">
+                <h3>Local Botanicals</h3>
+            </div>
+            <div data-reveal class="feature" data-tilt>
+                <img src="https://picsum.photos/seed/SundaraSoaps/200/200" alt="Sundara Soaps">
+                <h3>Small-Batch Soaps</h3>
+            </div>
+        </section>
+        <section id="about" class="about">
+            <div data-reveal>
+                <img src="https://picsum.photos/seed/SundaraGoaLandscapes/600/400" alt="Sundara Landscapes">
+                <h2>About Sundara</h2>
+                <p>Sundara is a small-batch natural skincare studio in the heart of Goa, India. Our products are crafted from locally-sourced botanicals using traditional cold-pressed methods to ensure purity and efficacy.</p>
+            </div>
+        </section>
+        <section id="reviews" class="reviews">
+            <h2>Customer Reviews</h2>
+            <div data-reveal>
+                <img src="https://picsum.photos/seed/SundaraReview1/300/200" alt="Customer Review 1">
+                <p>"I've never had skin like this before. Highly recommend Sundara products!"</p>
+            </div>
+            <div data-reveal>
+                <img src="https://picsum.photos/seed/SundaraReview2/300/200" alt="Customer Review 2">
+                <p>"Absolutely love the aroma and results from these soaps. Thank you, Sundara!"</p>
+            </div>
+        </section>
+        <section id="contact" class="contact">
+            <h2>Contact Us</h2>
+            <form action="mailto:support@sundara.com" method="post">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Sundara. All rights reserved.</p>
+    </footer>
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal');
+                }
+            });
+        }, {
+            threshold: 0.2
+        });
+
+        document.querySelectorAll('[data-reveal]').forEach(element => {
+            observer.observe(element);
+        });
+
+        let prevScrollPos = window.pageYOffset;
+        const parallaxElement = document.querySelector('.hero');
+
+        function handleMouseMove(event) {
+            const tiltX = (event.clientY / window.innerHeight - 0.5) * 20;
+            const tiltY = (event.clientX / window.innerWidth - 0.5) * 20;
+            parallaxElement.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+        }
+
+        window.addEventListener('mousemove', handleMouseMove);
+
+        let lastScrollTop = 0;
+        function handleScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop) {
+                // Scrolling down
+                parallaxElement.style.transform = 'translate3d(0, -15px, 0)';
+            } else {
+                // Scrolling up
+                parallaxElement.style.transform = 'translate3d(0, 0, 0)';
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        }
+
+        window.addEventListener('scroll', handleScroll);
+
+        if (typeof THREE !== 'undefined') {
+            const canvas = document.createElement('canvas');
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            document.body.appendChild(canvas);
+
+            try {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas });
+
+                const geometry = new THREE.SphereGeometry(2, 32, 32);
+                const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const sphere = new THREE.Mesh(geometry, material);
+                scene.add(sphere);
+
+                camera.position.z = 5;
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    sphere.rotation.x += 0.01;
+                    sphere.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                }
+
+                animate();
+            } catch (e) {}
+        }
+    </script>
+</body>
+</html>

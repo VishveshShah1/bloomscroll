@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bloomscroll",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": [
+        "/c",
+        "set PATH=C:\\Users\\vishv\\tools\\node;%PATH% && C:\\Users\\vishv\\tools\\node\\npm.cmd --prefix bloomscroll run start"
+      ],
+      "port": 3000
+    }
+  ]
+}

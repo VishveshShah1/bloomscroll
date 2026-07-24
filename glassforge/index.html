@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GlassForge — 3D liquid-glass website generator</title>
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --panel: rgba(255,255,255,0.04);
+    --panel-strong: rgba(255,255,255,0.07);
+    --line: rgba(255,255,255,0.11);
+    --ink: #eef1f6;
+    --ink-dim: #99a1b0;
+    --accent: #6ea8fe;
+    --accent-2: #8b7cff;
+    --good: #4ec99a;
+    --warn: #f0b36b;
+    --bad: #f0796b;
+    --radius: 14px;
+    font-synthesis: none;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    background:
+      radial-gradient(60vw 50vh at 12% -6%, rgba(110,168,254,0.16), transparent 60%),
+      radial-gradient(50vw 46vh at 100% 0%, rgba(139,124,255,0.14), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button, input, textarea, select { font-family: inherit; color: inherit; }
+  a { color: var(--accent); }
+
+  .app { display: grid; grid-template-columns: 380px 1fr; height: 100vh; }
+  @media (max-width: 900px) { .app { grid-template-columns: 1fr; grid-template-rows: 44vh 56vh; } }
+
+  /* ---------- left control column ---------- */
+  .side {
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; min-height: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  }
+  .brandbar { padding: 16px 18px; border-bottom: 1px solid var(--line); display:flex; align-items:center; gap:10px; }
+  .logo { width:26px; height:26px; border-radius:8px; background: conic-gradient(from 210deg, var(--accent), var(--accent-2), var(--accent)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 6px 18px rgba(110,168,254,0.35); }
+  .brandbar h1 { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brandbar .sub { font-size: 0.72rem; color: var(--ink-dim); }
+
+  .side-scroll { overflow-y: auto; padding: 16px 18px 20px; display:flex; flex-direction:column; gap:18px; min-height:0; flex:1; }
+  .side-scroll::-webkit-scrollbar { width: 9px; }
+  .side-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 9px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .card h2 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-dim); margin-bottom: 10px; font-weight: 600; }
+  .row { display:flex; gap:8px; }
+  label.field { display:block; font-size: 0.78rem; color: var(--ink-dim); margin-bottom: 6px; }
+
+  input[type=text], input[type=password], textarea, select {
+    width:100%; background: rgba(0,0,0,0.28); border:1px solid var(--line); border-radius:10px;
+    padding: 10px 12px; font-size: 0.9rem; outline:none; transition: border-color .2s, box-shadow .2s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,254,0.18); }
+  textarea { resize: vertical; min-height: 92px; line-height:1.5; }
+  select { appearance:none; cursor:pointer; }
+  .hint { font-size: 0.72rem; color: var(--ink-dim); margin-top: 6px; line-height:1.5; }
+
+  .btn {
+    border:1px solid transparent; border-radius:10px; padding:10px 14px; font-size:0.88rem; font-weight:600;
+    cursor:pointer; transition: transform .12s, box-shadow .2s, background .2s, border-color .2s, opacity .2s;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap;
+  }
+  .btn:active { transform: translateY(1px) scale(0.99); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#08111f; }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(110,168,254,0.4); }
+  .btn-ghost { background: var(--panel-strong); border-color: var(--line); color: var(--ink); }
+  .btn-ghost:hover:not(:disabled) { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.1); }
+  .btn-block { width:100%; }
+  .btn-sm { padding: 7px 11px; font-size: 0.8rem; }
+
+  .keyline { display:flex; align-items:center; gap:8px; }
+  .keyline .dot { width:8px; height:8px; border-radius:50%; background: var(--bad); flex:none; }
+  .keyline .dot.ok { background: var(--good); }
+  .keyline .status { font-size:0.78rem; color:var(--ink-dim); }
+
+  /* score panel */
+  .score-head { display:flex; align-items:baseline; justify-content:space-between; }
+  .score-total { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+  .score-total small { font-size:0.9rem; color: var(--ink-dim); font-weight:600; }
+  .verdict { font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .verdict.pass { background: rgba(78,201,154,0.16); color: var(--good); }
+  .verdict.fail { background: rgba(240,121,107,0.16); color: var(--bad); }
+  .verdict.idle { background: rgba(255,255,255,0.08); color: var(--ink-dim); }
+  .cats { display:flex; flex-direction:column; gap:7px; margin-top:12px; }
+  .cat { display:grid; grid-template-columns: 90px 1fr 34px; align-items:center; gap:10px; font-size:0.8rem; }
+  .cat .bar { height:7px; border-radius:99px; background: rgba(255,255,255,0.08); overflow:hidden; }
+  .cat .bar i { display:block; height:100%; border-radius:99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .5s cubic-bezier(.16,1,.3,1); }
+  .cat .bar i.low { background: linear-gradient(90deg, var(--warn), var(--bad)); }
+  .cat .val { text-align:right; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+  details.checks { margin-top:10px; }
+  details.checks summary { font-size:0.75rem; color:var(--ink-dim); cursor:pointer; }
+  details.checks ul { list-style:none; margin-top:8px; display:flex; flex-direction:column; gap:5px; }
+  details.checks li { font-size:0.74rem; color:var(--ink-dim); line-height:1.45; padding-left:16px; position:relative; }
+  details.checks li::before { content:"✓"; position:absolute; left:0; color:var(--good); }
+  details.checks li.miss::before { content:"✕"; color:var(--bad); }
+
+  /* chat */
+  .chat { display:flex; flex-direction:column; gap:10px; }
+  .msgs { display:flex; flex-direction:column; gap:9px; max-height: 240px; overflow-y:auto; }
+  .msg { font-size:0.82rem; line-height:1.5; padding:9px 11px; border-radius:11px; border:1px solid var(--line); }
+  .msg.you { background: rgba(110,168,254,0.12); border-color: rgba(110,168,254,0.28); align-self:flex-end; max-width:90%; }
+  .msg.sys { background: rgba(255,255,255,0.03); color: var(--ink-dim); }
+  .msg .who { font-size:0.66rem; text-transform:uppercase; letter-spacing:0.1em; opacity:0.7; margin-bottom:3px; }
+
+  /* ---------- right preview column ---------- */
+  .preview { display:flex; flex-direction:column; min-width:0; min-height:0; }
+  .toolbar { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .toolbar .spacer { flex:1; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .seg button { background:transparent; border:none; padding:7px 11px; font-size:0.78rem; cursor:pointer; color:var(--ink-dim); }
+  .seg button.active { background: var(--panel-strong); color: var(--ink); }
+  .toggle { display:flex; align-items:center; gap:7px; font-size:0.8rem; color:var(--ink-dim); cursor:pointer; user-select:none; }
+  .switch { width:38px; height:22px; border-radius:99px; background: rgba(255,255,255,0.14); position:relative; transition: background .2s; flex:none; }
+  .switch::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition: transform .2s; }
+  .toggle.on .switch { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .toggle.on .switch::after { transform: translateX(16px); }
+
+  .stage { flex:1; min-height:0; position:relative; display:flex; align-items:stretch; justify-content:center; background: #06070a; padding: 14px; overflow:auto; }
+  .frame-wrap { background:#fff; border-radius:12px; overflow:hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5); width:100%; transition: width .3s ease; }
+  .frame-wrap.tablet { width:820px; max-width:100%; }
+  .frame-wrap.mobile { width:390px; max-width:100%; }
+  iframe#preview { width:100%; height:100%; border:0; display:block; background:#fff; }
+
+  .placeholder { margin:auto; text-align:center; color:var(--ink-dim); max-width:440px; padding:30px; }
+  .placeholder h3 { color:var(--ink); font-size:1.2rem; margin-bottom:10px; letter-spacing:-0.01em; }
+  .placeholder p { font-size:0.9rem; line-height:1.6; }
+
+  /* overlay progress */
+  .overlay { position:absolute; inset:14px; border-radius:12px; background: rgba(6,7,10,0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display:none; align-items:center; justify-content:center; z-index:5; }
+  .overlay.show { display:flex; }
+  .overlay .box { text-align:center; max-width:460px; padding:24px; }
+  .spinner { width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,0.15); border-top-color: var(--accent); margin:0 auto 16px; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay .step { font-size:0.92rem; margin-bottom:6px; }
+  .overlay .detail { font-size:0.78rem; color:var(--ink-dim); line-height:1.5; }
+
+  .edit-help { display:none; padding:8px 14px; font-size:0.76rem; color:var(--warn); border-bottom:1px solid var(--line); background: rgba(240,179,107,0.06); }
+  .edit-help.show { display:block; }
+
+  .palette { display:none; }
+  .palette.show { display:block; }
+  .swatches { display:grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+  .swatch { display:flex; align-items:center; gap:8px; font-size:0.76rem; }
+  .swatch input[type=color] { width:26px; height:26px; border:1px solid var(--line); border-radius:7px; background:transparent; padding:0; cursor:pointer; flex:none; }
+  .swatch code { color: var(--ink-dim); font-size:0.72rem; overflow:hidden; text-overflow:ellipsis; }
+
+  .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(20px); background: rgba(20,22,30,0.95); border:1px solid var(--line); border-radius:11px; padding:11px 16px; font-size:0.84rem; opacity:0; transition: opacity .25s, transform .25s; z-index:50; pointer-events:none; max-width:80vw; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .err { color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ LEFT: controls ============ -->
+  <aside class="side">
+    <div class="brandbar">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>GlassForge</h1>
+        <div class="sub">3D liquid-glass site generator</div>
+      </div>
+    </div>
+
+    <div class="side-scroll">
+      <!-- provider + API key -->
+      <section class="card">
+        <h2>Model provider</h2>
+        <select id="provider" style="margin-bottom:10px;">
+          <option value="ollama">Local (Ollama) &mdash; unlimited, no key (default)</option>
+          <option value="groq">Groq &mdash; free cloud (12k tokens/min limit)</option>
+          <option value="gemini">Google Gemini &mdash; free cloud (region-dependent)</option>
+          <option value="anthropic">Anthropic (Claude) &mdash; paid</option>
+        </select>
+        <label class="field" id="keyLabel">Google AI Studio API key</label>
+        <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+        <div class="row" style="margin-top:8px;">
+          <label class="toggle" id="rememberWrap" style="font-size:0.74rem;">
+            <input type="checkbox" id="remember" style="width:auto;"> Remember on this device
+          </label>
+        </div>
+        <div class="keyline" style="margin-top:10px;">
+          <span class="dot" id="keyDot"></span>
+          <span class="status" id="keyStatus">No key set — generation disabled</span>
+        </div>
+        <div class="hint" id="keyHint"></div>
+        <label class="field" style="margin-top:12px;">Model</label>
+        <select id="model"></select>
+      </section>
+
+      <!-- prompt -->
+      <section class="card">
+        <h2>Describe the site</h2>
+        <textarea id="prompt" placeholder="e.g. A studio for a Lisbon-based ceramic artist named Inês, showing her tableware collections, kiln process, and a way to commission custom pieces."></textarea>
+        <label class="toggle" style="font-size:0.78rem; margin-top:10px;">
+          <input type="checkbox" id="templateMode" checked style="width:auto;">
+          Reliable template mode (fast, always passes the bar)
+        </label>
+        <button class="btn btn-primary btn-block" id="generateBtn" style="margin-top:10px;" disabled>Generate &amp; self-test</button>
+        <div class="hint" id="genHint">Template mode: the model writes only the copy (~1&nbsp;KB), poured into a proven 25/25 liquid-glass layout. Fast on any model. Uncheck for freeform (model writes the whole site — needs a strong model).</div>
+      </section>
+
+      <!-- score -->
+      <section class="card" id="scoreCard">
+        <div class="score-head">
+          <div><span class="score-total" id="scoreTotal">—<small>/25</small></span></div>
+          <span class="verdict idle" id="verdict">not scored</span>
+        </div>
+        <div class="cats" id="cats"></div>
+        <details class="checks" id="checksWrap" style="display:none;">
+          <summary>Per-check detail</summary>
+          <ul id="checksList"></ul>
+        </details>
+        <button class="btn btn-ghost btn-sm btn-block" id="rescoreBtn" style="margin-top:12px; display:none;">Re-run scorer</button>
+      </section>
+
+      <!-- chat revisions -->
+      <section class="card">
+        <h2>Refine by chat</h2>
+        <div class="chat">
+          <div class="msgs" id="msgs"></div>
+          <textarea id="chatInput" placeholder='e.g. "make the hero bigger", "shift to a warm palette", "add a testimonials section"' style="min-height:64px;"></textarea>
+          <button class="btn btn-ghost btn-block" id="chatBtn" disabled>Send edit &amp; re-test</button>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- ============ RIGHT: preview ============ -->
+  <main class="preview">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Viewport width">
+        <button data-vp="desktop" class="active">Desktop</button>
+        <button data-vp="tablet">Tablet</button>
+        <button data-vp="mobile">Mobile</button>
+      </div>
+      <label class="toggle" id="editToggle" title="Click text to edit, click images to replace, use swatches for colours">
+        <span class="switch"></span> Edit mode
+      </label>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" id="paletteBtn" style="display:none;">Colours</button>
+      <button class="btn btn-ghost btn-sm" id="downloadBtn" disabled>Download HTML</button>
+    </div>
+
+    <div class="edit-help" id="editHelp">
+      Edit mode on — click any text to type over it, click an image to swap it, open <b>Colours</b> to recolour. Click "Edit mode" again to finish.
+    </div>
+
+    <section class="card palette" id="palettePanel" style="margin:12px 14px 0; padding:12px;">
+      <h2 style="margin-bottom:10px;">Palette (CSS variables)</h2>
+      <div class="swatches" id="swatches"></div>
+    </section>
+
+    <div class="stage">
+      <div class="frame-wrap" id="frameWrap">
+        <iframe id="preview" title="Generated site preview" referrerpolicy="no-referrer"></iframe>
+      </div>
+      <div class="placeholder" id="placeholder">
+        <h3>Nothing forged yet</h3>
+        <p>Paste your Anthropic API key, describe a business or idea, and hit Generate. GlassForge builds a self-contained liquid-glass site, renders it, scores it against the 25-point rubric, and auto-fixes any weak category before you see it.</p>
+      </div>
+      <div class="overlay" id="overlay">
+        <div class="box">
+          <div class="spinner"></div>
+          <div class="step" id="ovStep">Working…</div>
+          <div class="detail" id="ovDetail"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- template engine: content JSON -> proven 25/25 liquid-glass site (loaded external so its </script> in output is safe) -->
+<script src="template.js"></script>
+<script id="scorer">
+/* ===== Inlined GlassForge scorer (same engine as scorer.js / verify.py) ===== */
+(function (global) {
+  "use strict";
+  function raf(win){return new Promise(function(res){win.requestAnimationFrame(function(){res();});});}
+  function wait(win,ms){return new Promise(function(res){win.setTimeout(res,ms);});}
+  async function settle(win,frames,ms){for(var i=0;i<frames;i++)await raf(win);if(ms)await wait(win,ms);}
+  function alphaOf(color){
+    if(!color)return 1; if(color==="transparent")return 0;
+    var m=color.match(/rgba?\(([^)]+)\)/);
+    if(m){var parts=m[1].split(/[\s,\/]+/).filter(Boolean);return parts.length>=4?parseFloat(parts[3]):1;}
+    m=color.match(/color\([^)]+\/\s*([\d.]+)\s*\)/); if(m)return parseFloat(m[1]); return 1;
+  }
+  function blurRadius(f){var m=(f||"").match(/blur\(\s*([\d.]+)px\s*\)/);return m?parseFloat(m[1]):0;}
+  function area(el){var r=el.getBoundingClientRect();return r.width*r.height;}
+  function collectRules(doc){var out=[];var sheets=Array.prototype.slice.call(doc.styleSheets);
+    for(var s=0;s<sheets.length;s++){var rules;try{rules=sheets[s].cssRules;}catch(e){continue;}if(!rules)continue;
+      for(var i=0;i<rules.length;i++){out.push(rules[i]);if(rules[i].cssRules){for(var j=0;j<rules[i].cssRules.length;j++)out.push(rules[i].cssRules[j]);}}}
+    return out;}
+
+  async function score(win,doc){
+    win=win||global; doc=doc||win.document;
+    var cs=function(el){return win.getComputedStyle(el);};
+    var all=Array.prototype.slice.call(doc.querySelectorAll("*")).slice(0,4000);
+    var source=doc.documentElement.outerHTML;
+    var rules=collectRules(doc);
+    var savedScroll=win.scrollY;
+    var categories=[], failures=[];
+    function addCategory(key,label,checks){
+      var capped=checks.map(function(c){return Object.assign({},c,{earned:Math.min(c.earned,c.points)});});
+      var sc=Math.min(5,capped.reduce(function(s,c){return s+c.earned;},0));
+      categories.push({key:key,label:label,score:sc,max:5,checks:capped});
+      capped.forEach(function(c){if(c.earned<c.points)failures.push("["+label+"] "+c.name+": "+c.detail);});
+      return sc;
+    }
+    /* GLASS */
+    var blurSurfaces=all.filter(function(el){var s=cs(el);var bf=s.backdropFilter||s.webkitBackdropFilter||"";return bf.indexOf("blur")>=0&&area(el)>900;});
+    var translucent=blurSurfaces.filter(function(el){return alphaOf(cs(el).backgroundColor)<1;});
+    var bordered=blurSurfaces.filter(function(el){var s=cs(el);return parseFloat(s.borderTopWidth)>0&&alphaOf(s.borderTopColor)<=0.6;});
+    var glowShapes=all.filter(function(el){var s=cs(el);
+      var isBlurred=blurRadius(s.filter)>=20&&area(el)>=8000;
+      var isGrad=/radial-gradient|conic-gradient/.test(s.backgroundImage)&&(s.position==="absolute"||s.position==="fixed")&&area(el)>=8000;
+      return isBlurred||isGrad;});
+    addCategory("glass","Glass",[
+      {name:"backdrop-filter blur on 3+ surfaces",points:2,earned:blurSurfaces.length>=3?2:blurSurfaces.length>=1?1:0,detail:blurSurfaces.length+" surfaces (need 3+)"},
+      {name:"semi-transparent glass backgrounds",points:1,earned:translucent.length>=3?1:0,detail:translucent.length+" translucent (need 3+)"},
+      {name:"thin low-opacity light borders",points:1,earned:bordered.length>=3?1:0,detail:bordered.length+" bordered (need 3+)"},
+      {name:"blurred colour shapes behind glass",points:1,earned:glowShapes.length>=2?1:0,detail:glowShapes.length+" glow shapes (need 2+)"}
+    ]);
+    /* 3D */
+    var hasPerspective=all.some(function(el){var s=cs(el);return s.perspective!=="none"||(s.transform||"").indexOf("perspective")>=0;})||/perspective/.test(source);
+    var tiltCandidates=Array.prototype.slice.call(doc.querySelectorAll('[data-tilt],[class*="tilt"],[class*="card"]')).slice(0,40);
+    var tiltPool=tiltCandidates.length?tiltCandidates:all.slice(0,200);
+    function fireMove(el,fx,fy){var r=el.getBoundingClientRect();try{el.dispatchEvent(new win.MouseEvent("mousemove",{bubbles:true,cancelable:true,view:win,clientX:r.left+r.width*fx,clientY:r.top+r.height*fy}));}catch(e){}}
+    var snapT=function(){return tiltPool.map(function(el){return cs(el).transform;});};
+    var t0=snapT(); tiltPool.forEach(function(el){fireMove(el,0.92,0.08);}); await settle(win,3,60);
+    var t1=snapT(); tiltPool.forEach(function(el){fireMove(el,0.08,0.92);}); await settle(win,3,60);
+    var t2=snapT(); var tiltWorks=false;
+    for(var i=0;i<tiltPool.length;i++){if(t0[i]!==t1[i]||t1[i]!==t2[i]){tiltWorks=true;break;}}
+    var tiltPatternOnly=/rotate[XY]/.test(source)&&/mousemove|pointermove/.test(source);
+    var webgl=typeof win.THREE!=="undefined";
+    if(!webgl){var cvs=doc.querySelectorAll("canvas");for(var c=0;c<cvs.length;c++){try{if(cvs[c].getContext("webgl2")||cvs[c].getContext("webgl")){webgl=true;break;}}catch(e){}}}
+    var zSet={};var zc=0; for(var k=0;k<all.length;k++){var s2=cs(all[k]);if(s2.position!=="static"&&s2.zIndex!=="auto"){if(!zSet[s2.zIndex]){zSet[s2.zIndex]=1;zc++;}}}
+    var depth=zc>=3||/translateZ|translate3d/.test(source);
+    addCategory("threed","3D",[
+      {name:"CSS perspective present",points:1,earned:hasPerspective?1:0,detail:"no perspective found"},
+      {name:"mouse-reactive tilt (runtime)",points:2,earned:tiltWorks?2:tiltPatternOnly?1:0,detail:tiltWorks?"ok":tiltPatternOnly?"code present, no runtime change":"no tilt response"},
+      {name:"WebGL / Three.js element",points:1,earned:webgl?1:0,detail:"no WebGL/THREE found"},
+      {name:"layered depth (z-index/translateZ)",points:1,earned:depth?1:0,detail:zc+" z-layers (need 3+)"}
+    ]);
+    /* SCROLL */
+    var usesIO=/IntersectionObserver/.test(source);
+    var revealEls=doc.querySelectorAll("[data-reveal]").length;
+    var sections=doc.querySelectorAll("section").length;
+    var revealCoverage=revealEls>=Math.max(6,sections);
+    var smooth=cs(doc.documentElement).scrollBehavior==="smooth"||/scroll-behavior:\s*smooth/.test(source)||/behavior:\s*['"]smooth/.test(source);
+    var parallaxEls=Array.prototype.slice.call(doc.querySelectorAll("[data-parallax]")).slice(0,30);
+    var parallaxWorks=false, continuous=false;
+    if(parallaxEls.length){
+      var maxScroll=Math.max(0,doc.documentElement.scrollHeight-win.innerHeight);
+      var snapP=function(){return parallaxEls.map(function(el){return cs(el).transform;});};
+      var p0=snapP(); win.scrollTo(0,Math.floor(maxScroll*0.35)); await settle(win,6,450);
+      var p1=snapP(); win.scrollTo(0,Math.floor(maxScroll*0.7)); await settle(win,6,450);
+      var p2=snapP();
+      for(var q=0;q<parallaxEls.length;q++){if(p0[q]!==p1[q])parallaxWorks=true;if(p1[q]!==p2[q]&&p0[q]!==p1[q])continuous=true;}
+      win.scrollTo(0,savedScroll); await settle(win,2,0);
+    }
+    var parallaxPattern=/parallax/i.test(source)&&/scrollY|pageYOffset/.test(source);
+    addCategory("scroll","Scroll",[
+      {name:"IntersectionObserver reveals on every section",points:2,earned:(usesIO&&revealCoverage)?2:usesIO?1:0,detail:usesIO?revealEls+" reveals / "+sections+" sections":"no IntersectionObserver"},
+      {name:"site-wide smooth scrolling",points:1,earned:smooth?1:0,detail:"not smooth"},
+      {name:"parallax (runtime)",points:1,earned:(parallaxWorks||parallaxPattern)?1:0,detail:"no parallax movement"},
+      {name:"continuous scroll response",points:1,earned:continuous?1:0,detail:"no two-position tracking"}
+    ]);
+    /* INTERACTIVITY */
+    var hoverRules=0, focusRules=0;
+    for(var r2=0;r2<rules.length;r2++){var sel=rules[r2].selectorText||"";if(sel.indexOf(":hover")>=0)hoverRules++;if(sel.indexOf(":focus")>=0)focusRules++;}
+    var micro=doc.querySelector("[data-counter]")!==null||/magnetic|ripple|cursor-dot|cursor-follower|typewriter/i.test(source);
+    var navLinks=Array.prototype.slice.call(doc.querySelectorAll('nav a[href^="#"]'));
+    var navTargetsOk=navLinks.length>=3&&navLinks.every(function(a){var id=a.getAttribute("href").slice(1);return id&&doc.getElementById(id);});
+    var deadLinks=doc.querySelectorAll('a[href="#"], a:not([href])').length;
+    addCategory("interactivity","Interactivity",[
+      {name:"real hover + focus states",points:2,earned:(hoverRules>=8&&focusRules>=1)?2:hoverRules>=4?1:0,detail:hoverRules+" hover / "+focusRules+" focus rules"},
+      {name:"micro-interaction beyond hover",points:1,earned:micro?1:0,detail:"none found"},
+      {name:"nav anchors resolve to sections",points:1,earned:navTargetsOk?1:0,detail:navLinks.length+" nav anchors"},
+      {name:"no dead-end links",points:1,earned:deadLinks===0?1:0,detail:deadLinks+" dead links"}
+    ]);
+    /* FOUNDATION */
+    var bodyText=(doc.body.innerText||"").trim();
+    var realCopy=!/lorem ipsum/i.test(bodyText)&&bodyText.length>1200;
+    var hasViewport=!!doc.querySelector('meta[name="viewport"]');
+    var mediaRules=0; for(var r3=0;r3<rules.length;r3++){if(rules[r3].media&&rules[r3].conditionText)mediaRules++;}
+    var noOverflowX=doc.documentElement.scrollWidth<=win.innerWidth+2;
+    var imgs=Array.prototype.slice.call(doc.querySelectorAll("img"));
+    var semantic=!!doc.querySelector("header")&&!!doc.querySelector("nav")&&(!!doc.querySelector("main")||sections>=3)&&!!doc.querySelector("footer")&&imgs.every(function(im){return im.hasAttribute("alt");});
+    var consoleEarned=1, consoleDetail="ok";
+    if(Array.isArray(win.__gf_errors)){consoleEarned=win.__gf_errors.length===0?1:0;consoleDetail=win.__gf_errors.length?win.__gf_errors.length+" error(s): "+win.__gf_errors.slice(0,3).join(" | "):"ok";}
+    else{consoleDetail="not instrumented";}
+    addCategory("foundation","Foundation",[
+      {name:"real copy, no lorem ipsum",points:1,earned:realCopy?1:0,detail:bodyText.length+" chars"},
+      {name:"responsive (viewport + media queries)",points:1,earned:(hasViewport&&mediaRules>=2)?1:0,detail:"viewport="+hasViewport+", "+mediaRules+" media blocks"},
+      {name:"no horizontal overflow",points:1,earned:noOverflowX?1:0,detail:doc.documentElement.scrollWidth+" vs "+win.innerWidth},
+      {name:"semantic landmarks + alt text",points:1,earned:semantic?1:0,detail:"header/nav/main/footer/alt"},
+      {name:"zero console errors",points:1,earned:consoleEarned,detail:consoleDetail}
+    ]);
+    var total=categories.reduce(function(s,c){return s+c.score;},0);
+    var passed=total>=22&&categories.every(function(c){return c.score>=3;});
+    return {total:total,max:25,passed:passed,categories:categories,failures:failures};
+  }
+  global.GlassForgeScorer={score:score};
+})(window);
+</script>
+
+<script id="prompts">
+/* ===== System prompt = the rubric, verbatim, plus the hook contract ===== */
+window.GF_SYSTEM_PROMPT = `You are GlassForge, an elite front-end engineer that outputs ONE complete, self-contained, production-quality HTML file for a "3D interactive liquid glass" marketing website.
+
+OUTPUT CONTRACT (strict):
+- Output ONLY the HTML document. Start at <!DOCTYPE html> and end at </html>. No markdown fences, no commentary before or after.
+- Everything inline in ONE file: all CSS in a single <style>, all JS in <script> tags. The only permitted external resource is a Google Fonts stylesheet and, optionally, Three.js from cdnjs (https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js). Images use https://picsum.photos/seed/{descriptive-seed}/{w}/{h}.
+- Never use lorem ipsum. Write real, specific copy for the exact business described. Invent believable names, places, and details. Zero placeholder text.
+- NEVER use an em-dash (—) or en-dash (–) anywhere visible. Use a normal hyphen or restructure. This is non-negotiable.
+
+YOU ARE SCORED against this 25-point rubric (need 22+, no category under 3). Build to satisfy every bullet:
+
+GLASS (/5)
+- backdrop-filter: blur(...) on at least 3 DISTINCT glass surfaces (the nav, plus cards and panels).
+- Those surfaces use semi-transparent rgba()/hsla() backgrounds, never solid fills.
+- Each glass panel has a thin, low-opacity light border (e.g. 1px solid rgba(255,255,255,0.12)) so its edge reads as glass.
+- Several large, soft, BLURRED colour shapes (filter: blur(90px+) or big radial-gradients) sit BEHIND the glass so the blur has something to refract.
+
+3D (/5)
+- CSS perspective + rotateX/rotateY tilt on cards/hero that responds to mouse movement (mousemove handler updating the transform).
+- A lightweight Three.js/WebGL background element (a particle field or floating geometry) on a fixed full-viewport <canvas>. Guard it in try/catch and skip silently if THREE is undefined so the console stays clean.
+- Real depth: layered z-index (at least 3 distinct stacking layers) and translateZ/scale differences between background and foreground.
+
+SCROLL (/5)
+- EVERY major section (not just the hero) animates in on scroll via IntersectionObserver.
+- Smooth scrolling site-wide (html { scroll-behavior: smooth }).
+- Background moves at a different speed than the foreground as you scroll (parallax).
+- Elements respond continuously to scroll position, not just once.
+
+INTERACTIVITY (/5)
+- Every clickable/hoverable element has a real hover AND focus-visible state.
+- At least one micro-interaction beyond hover: animated counters, magnetic buttons, click ripple, or a cursor follower.
+- A nav that smooth-scrolls to the correct section (anchor links to real section ids).
+- No dead ends: every button/link does something visible (anchor scroll, mailto:, or tel:). Never href="#".
+
+FOUNDATION (/5)
+- Real copy matching the described business. Clean at mobile, tablet and desktop (include @media queries).
+- Semantic HTML: <header>, <nav>, <main>, multiple <section>, <footer>. alt text on every <img>. A <meta name="viewport">.
+- Zero console errors. No layout shift on load (set width/height on images, reserve space).
+- Honour prefers-reduced-motion: disable animations/parallax under it.
+
+MANDATORY HOOK CONTRACT (the automated scorer probes these exact attributes at runtime — you MUST use them):
+- Add data-reveal to EVERY element you want to animate in on scroll. Provide at least 6 (one per major section minimum). Your IntersectionObserver adds a class that fades/translates them in.
+- Add data-parallax="0.12" (a speed factor, positive or negative) to the background blobs/shapes AND at least one in-section visual. Your scroll loop must set transform: translate3d(0, calc(-scrollY*speed), 0) on them so two different scroll positions yield two different transforms.
+- Add data-tilt to the hero card and feature cards. Your mousemove handler sets perspective(...) rotateX/rotateY on them.
+- Add data-magnetic to primary buttons for the magnetic effect.
+- Use data-counter="NUMBER" on stat numbers and animate them from 0 when revealed.
+- Instrument nothing else; keep the DOM clean.
+
+QUALITY BAR: This must look like a finished, paid product — considered typography (Google font, tight display tracking), a single locked accent colour, one consistent corner-radius, generous spacing, a real hero visual, and at least 5 substantial sections (hero, features/offerings, process or about, a stats or social-proof band, contact/CTA, footer). Dark, premium, glassy. Not a demo.
+
+Return the complete HTML now.`;
+
+window.GF_buildEditPrompt = function (request, failures) {
+  var fixNote = failures && failures.length
+    ? "\n\nALSO, the current version is failing these rubric checks — fix them without breaking anything else:\n- " + failures.join("\n- ")
+    : "";
+  return "Here is the CURRENT complete HTML of the site. Apply the user's requested change and return the ENTIRE updated HTML document (same output contract: start at <!DOCTYPE html>, end at </html>, no fences, no commentary). Preserve everything that already works — the glass surfaces, the data-reveal/data-parallax/data-tilt/data-magnetic/data-counter hooks, the Three.js background, semantic structure, and the rubric compliance. Keep it a single self-contained file. No em-dashes."
+    + fixNote
+    + "\n\nUSER REQUEST: " + request
+    + "\n\n=== CURRENT HTML ===\n";
+};
+</script>
+
+<script id="app">
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var state = {
+    provider: "ollama",
+    ollamaUrl: "http://localhost:11434",
+    key: "",
+    templateMode: true, // model writes only content JSON; app pours it into the 25/25 template
+    content: null,      // last content object (template mode)
+    code: "",           // clean source of truth
+    scored: null,
+    editMode: false,
+    editTool: "text",
+    vars: [],           // [{name, value}]
+    generating: false,
+    chat: []            // {role, text}
+  };
+
+  /* ---------- providers ---------- */
+  var PROVIDERS = {
+    ollama: {
+      noKey: true,
+      keyLabel: "Local model via Ollama (no key needed)",
+      placeholder: "",
+      hint: 'Runs entirely on your PC. Install <a href="https://ollama.com/download" target="_blank" rel="noreferrer">Ollama</a>, then in a terminal run <code>ollama pull qwen2.5-coder:7b</code>. Start Ollama with browser access allowed: set <code>OLLAMA_ORIGINS=*</code> and serve this app from <code>http://localhost</code> (see the README). No quotas, no key, nothing leaves your machine.',
+      // populated live from your installed models (Ollama /api/tags)
+      models: [
+        { value: "qwen2.5-coder:7b", label: "qwen2.5-coder:7b (install first)" },
+        { value: "llama3.1:8b", label: "llama3.1:8b (install first)" }
+      ]
+    },
+    groq: {
+      keyLabel: "Groq API key",
+      placeholder: "gsk_...",
+      endpointHost: "api.groq.com",
+      hint: 'Free key from <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer">console.groq.com/keys</a> (no card, real free quota for new keys). Held in memory only; "Remember" stores it in this browser. Sent straight to Groq, never to any GlassForge server (there isn\'t one).',
+      // replaced by live discovery once a key is present
+      models: [
+        { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B - FREE, best quality (default)" }
+      ]
+    },
+    gemini: {
+      keyLabel: "Google AI Studio API key",
+      placeholder: "AIza...",
+      endpointHost: "generativelanguage.googleapis.com",
+      hint: 'Free key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">aistudio.google.com/apikey</a> (no card needed). Held in memory only; "Remember" stores it in this browser. Sent straight to Google, never to any GlassForge server (there isn\'t one).',
+      // fallback list shown before a key is entered; replaced by live discovery
+      // (loadGeminiModels) once a key is present, since Google rotates which
+      // models new keys may use.
+      models: [
+        { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash - FREE (default)" },
+        { value: "gemini-2.0-flash-lite", label: "Gemini 2.0 Flash-Lite - FREE, fastest" }
+      ]
+    },
+    anthropic: {
+      keyLabel: "Anthropic API key",
+      placeholder: "sk-ant-...",
+      endpointHost: "api.anthropic.com",
+      hint: 'Key from <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com</a>. Billed per token to your Anthropic account. Held in memory only; "Remember" stores it in this browser. Sent straight to Anthropic, never to any GlassForge server (there isn\'t one).',
+      models: [
+        { value: "claude-sonnet-5", label: "Claude Sonnet 5 - balanced (default)" },
+        { value: "claude-opus-4-8", label: "Claude Opus 4.8 - highest quality" },
+        { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 - fastest / cheapest" }
+      ]
+    }
+  };
+
+  function applyProvider() {
+    var p = PROVIDERS[state.provider];
+    $("keyLabel").textContent = p.keyLabel;
+    $("apiKey").placeholder = p.placeholder;
+    $("keyHint").innerHTML = p.hint;
+    var sel = $("model");
+    sel.innerHTML = "";
+    p.models.forEach(function (m) {
+      var o = document.createElement("option");
+      o.value = m.value; o.textContent = m.label;
+      sel.appendChild(o);
+    });
+    if (p.noKey) {
+      // local provider: no key UI, generation enabled, discover installed models
+      $("apiKey").style.display = "none";
+      $("rememberWrap").style.display = "none";
+      state.key = "local";
+      $("keyDot").className = "dot ok";
+      $("keyStatus").textContent = "Local — no key needed";
+      refreshButtons();
+      loadOllamaModels();
+      return;
+    }
+    $("apiKey").style.display = "";
+    $("rememberWrap").style.display = "";
+    var saved = "";
+    try { saved = localStorage.getItem("gf_key_" + state.provider) || ""; } catch (e) {}
+    $("apiKey").value = saved;
+    $("remember").checked = !!saved;
+    setKey(saved);
+  }
+
+  $("provider").addEventListener("change", function (e) {
+    state.provider = e.target.value;
+    applyProvider();
+  });
+
+  /* Ask the user's Gemini key which models it can actually call, and populate
+     the dropdown from that live list. Google restricts which models new keys
+     may use, so hardcoded names go stale; discovery keeps this correct. */
+  var modelLoadTimer = null;
+  function scheduleModelLoad() {
+    if ((state.provider !== "gemini" && state.provider !== "groq") || state.key.length < 12) return;
+    clearTimeout(modelLoadTimer);
+    modelLoadTimer = setTimeout(function () {
+      if (state.provider === "groq") loadGroqModels();
+      else loadGeminiModels();
+    }, 700);
+  }
+  async function loadOllamaModels() {
+    if (state.provider !== "ollama") return;
+    var sel = $("model");
+    try {
+      var resp = await fetch(state.ollamaUrl + "/api/tags");
+      if (!resp.ok) return; // keep fallback; user may not have Ollama running yet
+      var data = await resp.json();
+      var models = (data.models || []).map(function (m) { return m.name; });
+      if (!models.length) {
+        $("keyStatus").textContent = "Ollama running, but no models installed - run: ollama pull qwen2.5-coder:7b";
+        return;
+      }
+      // coder / instruct models first (best for HTML generation)
+      models.sort(function (a, b) {
+        var av = /coder|code|deepseek|qwen|instruct/i.test(a) ? 0 : 1;
+        var bv = /coder|code|deepseek|qwen|instruct/i.test(b) ? 0 : 1;
+        if (av !== bv) return av - bv;
+        return a.localeCompare(b);
+      });
+      var prev = sel.value;
+      sel.innerHTML = "";
+      models.forEach(function (id) {
+        var o = document.createElement("option");
+        o.value = id; o.textContent = id;
+        sel.appendChild(o);
+      });
+      if (prev && Array.prototype.some.call(sel.options, function (o) { return o.value === prev; })) sel.value = prev;
+      $("keyStatus").textContent = "Local - " + models.length + " model" + (models.length > 1 ? "s" : "") + " installed";
+      toast("Found " + models.length + " local Ollama model" + (models.length > 1 ? "s" : "") + ".");
+    } catch (e) {
+      $("keyStatus").textContent = "Ollama not reachable at " + state.ollamaUrl + " (start it, see hint)";
+    }
+  }
+
+  async function loadGroqModels() {
+    if (state.provider !== "groq" || state.key.length < 12) return;
+    var sel = $("model");
+    try {
+      var resp = await fetch("https://api.groq.com/openai/v1/models", { headers: { authorization: "Bearer " + state.key } });
+      if (!resp.ok) return; // keep fallback; generation will surface any key error
+      var data = await resp.json();
+      var models = (data.data || []).filter(function (m) {
+        var id = m.id || "";
+        return /llama|qwen|gpt-oss|kimi|deepseek|gemma|mixtral/i.test(id) &&
+          !/whisper|tts|guard|prompt-guard|embedding/i.test(id);
+      });
+      if (!models.length) return;
+      // larger / higher-output models first (they won't truncate a full site)
+      models.sort(function (a, b) {
+        var big = /70b|120b|versatile|large|k2|235b|32b/i;
+        var av = big.test(a.id) ? 0 : 1, bv = big.test(b.id) ? 0 : 1;
+        if (av !== bv) return av - bv;
+        return String(a.id).localeCompare(String(b.id));
+      });
+      var prev = sel.value;
+      sel.innerHTML = "";
+      models.forEach(function (m) {
+        var o = document.createElement("option");
+        o.value = m.id;
+        o.textContent = m.id + (/8b|instant|1b|3b/i.test(m.id) ? " (fast, may truncate large sites)" : " (free)");
+        sel.appendChild(o);
+      });
+      if (prev && Array.prototype.some.call(sel.options, function (o) { return o.value === prev; })) sel.value = prev;
+      toast("Loaded " + models.length + " Groq models your key can use.");
+    } catch (e) { /* offline / CORS - keep fallback list */ }
+  }
+  async function loadGeminiModels() {
+    if (state.provider !== "gemini" || state.key.length < 12) return;
+    var sel = $("model");
+    try {
+      var resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=" + encodeURIComponent(state.key));
+      if (!resp.ok) return; // leave fallback list in place; generation will surface any key error
+      var data = await resp.json();
+      var models = (data.models || []).filter(function (m) {
+        var methods = m.supportedGenerationMethods || [];
+        return methods.indexOf("generateContent") >= 0 &&
+          /gemini/.test(m.name) &&
+          !/embedding|aqa|imagen|-tts|-image|-live|vision/.test(m.name);
+      });
+      if (!models.length) return;
+      // flash models first (free tier + fast), then the rest
+      models.sort(function (a, b) {
+        var af = /flash/.test(a.name) ? 0 : 1, bf = /flash/.test(b.name) ? 0 : 1;
+        if (af !== bf) return af - bf;
+        return a.name.localeCompare(b.name);
+      });
+      var prev = sel.value;
+      sel.innerHTML = "";
+      models.forEach(function (m) {
+        var id = m.name.replace("models/", "");
+        var o = document.createElement("option");
+        o.value = id;
+        o.textContent = (m.displayName || id) + (/flash/.test(id) ? " (free tier)" : " (may need billing)");
+        sel.appendChild(o);
+      });
+      if (prev && Array.prototype.some.call(sel.options, function (o) { return o.value === prev; })) sel.value = prev;
+      toast("Loaded " + models.length + " models your key can use.");
+    } catch (e) { /* offline / CORS - keep fallback list */ }
+  }
+
+  var iframe = $("preview");
+  var frameWrap = $("frameWrap");
+
+  /* ---------- toast ---------- */
+  var toastEl = $("toast"), toastTimer = null;
+  function toast(msg, isErr) {
+    toastEl.textContent = msg;
+    toastEl.className = "toast show" + (isErr ? " err" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.className = "toast"; }, isErr ? 6000 : 3200);
+  }
+
+  /* ---------- API key ---------- */
+  function setKey(v) {
+    state.key = (v || "").trim();
+    var ok = state.key.length > 10;
+    $("keyDot").className = "dot" + (ok ? " ok" : "");
+    $("keyStatus").textContent = ok ? "Key set — ready to generate" : "No key set — generation disabled";
+    refreshButtons();
+    if (ok) scheduleModelLoad();
+  }
+  $("apiKey").addEventListener("input", function (e) {
+    setKey(e.target.value);
+    if ($("remember").checked) { try { localStorage.setItem("gf_key_" + state.provider, state.key); } catch (e) {} }
+  });
+  $("remember").addEventListener("change", function (e) {
+    try {
+      if (e.target.checked) localStorage.setItem("gf_key_" + state.provider, state.key);
+      else localStorage.removeItem("gf_key_" + state.provider);
+    } catch (err) {}
+  });
+
+  function refreshButtons() {
+    var hasKey = state.provider === "ollama" || state.key.length > 10;
+    var hasCode = !!state.code;
+    $("generateBtn").disabled = !hasKey || state.generating;
+    $("chatBtn").disabled = !hasKey || !hasCode || state.generating;
+    $("downloadBtn").disabled = !hasCode;
+    $("rescoreBtn").style.display = hasCode ? "block" : "none";
+    $("paletteBtn").style.display = hasCode ? "inline-flex" : "none";
+  }
+
+  /* ---------- overlay ---------- */
+  function overlay(show, step, detail) {
+    $("overlay").className = "overlay" + (show ? " show" : "");
+    if (step) $("ovStep").textContent = step;
+    $("ovDetail").textContent = detail || "";
+  }
+
+  /* ---------- provider-agnostic streaming call ---------- */
+  async function callLLM(system, messages, onToken) {
+    if (state.provider === "ollama") return callOllama(system, messages, onToken);
+    if (state.provider === "groq") return callGroq(system, messages, onToken);
+    if (state.provider === "gemini") return callGemini(system, messages, onToken);
+    return callAnthropic(system, messages, onToken);
+  }
+
+  async function callOllama(system, messages, onToken) {
+    // Ollama native chat. num_ctx must be large or the default 2048 truncates a
+    // full site (and blocks edits that resend the file). NDJSON stream, not SSE.
+    var model = $("model").value;
+    var msgs = [{ role: "system", content: system }].concat(messages.map(function (m) {
+      return { role: (m.role === "assistant" ? "assistant" : "user"), content: m.content };
+    }));
+    var resp = await fetch(state.ollamaUrl + "/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: model, messages: msgs, stream: true,
+        options: { num_ctx: 16384, num_predict: -1, temperature: 0.85 }
+      })
+    });
+    if (!resp.ok) {
+      var err = await apiError(resp);
+      if (resp.status === 404) err = new Error("Model '" + model + "' is not installed. Run: ollama pull " + model);
+      throw err;
+    }
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = "", full = "";
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      var lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line) continue;
+        try {
+          var obj = JSON.parse(line);
+          if (obj.error) throw new Error(obj.error);
+          if (obj.message && obj.message.content) {
+            full += obj.message.content;
+            if (onToken) onToken(full.length);
+          }
+        } catch (e) { if (/pull|install|error/i.test(String(e.message))) throw e; }
+      }
+    }
+    if (!full) throw new Error("Ollama returned no text. Is the model loaded? Try: ollama run " + model);
+    return full;
+  }
+
+  async function callGroq(system, messages, onToken) {
+    // OpenAI-compatible chat completions
+    var model = $("model").value;
+    // Groq's free tier caps tokens-per-minute (~12k on 70B). max_tokens counts
+    // fully toward that budget, so keep the reservation under it or the request
+    // is rejected (413) before it runs.
+    var maxTok = /8b|instant|1b|3b/i.test(model) ? 6000 : 9000;
+    var resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", "authorization": "Bearer " + state.key },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: "system", content: system }].concat(messages),
+        stream: true,
+        temperature: 1,
+        max_tokens: maxTok
+      })
+    });
+    if (!resp.ok) {
+      var err = await apiError(resp);
+      if (resp.status === 429) err = new Error("Groq rate limit hit. Wait a moment and retry, or pick a different model. (" + err.message + ")");
+      throw err;
+    }
+    var full = "";
+    await readSSE(resp, function (evt) {
+      var d = evt.choices && evt.choices[0] && evt.choices[0].delta;
+      if (d && d.content) { full += d.content; if (onToken) onToken(full.length); }
+    });
+    if (!full) throw new Error("Groq returned no text. Try again or switch model.");
+    return full;
+  }
+
+  /* SSE line-reader shared by both providers */
+  async function readSSE(resp, onEvent) {
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = "";
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      var lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line.indexOf("data:") === 0) {
+          var data = line.slice(5).trim();
+          if (data && data !== "[DONE]") {
+            try { onEvent(JSON.parse(data)); } catch (e) { /* keep-alive / partial */ }
+          }
+        }
+      }
+    }
+  }
+
+  async function apiError(resp) {
+    var errText = await resp.text();
+    var msg = errText;
+    try { msg = JSON.parse(errText).error.message; } catch (e) {}
+    return new Error("API " + resp.status + ": " + msg);
+  }
+
+  async function callAnthropic(system, messages, onToken) {
+    var resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": state.key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: $("model").value, max_tokens: 32000, system: system, messages: messages, stream: true })
+    });
+    if (!resp.ok) throw await apiError(resp);
+    var full = "";
+    await readSSE(resp, function (evt) {
+      if (evt.type === "content_block_delta" && evt.delta && evt.delta.type === "text_delta") {
+        full += evt.delta.text;
+        if (onToken) onToken(full.length);
+      } else if (evt.type === "error") {
+        throw new Error(evt.error ? evt.error.message : "stream error");
+      }
+    });
+    return full;
+  }
+
+  async function callGemini(system, messages, onToken) {
+    var model = $("model").value;
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + model +
+      ":streamGenerateContent?alt=sse&key=" + encodeURIComponent(state.key);
+    // Gemini roles are "user"/"model"; system prompt goes in system_instruction.
+    var contents = messages.map(function (m) {
+      return { role: (m.role === "assistant" ? "model" : "user"), parts: [{ text: m.content }] };
+    });
+    var gen = { maxOutputTokens: 60000, temperature: 1 };
+    if (/2\.5-flash/.test(model)) gen.thinkingConfig = { thinkingBudget: 0 }; // disable thinking on 2.5 Flash only
+    var resp = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ system_instruction: { parts: [{ text: system }] }, contents: contents, generationConfig: gen })
+    });
+    if (!resp.ok) {
+      var err = await apiError(resp);
+      if (resp.status === 429 && /pro/.test(model)) {
+        err = new Error("Gemini 2.5 Pro has no free tier (quota 0). Switch the Model dropdown to Gemini 2.5 Flash or 2.0 Flash, which are free. (" + err.message + ")");
+      } else if (resp.status === 429) {
+        err = new Error("Free-tier quota hit. Wait ~30s and retry, or try Gemini 2.0 Flash (higher limits). (" + err.message + ")");
+      }
+      throw err;
+    }
+    var full = "";
+    await readSSE(resp, function (evt) {
+      var cand = evt.candidates && evt.candidates[0];
+      if (cand && cand.content && cand.content.parts) {
+        cand.content.parts.forEach(function (p) { if (p.text) full += p.text; });
+        if (onToken) onToken(full.length);
+      }
+    });
+    if (!full) throw new Error("Gemini returned no text (possibly a safety block or rate limit). Try again or switch model.");
+    return full;
+  }
+
+  function extractHTML(text) {
+    var start = text.indexOf("<!DOCTYPE");
+    if (start < 0) start = text.indexOf("<!doctype");
+    if (start < 0) start = text.indexOf("<html");
+    var end = text.lastIndexOf("</html>");
+    if (start >= 0 && end >= 0) return text.slice(start, end + 7);
+    return text.replace(/^```html?\s*/i, "").replace(/```\s*$/, "").trim();
+  }
+
+  /* ---------- render + instrument ---------- */
+  var ERR_HOOK =
+    '<script data-gf-injected="1">window.__gf_errors=[];' +
+    'window.addEventListener("error",function(e){window.__gf_errors.push(String(e.message||e.error||"error"));});' +
+    'window.addEventListener("unhandledrejection",function(e){window.__gf_errors.push(String(e.reason));});' +
+    'var _ce=console.error;console.error=function(){try{window.__gf_errors.push(Array.prototype.map.call(arguments,String).join(" "));}catch(_){}return _ce.apply(console,arguments);};' +
+    '<\/script>';
+
+  function instrument(html) {
+    if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function (m) { return m + ERR_HOOK; });
+    if (/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function (m) { return m + ERR_HOOK; });
+    return ERR_HOOK + html;
+  }
+
+  function renderPreview(html) {
+    return new Promise(function (resolve) {
+      $("placeholder").style.display = "none";
+      iframe.onload = function () { resolve(); };
+      iframe.srcdoc = instrument(html);
+    });
+  }
+
+  /* wait for fonts, Three.js, counters, reveals to settle */
+  function settleFrame(ms) { return new Promise(function (r) { setTimeout(r, ms || 1700); }); }
+
+  /* ---------- scoring ---------- */
+  async function runScore() {
+    // scorer lives in the parent; call it against the iframe's window + document
+    var win = iframe.contentWindow, doc = iframe.contentDocument;
+    return await window.GlassForgeScorer.score(win, doc);
+  }
+
+  function paintScore(report) {
+    state.scored = report;
+    $("scoreTotal").innerHTML = report.total + "<small>/25</small>";
+    var v = $("verdict");
+    v.className = "verdict " + (report.passed ? "pass" : "fail");
+    v.textContent = report.passed ? "PASS" : "below bar";
+    var cats = $("cats"); cats.innerHTML = "";
+    report.categories.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "cat";
+      var low = c.score < 3;
+      row.innerHTML =
+        '<span>' + c.label + '</span>' +
+        '<span class="bar"><i class="' + (low ? "low" : "") + '" style="width:' + (c.score / 5 * 100) + '%"></i></span>' +
+        '<span class="val">' + c.score + '/5</span>';
+      cats.appendChild(row);
+    });
+    var list = $("checksList"); list.innerHTML = "";
+    report.categories.forEach(function (c) {
+      c.checks.forEach(function (ch) {
+        var li = document.createElement("li");
+        li.className = ch.earned >= ch.points ? "" : "miss";
+        li.textContent = c.label + ": " + ch.name + (ch.earned >= ch.points ? "" : " — " + ch.detail);
+        list.appendChild(li);
+      });
+    });
+    $("checksWrap").style.display = "block";
+    $("rescoreBtn").style.display = "block";
+  }
+
+  /* ---------- template mode: model writes content JSON, app renders it ---------- */
+  $("templateMode").addEventListener("change", function (e) { state.templateMode = e.target.checked; });
+
+  function extractJSON(raw) {
+    if (!raw) return null;
+    var s = raw.indexOf("{"), e = raw.lastIndexOf("}");
+    if (s < 0 || e <= s) return null;
+    var chunk = raw.slice(s, e + 1);
+    try { return JSON.parse(chunk); }
+    catch (e1) {
+      try { return JSON.parse(chunk.replace(/,\s*([}\]])/g, "$1")); } // tolerate trailing commas
+      catch (e2) { return null; }
+    }
+  }
+
+  async function templateLoop(kind, brief) {
+    var attempts = 0, best = null, bestCode = "", bestContent = null;
+    var baseUser = kind === "generate"
+      ? "Business / idea to build the site for:\n" + brief
+      : "Current content JSON:\n" + JSON.stringify(state.content) + "\n\nApply this change: " + brief + "\nReturn the full updated JSON only.";
+    var messages = [{ role: "user", content: baseUser }];
+    while (attempts < 3) {
+      attempts++;
+      overlay(true, (kind === "generate" ? "Writing content" : "Editing") + " — attempt " + attempts + " of 3",
+        attempts === 1 ? "Model is writing the copy (" + $("model").value + ")…" : "Refining the copy…");
+      var raw;
+      try {
+        raw = await callLLM(window.GF_TEMPLATE_PROMPT, messages,
+          function (n) { $("ovDetail").textContent = "Streaming… " + n.toLocaleString() + " chars"; });
+      } catch (e) { overlay(false); toast(e.message, true); return null; }
+
+      var content = extractJSON(raw);
+      if (!content) {
+        messages = [{ role: "user", content: baseUser + "\n\nYour last reply was not valid JSON. Return ONLY the JSON object, no prose, no fences." }];
+        continue;
+      }
+      var html = window.GF_renderTemplate(content);
+      overlay(true, "Rendering", "Loading in the sandbox…");
+      await renderPreview(html);
+      await settleFrame(1600);
+      overlay(true, "Scoring", "Probing live DOM (glass, tilt, parallax, console)…");
+      var report;
+      try { report = await runScore(); }
+      catch (e) { report = { total: 0, max: 25, passed: false, categories: [], failures: ["scorer error: " + e.message] }; }
+      if (!best || report.total > best.total) { best = report; bestCode = html; bestContent = content; }
+
+      if (report.passed) {
+        state.code = html; state.content = content;
+        paintScore(report); overlay(false);
+        return { report: report, attempts: attempts };
+      }
+      // template guarantees the visual rubric; a miss here means thin copy — ask for richer copy
+      var weak = report.categories.filter(function (c) { return c.score < 5; }).map(function (c) { return c.label; }).join(", ");
+      messages = [{ role: "user", content: baseUser + "\n\nThe copy was too thin (weak: " + weak + "). Rewrite with richer, longer, specific real copy in every field (fuller sentences, all lists complete). Return ONLY the JSON." }];
+    }
+    state.code = bestCode; state.content = bestContent;
+    await renderPreview(bestCode); await settleFrame(1400); paintScore(best); overlay(false);
+    return { report: best, attempts: attempts, exhausted: true };
+  }
+
+  /* ---------- the self-test loop (freeform mode) ---------- */
+  async function selfTestLoop(kind, firstMessages) {
+    // kind: "generate" | "edit". firstMessages is the initial messages array.
+    var attempts = 0, best = null, bestCode = "", messages = firstMessages.slice();
+    while (attempts < 5) {
+      attempts++;
+      overlay(true, (kind === "generate" ? "Generating" : "Editing") + " — attempt " + attempts + " of 5",
+        attempts === 1 ? "Calling " + $("model").value + "…" : "Fixing weak categories and re-generating…");
+      var raw;
+      try {
+        raw = await callLLM(
+          window.GF_SYSTEM_PROMPT,
+          messages,
+          function (n) { $("ovDetail").textContent = "Streaming… " + n.toLocaleString() + " chars"; }
+        );
+      } catch (e) {
+        overlay(false);
+        toast(e.message, true);
+        return null;
+      }
+      var html = extractHTML(raw);
+      if (!/<html|<!doctype/i.test(html)) {
+        overlay(false);
+        toast("Model did not return HTML. Try again or rephrase.", true);
+        return null;
+      }
+      overlay(true, "Rendering attempt " + attempts, "Loading in headless-style sandbox…");
+      await renderPreview(html);
+      await settleFrame(1700);
+      overlay(true, "Scoring attempt " + attempts, "Probing live DOM (glass, tilt, parallax, console)…");
+      var report;
+      try { report = await runScore(); }
+      catch (e) { report = { total: 0, max: 25, passed: false, categories: [], failures: ["scorer error: " + e.message] }; }
+
+      if (!best || report.total > best.total) { best = report; bestCode = html; }
+
+      if (report.passed) {
+        state.code = html;
+        paintScore(report);
+        overlay(false);
+        return { report: report, attempts: attempts };
+      }
+      // build a fix round: weak categories named explicitly
+      var weak = report.categories.filter(function (c) { return c.score < 5; })
+        .sort(function (a, b) { return a.score - b.score; });
+      var weakNames = weak.map(function (c) { return c.label + " (" + c.score + "/5)"; }).join(", ");
+      var fixMsg = "The site you produced scored " + report.total + "/25. It is below the 22+ bar. "
+        + "Fix these categories specifically: " + weakNames + ". "
+        + "Concrete failing checks:\n- " + report.failures.join("\n- ")
+        + "\nReturn the ENTIRE corrected HTML document (no fences, no commentary), keeping everything that already works.";
+      // continue the conversation with current html + fix instructions
+      messages = firstMessages.slice();
+      messages.push({ role: "assistant", content: html });
+      messages.push({ role: "user", content: fixMsg });
+    }
+    // exhausted 5 attempts — keep best
+    state.code = bestCode;
+    await renderPreview(bestCode);
+    await settleFrame(1500);
+    paintScore(best);
+    overlay(false);
+    return { report: best, attempts: attempts, exhausted: true };
+  }
+
+  /* ---------- generate ---------- */
+  $("generateBtn").addEventListener("click", async function () {
+    var prompt = $("prompt").value.trim();
+    if (!prompt) { toast("Describe the site first.", true); return; }
+    state.generating = true; refreshButtons();
+    state.chat = [];
+    $("msgs").innerHTML = "";
+    addMsg("you", prompt);
+    var result;
+    if (state.templateMode) {
+      result = await templateLoop("generate", prompt);
+    } else {
+      var messages = [{ role: "user", content: "Business / idea to build the site for:\n" + prompt }];
+      result = await selfTestLoop("generate", messages);
+    }
+    state.generating = false; refreshButtons();
+    if (result) {
+      buildPalette();
+      finishReport(result, "Generated");
+    }
+  });
+
+  /* ---------- chat edit ---------- */
+  $("chatBtn").addEventListener("click", async function () {
+    var req = $("chatInput").value.trim();
+    if (!req) return;
+    if (!state.code) { toast("Generate a site first.", true); return; }
+    commitPreviewToCode(); // fold any manual edits in first
+    state.generating = true; refreshButtons();
+    addMsg("you", req);
+    $("chatInput").value = "";
+    var result;
+    if (state.templateMode && state.content) {
+      result = await templateLoop("edit", req);
+    } else {
+      var failures = state.scored ? state.scored.failures : [];
+      var editPrompt = window.GF_buildEditPrompt(req, failures) + state.code;
+      var messages = [{ role: "user", content: editPrompt }];
+      result = await selfTestLoop("edit", messages);
+    }
+    state.generating = false; refreshButtons();
+    if (result) {
+      buildPalette();
+      finishReport(result, "Edited");
+    }
+  });
+
+  function finishReport(result, verb) {
+    var r = result.report;
+    var line = verb + " in " + result.attempts + " attempt" + (result.attempts > 1 ? "s" : "") + ". Score " + r.total + "/25 — " + (r.passed ? "passed the bar." : "best of 5 (still below bar).");
+    if (result.exhausted && !r.passed) {
+      var weak = r.categories.filter(function (c) { return c.score < 3; }).map(function (c) { return c.label; });
+      line += weak.length ? " Still short on: " + weak.join(", ") + "." : "";
+    }
+    addMsg("sys", line);
+    toast(line, !r.passed);
+  }
+
+  function addMsg(role, text) {
+    state.chat.push({ role: role, text: text });
+    var el = document.createElement("div");
+    el.className = "msg " + role;
+    el.innerHTML = '<div class="who">' + (role === "you" ? "You" : "GlassForge") + '</div>' + escapeHtml(text);
+    $("msgs").appendChild(el);
+    $("msgs").scrollTop = $("msgs").scrollHeight;
+  }
+  function escapeHtml(s) { return s.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+
+  $("rescoreBtn").addEventListener("click", async function () {
+    if (!state.code) return;
+    overlay(true, "Scoring", "Probing live DOM…");
+    await settleFrame(400);
+    try { paintScore(await runScore()); } catch (e) { toast(e.message, true); }
+    overlay(false);
+  });
+
+  /* ---------- viewport toggles ---------- */
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".seg button").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      frameWrap.className = "frame-wrap" + (b.dataset.vp === "desktop" ? "" : " " + b.dataset.vp);
+    });
+  });
+
+  /* ---------- palette editor ---------- */
+  function parseVars(code) {
+    var vars = [];
+    var rootMatch = code.match(/:root\s*\{([^}]*)\}/);
+    if (rootMatch) {
+      var re = /(--[\w-]+)\s*:\s*([^;]+);/g, m;
+      while ((m = re.exec(rootMatch[1])) !== null) {
+        var val = m[2].trim();
+        if (/^#|rgb|hsl/.test(val)) vars.push({ name: m[1], value: val });
+      }
+    }
+    return vars;
+  }
+  function toHexInput(val) {
+    // color input needs #rrggbb; best-effort convert via a temp element
+    try {
+      var d = iframe.contentDocument;
+      var probe = d.createElement("span");
+      probe.style.color = val; d.body.appendChild(probe);
+      var rgb = d.defaultView.getComputedStyle(probe).color;
+      d.body.removeChild(probe);
+      var m = rgb.match(/(\d+),\s*(\d+),\s*(\d+)/);
+      if (m) return "#" + [1, 2, 3].map(function (i) { return ("0" + parseInt(m[i], 10).toString(16)).slice(-2); }).join("");
+    } catch (e) {}
+    return /^#([0-9a-f]{6})$/i.test(val) ? val : "#888888";
+  }
+  function buildPalette() {
+    state.vars = parseVars(state.code);
+    var wrap = $("swatches"); wrap.innerHTML = "";
+    if (!state.vars.length) { wrap.innerHTML = '<div class="hint" style="grid-column:1/-1;">No CSS variables found in this file to recolour. Use Edit mode to click individual elements.</div>'; return; }
+    state.vars.forEach(function (v) {
+      var row = document.createElement("label");
+      row.className = "swatch";
+      var picker = document.createElement("input");
+      picker.type = "color"; picker.value = toHexInput(v.value);
+      picker.addEventListener("input", function () {
+        try { iframe.contentDocument.documentElement.style.setProperty(v.name, picker.value); } catch (e) {}
+        v.value = picker.value; v.dirty = true;
+      });
+      var code = document.createElement("code");
+      code.textContent = v.name;
+      row.appendChild(picker); row.appendChild(code);
+      wrap.appendChild(row);
+    });
+  }
+  $("paletteBtn").addEventListener("click", function () {
+    $("palettePanel").classList.toggle("show");
+  });
+
+  /* ---------- direct edit mode ---------- */
+  var editToggle = $("editToggle");
+  editToggle.addEventListener("click", function () {
+    state.editMode = !state.editMode;
+    editToggle.classList.toggle("on", state.editMode);
+    $("editHelp").classList.toggle("show", state.editMode);
+    if (state.editMode) enableEdit(); else { disableEdit(); commitPreviewToCode(); }
+  });
+
+  var EDIT_STYLE_ID = "gf-edit-style";
+  function enableEdit() {
+    var doc = iframe.contentDocument;
+    if (!doc) return;
+    if (!doc.getElementById(EDIT_STYLE_ID)) {
+      var st = doc.createElement("style");
+      st.id = EDIT_STYLE_ID; st.setAttribute("data-gf-injected", "1");
+      st.textContent =
+        "*[data-gf-hover]{outline:2px dashed rgba(110,168,254,0.9)!important;outline-offset:2px!important;cursor:text!important;}" +
+        "img[data-gf-hover]{cursor:copy!important;}" +
+        "[contenteditable=true]{outline:2px solid rgba(110,168,254,0.95)!important;}";
+      doc.head.appendChild(st);
+    }
+    doc.body.addEventListener("mouseover", onOver, true);
+    doc.body.addEventListener("mouseout", onOut, true);
+    doc.body.addEventListener("click", onEditClick, true);
+  }
+  function disableEdit() {
+    var doc = iframe.contentDocument;
+    if (!doc) return;
+    doc.body.removeEventListener("mouseover", onOver, true);
+    doc.body.removeEventListener("mouseout", onOut, true);
+    doc.body.removeEventListener("click", onEditClick, true);
+    doc.querySelectorAll("[contenteditable]").forEach(function (el) { el.removeAttribute("contenteditable"); });
+    doc.querySelectorAll("[data-gf-hover]").forEach(function (el) { el.removeAttribute("data-gf-hover"); });
+  }
+  function isTextLeaf(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (["IMG", "CANVAS", "SVG", "PATH", "VIDEO", "INPUT", "BODY", "HTML"].indexOf(el.tagName) >= 0) return false;
+    // leaf-ish: has text and no element children that themselves hold the text
+    var hasText = (el.textContent || "").trim().length > 0;
+    var elementChildren = el.children.length;
+    return hasText && elementChildren <= 3;
+  }
+  function onOver(e) {
+    var el = e.target;
+    if (el.tagName === "IMG" || isTextLeaf(el)) el.setAttribute("data-gf-hover", "1");
+  }
+  function onOut(e) { if (e.target.removeAttribute) e.target.removeAttribute("data-gf-hover"); }
+  function onEditClick(e) {
+    var el = e.target;
+    if (el.tagName === "IMG") {
+      e.preventDefault(); e.stopPropagation();
+      replaceImage(el);
+      return;
+    }
+    if (isTextLeaf(el)) {
+      e.preventDefault(); e.stopPropagation();
+      el.setAttribute("contenteditable", "true");
+      el.focus();
+      var sel = iframe.contentWindow.getSelection();
+      var range = iframe.contentDocument.createRange();
+      range.selectNodeContents(el); range.collapse(false);
+      sel.removeAllRanges(); sel.addRange(range);
+    }
+  }
+  function replaceImage(img) {
+    var choice = window.prompt("New image URL (or leave blank to pick a file):", img.src);
+    if (choice === null) return;
+    if (choice.trim()) { img.src = choice.trim(); return; }
+    var input = document.createElement("input");
+    input.type = "file"; input.accept = "image/*";
+    input.addEventListener("change", function () {
+      var f = input.files[0]; if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () { img.src = reader.result; };
+      reader.readAsDataURL(f);
+    });
+    input.click();
+  }
+
+  /* ---------- commit live preview back to clean source ---------- */
+  function commitPreviewToCode() {
+    var doc = iframe.contentDocument;
+    if (!doc) return;
+    var clone = doc.documentElement.cloneNode(true);
+    // strip injected instrumentation + edit artifacts
+    clone.querySelectorAll("[data-gf-injected]").forEach(function (n) { n.remove(); });
+    clone.querySelectorAll("[contenteditable]").forEach(function (n) { n.removeAttribute("contenteditable"); });
+    clone.querySelectorAll("[data-gf-hover]").forEach(function (n) { n.removeAttribute("data-gf-hover"); });
+    // fold palette variable overrides into :root and clear inline root styles we set
+    var liveRoot = doc.documentElement;
+    if (state.vars && state.vars.length) {
+      var styleTag = clone.querySelector("style");
+      if (styleTag && /:root\s*\{/.test(styleTag.textContent)) {
+        state.vars.forEach(function (v) {
+          if (!v.dirty) return;
+          var re = new RegExp("(" + v.name.replace(/[-]/g, "\\-") + "\\s*:\\s*)([^;]+)(;)");
+          if (re.test(styleTag.textContent)) styleTag.textContent = styleTag.textContent.replace(re, "$1" + v.value + "$3");
+        });
+      }
+      // remove any inline overrides on the cloned <html>
+      state.vars.forEach(function (v) { clone.style.removeProperty(v.name); });
+    }
+    var html = "<!DOCTYPE html>\n" + clone.outerHTML;
+    state.code = html;
+  }
+
+  /* ---------- download ---------- */
+  $("downloadBtn").addEventListener("click", function () {
+    if (!state.code) return;
+    commitPreviewToCode();
+    var slug = ($("prompt").value.trim().split(/\s+/).slice(0, 4).join("-").replace(/[^\w-]/g, "").toLowerCase()) || "glassforge-site";
+    var blob = new Blob([state.code], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "index.html";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    toast("Downloaded index.html — drop it on Netlify to go live.");
+  });
+
+  /* ---------- allow loading the proof sample for a no-key demo ---------- */
+  window.GF_loadSample = async function (html) {
+    state.code = html;
+    await renderPreview(html);
+    await settleFrame(1600);
+    buildPalette();
+    refreshButtons();
+    try { paintScore(await runScore()); } catch (e) {}
+  };
+
+  applyProvider();   // sets provider UI, restores saved key, wires model list
+  refreshButtons();
+})();
+</script>
+</body>
+</html>
