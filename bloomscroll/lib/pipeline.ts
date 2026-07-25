@@ -4,6 +4,7 @@ import { searchLiterature } from "./literature";
 import { gradeClaim } from "./grade";
 import { checkSafety } from "./safety";
 import { cacheKey, getCached, setCached } from "./cache";
+import { SpendCapExceededError } from "./spend";
 import type { Lang } from "./i18n";
 import type { CheckResponse, ClaimResult } from "./types";
 
@@ -22,7 +23,7 @@ export type PipelineEvent =
 // Until ANTHROPIC_API_KEY exists, extraction throws MissingKeyError and we
 // stream these labeled samples instead. Citations are marked as sample data —
 // no invented papers, ever.
-const MOCK_CLAIMS: Omit<ClaimResult, "safety">[] = [
+const MOCK_CLAIMS: Omit<ClaimResult, "safety" | "papers">[] = [
   {
     claim: "Mewing permanently reshapes the adult jawline.",
     category: "biomedical",
@@ -96,15 +97,19 @@ export async function* runPipeline(
   try {
     extracted = await extractClaims(resolved.text);
   } catch (err) {
-    if (err instanceof MissingKeyError) {
-      const claims: ClaimResult[] = MOCK_CLAIMS.map((c) => ({
-        ...c,
-        safety: checkSafety(c.claim, lang) ?? undefined,
-      }));
-      yield { stage: "done", payload: { mock: true, source, claims, inputWarning } };
-      return; // never cache the mock
+    // Missing key → labeled sample. Any other Anthropic failure (out of credit,
+    // rate limit, network) also drops to sample rather than nuking the UI —
+    // console.error preserves the real stack for debugging.
+    if (!(err instanceof MissingKeyError)) {
+      console.error("[pipeline] extractClaims failed, falling back to sample:", err);
     }
-    throw err;
+    const claims: ClaimResult[] = MOCK_CLAIMS.map((c) => ({
+      ...c,
+      papers: [],
+      safety: checkSafety(c.claim, lang) ?? undefined,
+    }));
+    yield { stage: "done", payload: { mock: true, source, claims, inputWarning } };
+    return; // never cache the mock
   }
 
   yield { stage: "claims", n: extracted.length };
@@ -121,9 +126,28 @@ export async function* runPipeline(
   );
 
   yield { stage: "grading" };
-  const graded = await Promise.all(
-    extracted.map((c, i) => gradeClaim(c.claim, paperSets[i])),
-  );
+  let graded;
+  try {
+    graded = await Promise.all(
+      extracted.map((c, i) => gradeClaim(c.claim, paperSets[i])),
+    );
+  } catch (err) {
+    // Same graceful-degradation contract as extract: if the daily spend cap
+    // trips mid-run (or any other Anthropic failure hits), serve labeled
+    // sample data instead of exploding the response.
+    if (err instanceof SpendCapExceededError) {
+      console.warn("[pipeline] spend cap tripped during grading, falling back to sample");
+    } else {
+      console.error("[pipeline] gradeClaim failed, falling back to sample:", err);
+    }
+    const claims: ClaimResult[] = MOCK_CLAIMS.map((c) => ({
+      ...c,
+      papers: [],
+      safety: checkSafety(c.claim, lang) ?? undefined,
+    }));
+    yield { stage: "done", payload: { mock: true, source, claims, inputWarning } };
+    return;
+  }
 
   const claims: ClaimResult[] = extracted.map((c, i) => ({
     claim: c.claim,
@@ -131,6 +155,7 @@ export async function* runPipeline(
     verdict: graded[i].verdict,
     summary: graded[i].summary,
     citations: graded[i].citations,
+    papers: paperSets[i],
     safety: checkSafety(c.claim, lang) ?? undefined,
   }));
 

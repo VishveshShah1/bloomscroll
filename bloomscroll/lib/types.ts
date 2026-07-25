@@ -25,6 +25,10 @@ export interface ClaimResult {
   verdict: Verdict;
   summary: string;
   citations: Citation[];
+  /** Every paper Europe PMC returned for this claim — cited or not. Lets the UI
+   *  render the full evidence pool so users can browse beyond what the grader
+   *  chose to quote. Papers already used in `citations` still appear here. */
+  papers: Paper[];
   safety?: SafetyNote;
 }
 

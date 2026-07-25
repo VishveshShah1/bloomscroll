@@ -1,47 +1,48 @@
 import type { Metadata, Viewport } from "next";
-import { Atkinson_Hyperlegible, Spline_Sans_Mono, STIX_Two_Text } from "next/font/google";
 import SwRegister from "@/components/SwRegister";
+import Splash from "@/components/Splash";
+import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
 
-const display = STIX_Two_Text({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-});
-
-const body = Atkinson_Hyperlegible({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-body",
-});
-
-const mono = Spline_Sans_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXTAUTH_URL ||
+  "https://bloomscroll.app";
 
 export const metadata: Metadata = {
-  title: "bloomscroll — keep scrolling, start growing",
+  metadataBase: new URL(siteUrl),
+  title: "bloomscroll · keep scrolling, start growing",
   description:
     "Bloomscroll checks health and appearance claims from your feed against real scientific literature and shows how strong the evidence actually is.",
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "bloomscroll — keep scrolling, start growing",
+    title: "bloomscroll · keep scrolling, start growing",
     description:
-      "Check the health claims in your feed against 45M+ real scientific papers. Evidence, graded — never a bare true/false.",
+      "Check the health claims in your feed against millions of peer-reviewed papers. Evidence, graded.",
     siteName: "bloomscroll",
     type: "website",
+    images: [
+      { url: "/brand/og.png", width: 1200, height: 630, alt: "bloomscroll — keep scrolling, start growing" },
+    ],
   },
   twitter: {
-    card: "summary",
-    title: "bloomscroll — keep scrolling, start growing",
-    description:
-      "Check the health claims in your feed against 45M+ real scientific papers.",
+    card: "summary_large_image",
+    title: "bloomscroll · keep scrolling, start growing",
+    description: "Check the health claims in your feed against millions of peer-reviewed papers.",
+    images: ["/brand/og.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F1F3EC",
+  themeColor: "#F6F3EA",
 };
 
 export default function RootLayout({
@@ -51,11 +52,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body
-        className={`${display.variable} ${body.variable} ${mono.variable} bg-underleaf font-body text-loam antialiased`}
-      >
-        <SwRegister />
-        {children}
+      <body className="bg-canvas font-sans text-ink antialiased">
+        <AuthProvider>
+          <SwRegister />
+          <Splash />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

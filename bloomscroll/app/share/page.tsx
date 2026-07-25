@@ -11,12 +11,12 @@ function ShareInner() {
 
   useEffect(() => {
     const q = params.get("url") || params.get("text") || params.get("title") || "";
-    router.replace(q ? `/?q=${encodeURIComponent(q)}` : "/");
+    router.replace(q ? `/check?q=${encodeURIComponent(q)}` : "/check");
   }, [params, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-underleaf">
-      <p className="font-mono text-[13px] text-fern">opening bloomscroll…</p>
+    <main className="flex min-h-screen items-center justify-center bg-canvas">
+      <p className="text-[13px] text-bark">opening bloomscroll…</p>
     </main>
   );
 }

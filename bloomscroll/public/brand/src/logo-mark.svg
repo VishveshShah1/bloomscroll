@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Mark only, transparent background — for compositing on OG / banner / any surface. -->
+  <path d="M 169 77 L 169 294 C 169 405, 310 435, 329 349 C 344 278, 259 244, 222 290 C 197 321, 219 362, 254 357"
+        stroke="#1E4D2B" stroke-width="45" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

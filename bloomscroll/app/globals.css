@@ -2,126 +2,421 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base ------------------------------------------------------------------ */
+
+html,
+body {
+  background: #f6f3ea;
+  color: #12201a;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 ::selection {
-  background: #2e6b3f;
-  color: #f1f3ec;
+  background: #1e4d2b;
+  color: #f6f3ea;
 }
 
-/* Frosted glass surface — needs the ambient orbs behind it to read as glass */
-.glass {
-  background: rgba(250, 251, 247, 0.55);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  backdrop-filter: blur(16px) saturate(1.2);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+/* Reusable primitives --------------------------------------------------- */
+
+/* Soft-lifted card on canvas. Shadow is intentionally wide + faint — lifted
+   directly from the reference site's card treatment. */
+.surface {
+  background: #fbfaf3;
+  border: 1px solid rgba(18, 32, 26, 0.06);
+  box-shadow: 0 5.33px 26.67px rgba(18, 32, 26, 0.05);
+  border-radius: 24px;
+}
+.surface-lg {
+  background: #fbfaf3;
+  border: 1px solid rgba(18, 32, 26, 0.06);
   box-shadow:
-    0 8px 32px rgba(31, 39, 33, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    0 5.33px 26.67px rgba(18, 32, 26, 0.05),
+    0 20px 60px rgba(18, 32, 26, 0.06);
+  border-radius: 28px;
 }
 
-/* Ambient background orbs */
-.orb {
-  border-radius: 9999px;
-  filter: blur(90px);
-  will-change: transform;
+/* Sage-tinted section band. */
+.band {
+  background: #e8edde;
 }
 
-@keyframes drift-a {
-  from { transform: translate3d(-6%, -4%, 0) scale(1); }
-  to { transform: translate3d(7%, 6%, 0) scale(1.12); }
+/* Pill button — reference-style proportions: 32px x-padding, 18px y-padding,
+   ~17px type. Chunky enough to feel confident, not toy-like. */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 16px 28px;
+  background: #1e4d2b;
+  color: #f6f3ea;
+  font-weight: 600;
+  font-size: 16.5px;
+  letter-spacing: -0.01em;
+  border-radius: 999px;
+  border: 1px solid #1e4d2b;
+  transition:
+    transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.2s ease;
 }
-@keyframes drift-b {
-  from { transform: translate3d(5%, 8%, 0) scale(1.05); }
-  to { transform: translate3d(-7%, -5%, 0) scale(0.95); }
+.btn-primary:hover {
+  transform: translateY(-1px);
+  background: #16391f;
 }
-@keyframes drift-c {
-  from { transform: translate3d(-4%, 6%, 0) scale(0.98); }
-  to { transform: translate3d(6%, -7%, 0) scale(1.1); }
+.btn-primary:disabled {
+  opacity: 0.55;
+  transform: none;
+  cursor: not-allowed;
 }
 
-/* Result choreography: cards settle in 3D, badges pop after */
-@keyframes card-in {
-  from { opacity: 0; transform: perspective(900px) translateY(24px) rotateX(-9deg); }
-  to { opacity: 1; transform: perspective(900px) translateY(0) rotateX(0); }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 15px 26px;
+  color: #12201a;
+  font-weight: 600;
+  font-size: 16.5px;
+  letter-spacing: -0.01em;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 32, 26, 0.14);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-@keyframes badge-in {
-  from { opacity: 0; transform: scale(0.82); }
-  to { opacity: 1; transform: scale(1); }
+.btn-ghost:hover {
+  border-color: rgba(18, 32, 26, 0.28);
+  background: rgba(232, 237, 222, 0.5);
 }
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
+
+/* Platform-download button — bigger, one per row on mobile, side-by-side
+   on desktop, icon on the left. */
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 22px 34px;
+  background: #1e4d2b;
+  color: #f6f3ea;
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  border-radius: 999px;
+  border: 1px solid #1e4d2b;
+  min-width: 260px;
+  box-shadow: 0 12px 30px rgba(30, 77, 43, 0.18);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.2s ease, box-shadow 0.2s ease;
 }
+.download-btn:hover {
+  transform: translateY(-2px);
+  background: #16391f;
+  box-shadow: 0 16px 38px rgba(30, 77, 43, 0.22);
+}
+.download-btn.is-ghost {
+  background: transparent;
+  color: #12201a;
+  border-color: rgba(18, 32, 26, 0.14);
+  box-shadow: none;
+}
+.download-btn.is-ghost:hover {
+  background: rgba(232, 237, 222, 0.5);
+  border-color: rgba(18, 32, 26, 0.28);
+  box-shadow: none;
+}
+/* When a button is the visitor's own platform, give it an extra ring so it
+   pops even at a glance. */
+.download-btn.is-you {
+  box-shadow: 0 12px 30px rgba(30, 77, 43, 0.22),
+    0 0 0 4px rgba(30, 77, 43, 0.12);
+}
+.download-btn.is-you:hover {
+  box-shadow: 0 16px 38px rgba(30, 77, 43, 0.28),
+    0 0 0 4px rgba(30, 77, 43, 0.16);
+}
+.download-btn .you-tag {
+  margin-left: 0.55rem;
+  padding: 3px 9px;
+  background: rgba(246, 243, 234, 0.22);
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+}
+
+/* Focus visibility ------------------------------------------------------- */
+
+.focus-ring:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #1e4d2b;
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* Splash intro ---------------------------------------------------------- */
+
+@keyframes splash-letter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes splash-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes splash-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes splash-mark-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes splash-mark-pop {
+  0% {
+    transform: scale(0.92) rotate(-4deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes splash-bloom {
+  0% {
+    transform: scale(0.2) translateY(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(-3px);
+    opacity: 1;
+  }
+}
+.splash-mark {
+  animation: splash-mark-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.05s backwards;
+}
+.splash-mark path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: splash-mark-draw 1s cubic-bezier(0.4, 0, 0.2, 1) 0.15s forwards;
+}
+.splash-bloom {
+  opacity: 0;
+  transform-origin: center;
+  animation: splash-bloom 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.95s forwards;
+}
+.splash-letter {
+  display: inline-block;
+  opacity: 0;
+  animation: splash-letter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.splash-tagline {
+  opacity: 0;
+  animation: splash-fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) 1.05s forwards;
+}
+.splash-overlay-exit {
+  animation: splash-fade-out 0.35s ease 0.05s forwards;
+}
+
+/* Wordmark loading state ------------------------------------------------ */
+
 @keyframes draw-mark {
-  from { stroke-dashoffset: 1; }
-  to { stroke-dashoffset: 0; }
-}
-
-/* "backwards" fill (not "both") so finished animations stop applying and the
-   JS tilt transform can take over the card afterwards */
-.anim-card-in {
-  animation: card-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-.anim-badge-in {
-  animation: badge-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-}
-.anim-rise {
-  animation: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 .draw-once path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: draw-mark 0.9s ease-out 0.15s forwards;
-}
-
-/* Hero lines rise with 3D perspective */
-@keyframes rise-3d {
-  from { opacity: 0; transform: perspective(700px) translateY(34px) rotateX(-14deg); }
-  to { opacity: 1; transform: none; }
-}
-.anim-rise3d {
-  animation: rise-3d 0.75s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-/* Floating demo cards in the hero */
-@keyframes float-y {
-  from { transform: translateY(-7px); }
-  to { transform: translateY(7px); }
-}
-.float-slow { animation: float-y 7s ease-in-out infinite alternate; }
-.float-slower { animation: float-y 9s ease-in-out 1s infinite alternate; }
-
-/* The b-mark redraws on hover, and loops while a check is running */
-.wordmark-hover:hover svg path {
-  stroke-dasharray: 1;
-  animation: draw-mark 0.9s ease-out;
+  animation: draw-mark 0.9s ease-out 0.1s forwards;
 }
 .draw-loop path {
   stroke-dasharray: 1;
   animation: draw-mark 1.4s ease-in-out infinite;
 }
 
-/* Bloom intro overlay */
-@keyframes bloom-pop {
-  0% { opacity: 0; transform: scale(0.3); }
-  45% { opacity: 0.9; }
-  100% { opacity: 0.55; transform: scale(1.5); }
+/* Section rise-in ------------------------------------------------------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
-.bloom-circle {
-  animation: bloom-pop 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.anim-rise {
+  animation: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-/* Scroll reveal */
+/* Skeleton shimmer — used on citation bars and placeholder lines so they
+   feel like content that's loading, not dead gray rectangles. */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(18, 32, 26, 0.06) 0%,
+    rgba(18, 32, 26, 0.12) 50%,
+    rgba(18, 32, 26, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+
+/* Card hover-lift — soft, understated. Used across surface cards. */
+.card-lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(18, 32, 26, 0.08),
+    0 5.33px 26.67px rgba(18, 32, 26, 0.05);
+}
+
+/* Infographic hover — the SVG art inside a ScreenSlot lifts and rotates a
+   hair on hover, so the illustrations feel interactive instead of static. */
+.art-hover {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.art-hover:hover {
+  transform: translateY(-6px) rotate(-0.6deg);
+}
+.art-hover.is-phone:hover {
+  transform: translateY(-6px) rotate(1deg);
+}
+
+/* Dark section shell — used for the verdicts + final CTA sections so the
+   scroll gets real light/dark rhythm instead of only warm cream. */
+.section-dark {
+  background:
+    radial-gradient(1200px 500px at 15% 0%, rgba(74, 139, 90, 0.16) 0%, transparent 60%),
+    radial-gradient(900px 400px at 100% 100%, rgba(74, 139, 90, 0.12) 0%, transparent 55%),
+    #173d24;
+  color: #f6f3ea;
+}
+.section-dark .eyebrow {
+  color: #a8c8a8;
+}
+.section-dark .heading {
+  color: #f6f3ea;
+}
+
+/* Giant decorative b-mark watermark — placed inside dark sections as brand
+   presence without being loud. */
+.brand-water {
+  position: absolute;
+  pointer-events: none;
+  color: #f6f3ea;
+  opacity: 0.045;
+}
+
+/* Verdict chip attention — subtle inner glow for the SUPPORTED chip. */
+@keyframes verdict-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(30, 77, 43, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(30, 77, 43, 0.14);
+  }
+}
+.verdict-glow {
+  animation: verdict-pulse 3.6s ease-in-out infinite;
+}
+
+/* Ticker — used in the trust strip so metrics look alive. */
+@keyframes tick {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(-2px);
+    opacity: 0.7;
+  }
+  60% {
+    transform: translateY(2px);
+    opacity: 0.7;
+  }
+}
+.trust-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4a8b5a;
+  animation: tick 2.2s ease-in-out infinite;
+}
+
+/* Scroll-reveal — restrained fade + slide, triggered by IntersectionObserver
+   in app/page.tsx. Elements start slightly translated and transparent, then
+   slide/fade in when they enter the viewport. */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(18px);
   transition:
-    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
-.reveal.revealed {
+.reveal.in {
   opacity: 1;
   transform: none;
 }
+.reveal[data-d="1"] { transition-delay: 0.07s; }
+.reveal[data-d="2"] { transition-delay: 0.14s; }
+.reveal[data-d="3"] { transition-delay: 0.21s; }
+.reveal[data-d="4"] { transition-delay: 0.28s; }
+
+/* Reduced motion — everything collapses to instant. --------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -135,5 +430,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
+  }
+  /* Ensure scroll-reveal elements are visible even if IO hasn't fired. */
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

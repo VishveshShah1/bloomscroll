@@ -9,28 +9,42 @@ const EN = {
     verdicts: "verdicts",
     pricing: "pricing",
     getApp: "get the app",
-    check: "check a claim",
+    check: "open the checker",
     menu: "menu",
+    signIn: "sign in",
+    startFree: "start free",
+    faq: "faq",
   },
   hero: {
+    tagline: "the anti-doomscroll",
     line1: "Keep scrolling.",
     line2: "Start growing.",
-    sub: "Bloomscroll checks the health and looks claims in your feed against real scientific research — and shows how strong the evidence actually is.",
+    sub: "Bloomscroll fact-checks the health and appearance claims in your feed against real scientific research. Evidence, graded. Real citations, no invented sources.",
+    primaryCta: "Get started",
+    secondaryCta: "See how it works",
     placeholder: "Paste a link, or paste the claim itself",
     check: "check",
     tryOne: "try one",
     disclaimer: "Bloomscroll explains evidence. It doesn't diagnose or give medical advice.",
     demoTag: "what results look like",
-    demoNote: "Small observational studies on tongue posture exist — none measured lasting jaw-shape change in adults.",
+    demoNote:
+      "Small observational studies on tongue posture exist. None measured lasting jaw-shape change in adults.",
     demoCite: "⧉ real, clickable citations land here",
+  },
+  bloom: {
+    tag: "the bloom",
+    title: "Scrolling, but growing.",
+    body:
+      "Doomscrolling numbs you. This does the opposite. Every claim you check leaves you knowing what the evidence actually says, instead of absorbing another confident stranger.",
   },
   status: {
     checking: "checking…",
-    error: "Something broke on our end — try again in a moment.",
+    error: "Something broke on our end. Try again in a moment.",
     couldntRead: "couldn't read that",
     read: "read",
     chars: "chars",
-    sample: "sample verdicts — the live literature pipeline lands in the next phase",
+    sample:
+      "sample verdicts. The live literature pipeline runs once your API credits are set.",
   },
   verdictLabels: {
     supported: "Supported",
@@ -41,37 +55,45 @@ const EN = {
   } as Record<Verdict, string>,
   verdictMeanings: {
     supported: "Multiple decent studies point the same way.",
-    mixed: "Real studies exist — and they disagree with each other.",
-    weak: "Something exists, but it's thin: tiny samples, animal studies, or no control groups.",
+    mixed: "Real studies exist, and they disagree.",
+    weak: "Something exists, but it's thin. Tiny samples, animal studies, or no control groups.",
     no_evidence: "We searched the literature and found nothing that backs the claim.",
-    not_empirical: "An opinion or a vibe, not a checkable fact — that's allowed, it's just not science.",
+    not_empirical:
+      "An opinion or a vibe, not a checkable fact. That's fine. It just isn't science.",
   } as Record<Verdict, string>,
   verdictDetails: {
     supported: {
-      evidence: "Several independent studies — ideally trials or large reviews — agree, and higher-quality work hasn't overturned them.",
-      example: "Sunscreen lowering skin-cancer risk: decades of trials and large cohorts line up.",
+      evidence:
+        "Several independent studies agree. Ideally trials or large reviews, and higher-quality work hasn't overturned them.",
+      example:
+        "Sunscreen lowering skin-cancer risk. Decades of trials and large cohorts line up.",
     },
     mixed: {
-      evidence: "The research genuinely conflicts — some studies find an effect, others find none, and neither side has clearly won.",
-      example: "Diet and acne: some studies link them, plenty don't.",
+      evidence:
+        "The research genuinely conflicts. Some studies find an effect, others find none, and neither side has clearly won.",
+      example: "Diet and acne. Some studies link them, plenty don't.",
     },
     weak: {
-      evidence: "The only evidence is thin — a few small studies, animal or lab work, or no control group to rule out coincidence.",
-      example: "Mewing and the jawline: a handful of small observational papers, no controlled trials in adults.",
+      evidence:
+        "The only evidence is thin. A few small studies, animal or lab work, or no control group to rule out coincidence.",
+      example:
+        "Mewing and the jawline. A handful of small observational papers, no controlled trials in adults.",
     },
     no_evidence: {
-      evidence: "We searched the literature and found nothing that actually tests the claim. Absence of evidence isn't proof it's false — just that no one has shown it.",
+      evidence:
+        "We searched the literature and found nothing that tests the claim. Absence of evidence isn't proof it's false, just that no one has shown it.",
       example: "Fringe looksmaxxing hacks that never made it into a study.",
     },
     not_empirical: {
-      evidence: "There's nothing to measure — it's an opinion, an aesthetic preference, or a definition. Science can't grade it, and that's fine.",
-      example: "“This jaw looks better” is taste, not a testable fact.",
+      evidence:
+        "There's nothing to measure. It's an opinion, an aesthetic preference, or a definition. Science can't grade it, and that's fine.",
+      example: "\"This jaw looks better\" is taste, not a testable fact.",
     },
   } as Record<Verdict, { evidence: string; example: string }>,
   verdictExtra: { looksLike: "Why it lands here", forExample: "For example" },
   stages: {
     reading: "reading the source…",
-    claims: "found {n} claim(s) — reading them closely…",
+    claims: "found {n} claim(s). Reading them closely…",
     searching: "searching the literature…",
     grading: "weighing the evidence…",
   },
@@ -80,58 +102,133 @@ const EN = {
     installApp: "install app",
     installed: "installed ✓",
     howToInstall: "how to install",
-    installTitle: "Get it on your phone",
-    installBody: "Install Bloomscroll like an app, then check any claim straight from your Share menu — no App Store, no account.",
+    installTitle: "Wherever you scroll",
+    installBody:
+      "Bloomscroll works from the same apps you already scroll in. Install once on your phone or desktop, then check any claim in a couple of taps.",
   },
-  stats: [
-    { value: "45M+", label: "papers searchable via Europe PMC" },
-    { value: "5", label: "evidence grades — never a bare true/false" },
-    { value: "0", label: "fabricated citations, blocked by design" },
-    { value: "3+", label: "platforms readable, plus any article" },
-  ],
+  results: {
+    citedTitle: "Cited in the answer",
+    poolTitle: "All papers we found",
+    poolEmpty: "Europe PMC returned no matching papers.",
+    poolHint:
+      "These abstracts came back from Europe PMC. The grader read them, then chose the ones above to cite.",
+    showPool: "Show all papers",
+    hidePool: "Hide papers",
+    cited: "cited",
+    read: "read the paper",
+    verdictWhy: "Why this verdict",
+    claimLabel: "The claim",
+  },
+  useCases: {
+    title: "What to check with it",
+    sub: "Anything you'd normally scroll past uncritically. Bloomscroll works on:",
+    items: [
+      {
+        tag: "TikTok",
+        title: "Health advice from creators",
+        body:
+          "Supplement claims, hormone hacks, \"5 things I did to fix my acne.\" Paste the link or the caption.",
+      },
+      {
+        tag: "YouTube",
+        title: "Wellness and looksmaxxing videos",
+        body:
+          "Mewing, cold plunges, biohacking routines, jaw-training gadgets. We read the captions and check the claims.",
+      },
+      {
+        tag: "Reddit",
+        title: "Supplement and fitness threads",
+        body:
+          "Anything from r/Nootropics, r/Fitness, r/SkincareAddiction. Paste the post link and we pull the text.",
+      },
+      {
+        tag: "Articles",
+        title: "\"A new study says…\" posts",
+        body:
+          "Wellness sites, blog posts, screenshotted headlines. Paste the URL or the text you saw.",
+      },
+      {
+        tag: "Diet",
+        title: "Calorie and macro rules",
+        body:
+          "\"Never eat carbs after 6pm,\" seed-oil takes, fasting claims. Check what the actual trials show.",
+      },
+      {
+        tag: "Skincare",
+        title: "Routines and ingredient hype",
+        body:
+          "Retinol, snail mucin, red-light masks. See what has real trials behind it and what doesn't.",
+      },
+    ],
+  },
   how: {
     title: "How it works",
+    sub: "Three steps. About twelve seconds from claim to verdict.",
     steps: [
       {
         title: "Paste anything",
-        body: "A YouTube, TikTok, or Reddit link, an article — or just type the claim you saw. Hit check.",
+        body:
+          "A YouTube, TikTok, or Reddit link, an article, or just type the claim you saw. Hit check.",
       },
       {
         title: "It finds the real claims",
-        body: "Bloomscroll pulls out what's actually checkable and searches Europe PMC — a free index of 45+ million biomedical papers.",
+        body:
+          "Bloomscroll pulls out what's actually checkable and searches Europe PMC, a free index of over 45 million peer-reviewed biomedical papers.",
       },
       {
         title: "Evidence, graded",
-        body: "Each claim gets a verdict on a five-step scale, a plain-language summary, and real citations you can click. Never a bare true/false.",
+        body:
+          "Each claim gets a verdict on a five-step scale, a plain-language answer, and real citations you can click. Never a bare true or false.",
       },
     ],
   },
   verdictsTitle: "What the verdicts mean",
+  stats: [
+    { value: "45M+", label: "peer-reviewed papers searchable via Europe PMC" },
+    { value: "5", label: "evidence grades. Never a bare true or false" },
+    { value: "0", label: "fabricated citations. Blocked by design" },
+    { value: "3+", label: "platforms readable, plus any article" },
+  ],
   pricing: {
     title: "Plans that grow with you",
-    sub: "Bloomscroll is free while in beta. Paid plans are coming — here's the shape of them.",
+    sub:
+      "Bloomscroll's core is free forever. Upgrade when you want unlimited checks or team features.",
     soon: "coming soon",
-    freeBeta: "free during beta",
+    freeBeta: "free forever",
+    get: "Subscribe",
+    opening: "opening checkout…",
+    stripeError: "Checkout couldn't open. Try again in a moment.",
+    perMonth: "/mo",
     plans: [
       {
         name: "Seed",
         price: "$0",
         tagline: "For the scroller",
-        features: ["Checks every day", "All five verdict grades", "Real, clickable citations"],
+        features: ["A few checks a day", "All five verdict grades", "Real, clickable citations"],
         live: true,
       },
       {
         name: "Sprout",
-        price: "—",
+        price: "$5",
         tagline: "For the curious",
-        features: ["Unlimited checks", "Check history", "Shareable verdict cards"],
+        features: [
+          "Unlimited checks",
+          "Check history",
+          "Shareable verdict cards",
+          "Priority pipeline",
+        ],
         live: false,
       },
       {
         name: "Canopy",
-        price: "—",
-        tagline: "For classrooms & communities",
-        features: ["Shared team space", "Bulk link checking", "API access"],
+        price: "$19",
+        tagline: "For classrooms and communities",
+        features: [
+          "Everything in Sprout",
+          "Shared team space",
+          "Bulk link checking",
+          "API access",
+        ],
         live: false,
       },
     ],
@@ -140,72 +237,115 @@ const EN = {
     title: "Questions, answered",
     items: [
       {
+        q: "What is Bloomscroll?",
+        a:
+          "A tool that checks the health and appearance claims you see in your feed against real scientific literature. Paste a link, a caption, or a claim you saw. It pulls out what's actually checkable, searches Europe PMC for evidence, and shows what the research says with real, clickable citations.",
+      },
+      {
+        q: "How is this different from asking an AI chatbot?",
+        a:
+          "Chatbots invent sources when they don't know. Bloomscroll only cites papers it actually retrieved from Europe PMC, and every citation is validated against the retrieved set before it renders. A fabricated source can't reach your screen. You also get a graded verdict, not a yes or no.",
+      },
+      {
+        q: "Does it store what I check?",
+        a:
+          "Not right now. The free tier needs no account, and we cache results in memory only. Paid plans will add a private history you can turn off at any time.",
+      },
+      {
         q: "Is this medical advice?",
-        a: "No. Bloomscroll explains what published research says about a claim and how strong that research is. It doesn't diagnose, treat, or replace a clinician — and it says so right next to the input box.",
+        a:
+          "No. Bloomscroll explains what published research says about a claim and how strong that research is. It doesn't diagnose, treat, or replace a clinician. If you're deciding on a treatment, talk to an actual professional.",
       },
       {
-        q: "Where do the citations come from?",
-        a: "Europe PMC, a free public index of 45+ million biomedical papers. Every citation links to a real paper, and the pipeline validates every reference against the retrieved set before rendering — a fabricated citation can't reach your screen by design.",
-      },
-      {
-        q: "What can I paste?",
-        a: "YouTube links (we read the captions), TikTok links (the caption), Reddit posts, most articles — or just type the claim yourself. Instagram blocks this kind of access for every third-party tool, so for IG, paste the caption.",
-      },
-      {
-        q: "Why does it say 'not a testable claim'?",
-        a: "Because a lot of what you scroll past is opinion, aesthetics, or vibes — and that's fine. Bloomscroll flags it as its own first-class result instead of pretending science has a verdict on it.",
-      },
-      {
-        q: "Is it free?",
-        a: "Yes, completely free while in beta. Paid plans (Sprout and Canopy) come later — checking a claim will always stay free.",
+        q: "What platforms does it work on right now?",
+        a:
+          "YouTube (we read the captions), TikTok (the caption), Reddit posts, and any web article we can load. Instagram blocks this kind of access for every third-party tool. For IG, paste the caption yourself.",
       },
     ],
   },
   contact: {
     title: "Reach the creator",
-    body: "Bloomscroll is built by a high-school student for the TKS Prompt → Product challenge. Questions, feedback, bug reports, or feature ideas — email goes straight to the person who built it.",
+    body:
+      "Bloomscroll is built by one person. Questions, feedback, bug reports, or feature ideas go straight to them.",
     button: "email the creator",
-    subject: "Bloomscroll — feedback",
+    subject: "Bloomscroll: feedback",
   },
   cta: {
     title: "Your feed says a lot. Check it.",
-    button: "check a claim",
+    button: "start free",
   },
   access: {
-    title: "Put Bloomscroll in your share menu",
-    sub: "Check claims without leaving the app you saw them in. Pick your device — each setup takes under a minute.",
+    title: "Wherever you scroll",
+    sub:
+      "Bloomscroll works from your phone's share menu and your desktop browser. Pick your device. Each setup takes under a minute.",
     androidTitle: "Android",
-    androidLede: "Install once, then Bloomscroll shows up in your Share menu next to Messages and WhatsApp.",
+    androidLede:
+      "Install once, then Bloomscroll shows up in your Share menu next to Messages and WhatsApp.",
     androidSteps: [
-      "Open bloomscroll in Chrome",
-      "Tap the ⋮ menu → \"Add to Home screen\" → Install",
-      "In any app, hit Share → Bloomscroll",
+      "Open bloomscroll.com in Chrome",
+      "Tap the ⋮ menu, then \"Add to Home screen\" or Install",
+      "In any app, hit Share, then Bloomscroll",
       "The check runs automatically",
     ],
+    androidCta: "install as app",
     iphoneTitle: "iPhone",
-    iphoneLede: "Add this once — it'll show up under Share → Shortcuts.",
+    iphoneLede: "Add this once, and it'll show up under Share, then Shortcuts.",
     iphoneSteps: [
-      "Open the Shortcuts app → tap +",
+      "Open the Shortcuts app, then tap +",
       "Add action: \"Open URLs\"",
-      "Set the URL to: bloomscroll…/?q= followed by the Shortcut Input variable",
+      "Set the URL to bloomscroll.com/?q= followed by the Shortcut Input variable",
       "In the shortcut's settings, enable \"Show in Share Sheet\"",
-      "Name it Bloomscroll — done",
+      "Name it Bloomscroll, done",
     ],
-    iphoneNote: "An official one-tap iCloud shortcut link from the creator will land here soon — until then, the five steps above build the same thing.",
+    iphoneNote:
+      "An official one-tap iCloud shortcut link is on the way. Until then, the five steps above build the same thing.",
+    iphoneCta: "add to iPhone",
     desktopTitle: "Desktop",
-    desktopLede: "Drag this to your bookmarks bar. Click it on any page to check that page.",
+    desktopLede:
+      "The Chrome extension puts \"Check with Bloomscroll\" on any highlighted text or page. Right-click, done.",
+    desktopSteps: [
+      "Grab the extension/ folder from the repo",
+      "Open chrome://extensions",
+      "Toggle Developer mode on (top-right)",
+      "Click \"Load unpacked\" and pick the extension/ folder",
+      "Pin the Bloomscroll icon in your toolbar",
+    ],
+    desktopCta: "get the extension",
+    bookmarkletTitle: "or a bookmarklet (any browser)",
+    bookmarkletLede:
+      "For Firefox, Safari, or when you can't install anything. Drag this to your bookmarks bar.",
     bookmarklet: "✓ check with bloomscroll",
-    desktopNote: "Works in Chrome, Edge, Firefox, and Safari.",
-    igNote: "Instagram blocks this kind of access for every third-party tool — not just this one. For IG posts, copy the caption and paste it.",
+    igNote:
+      "Instagram blocks this kind of access for every third-party tool, not just this one. For IG posts, copy the caption and paste it.",
     back: "back to bloomscroll",
   },
   footer: {
     product: "Product",
     about: "About",
     contactLink: "contact the creator",
-    tks: "TKS prompt → product challenge",
-    disclaimer: "Bloomscroll explains published evidence. It is not medical advice and never diagnoses.",
+    tks: "built by a solo dev",
+    disclaimer:
+      "Bloomscroll explains published evidence. It is not medical advice and never diagnoses.",
     rights: "© 2026 bloomscroll",
+  },
+  signin: {
+    title: "Sign in to Bloomscroll",
+    sub: "One account. Google only, no passwords to manage.",
+    google: "Continue with Google",
+    terms: "By continuing you agree to Bloomscroll's beta terms and privacy note.",
+    signedInAs: "Signed in as",
+    signOut: "sign out",
+  },
+  check: {
+    signInTitle: "Sign in to run a check",
+    signInBody:
+      "Bloomscroll uses your Google account to track your free checks and remember your plan. No password to set up.",
+    used: "{used} of {limit} free checks used",
+    unlimited: "Unlimited",
+    resetsOn: "resets {date}",
+    limitTitle: "You've used your free checks for this month",
+    limitBody: "Upgrade to Sprout or Canopy for unlimited checks, or wait until {date}.",
+    upgradeCta: "See plans",
   },
 };
 
@@ -217,28 +357,42 @@ const FR: Strings = {
     verdicts: "verdicts",
     pricing: "tarifs",
     getApp: "l'appli",
-    check: "vérifier",
+    check: "ouvrir le checker",
     menu: "menu",
+    signIn: "se connecter",
+    startFree: "commencer",
+    faq: "faq",
   },
   hero: {
-    line1: "Scrolle encore.",
-    line2: "Grandis enfin.",
-    sub: "Bloomscroll confronte les affirmations santé et physique de ton feed à la vraie recherche scientifique — et montre la force réelle des preuves.",
+    tagline: "l'anti-doomscroll",
+    line1: "Continue à scroller.",
+    line2: "Commence à grandir.",
+    sub:
+      "Bloomscroll confronte les affirmations santé et physique de ton feed à la vraie recherche scientifique. Preuves notées. Vraies citations, aucune source inventée.",
+    primaryCta: "Commencer",
+    secondaryCta: "Voir comment ça marche",
     placeholder: "Colle un lien, ou l'affirmation elle-même",
     check: "vérifier",
     tryOne: "essaie",
     disclaimer: "Bloomscroll explique les preuves. Il ne diagnostique pas et ne donne pas d'avis médical.",
     demoTag: "à quoi ressemble un résultat",
-    demoNote: "De petites études observationnelles sur la posture linguale existent — aucune n'a mesuré de changement durable de la mâchoire chez l'adulte.",
+    demoNote:
+      "De petites études observationnelles sur la posture linguale existent. Aucune n'a mesuré de changement durable de la mâchoire chez l'adulte.",
     demoCite: "⧉ de vraies citations cliquables arrivent ici",
+  },
+  bloom: {
+    tag: "le bloom",
+    title: "Scroller, mais grandir.",
+    body:
+      "Le doomscrolling anesthésie. Ceci fait l'inverse. Chaque affirmation vérifiée te laisse avec ce que disent réellement les preuves, au lieu d'un énième inconnu très sûr de lui.",
   },
   status: {
     checking: "vérification…",
-    error: "Un souci de notre côté — réessaie dans un instant.",
+    error: "Un souci de notre côté. Réessaie dans un instant.",
     couldntRead: "lecture impossible",
     read: "lu",
     chars: "caractères",
-    sample: "verdicts d'exemple — le pipeline scientifique arrive à la prochaine phase",
+    sample: "verdicts d'exemple. Le pipeline scientifique s'active dès que tes crédits API sont prêts.",
   },
   verdictLabels: {
     supported: "Étayé",
@@ -249,37 +403,46 @@ const FR: Strings = {
   } as Record<Verdict, string>,
   verdictMeanings: {
     supported: "Plusieurs études sérieuses vont dans le même sens.",
-    mixed: "De vraies études existent — et elles se contredisent.",
-    weak: "Il existe quelque chose, mais c'est mince : petits échantillons, études animales, pas de groupe témoin.",
-    no_evidence: "Nous avons fouillé la littérature et rien ne soutient l'affirmation.",
-    not_empirical: "Une opinion ou une vibe, pas un fait vérifiable — c'est permis, mais ce n'est pas de la science.",
+    mixed: "De vraies études existent, et elles se contredisent.",
+    weak:
+      "Il existe quelque chose, mais c'est mince. Petits échantillons, études animales, pas de groupe témoin.",
+    no_evidence: "Nous avons fouillé la littérature, rien ne soutient l'affirmation.",
+    not_empirical:
+      "Une opinion ou une vibe, pas un fait vérifiable. C'est permis, mais ce n'est pas de la science.",
   } as Record<Verdict, string>,
   verdictDetails: {
     supported: {
-      evidence: "Plusieurs études indépendantes — idéalement des essais ou de grandes revues — concordent, sans être renversées par des travaux de meilleure qualité.",
-      example: "La crème solaire qui réduit le risque de cancer de la peau : des décennies d'essais et de cohortes concordent.",
+      evidence:
+        "Plusieurs études indépendantes concordent, idéalement des essais ou de grandes revues, sans être renversées par des travaux de meilleure qualité.",
+      example:
+        "La crème solaire qui réduit le risque de cancer de la peau. Des décennies d'essais et de cohortes concordent.",
     },
     mixed: {
-      evidence: "La recherche se contredit vraiment — certaines études trouvent un effet, d'autres non, sans camp clairement gagnant.",
-      example: "Alimentation et acné : certaines études les relient, beaucoup non.",
+      evidence:
+        "La recherche se contredit vraiment. Certaines études trouvent un effet, d'autres non, sans camp clairement gagnant.",
+      example: "Alimentation et acné. Certaines études les relient, beaucoup non.",
     },
     weak: {
-      evidence: "Les seules preuves sont minces — quelques petites études, des travaux sur l'animal ou en labo, ou aucun groupe témoin pour écarter le hasard.",
-      example: "Le mewing et la mâchoire : quelques petites études observationnelles, aucun essai contrôlé chez l'adulte.",
+      evidence:
+        "Les seules preuves sont minces. Quelques petites études, des travaux sur l'animal ou en labo, ou aucun groupe témoin pour écarter le hasard.",
+      example:
+        "Le mewing et la mâchoire. Quelques petites études observationnelles, aucun essai contrôlé chez l'adulte.",
     },
     no_evidence: {
-      evidence: "Nous avons fouillé la littérature sans rien trouver qui teste vraiment l'affirmation. L'absence de preuve n'est pas une preuve du contraire — juste que personne ne l'a démontré.",
+      evidence:
+        "Nous avons fouillé la littérature sans rien trouver qui teste vraiment l'affirmation. L'absence de preuve n'est pas une preuve du contraire, juste que personne ne l'a démontré.",
       example: "Des astuces looksmaxxing marginales jamais passées par une étude.",
     },
     not_empirical: {
-      evidence: "Il n'y a rien à mesurer — c'est une opinion, une préférence esthétique ou une définition. La science ne peut pas la noter, et c'est très bien.",
-      example: "« Cette mâchoire est plus belle » : une question de goût, pas un fait testable.",
+      evidence:
+        "Il n'y a rien à mesurer. C'est une opinion, une préférence esthétique ou une définition. La science ne peut pas la noter, et c'est très bien.",
+      example: "« Cette mâchoire est plus belle », une question de goût, pas un fait testable.",
     },
   } as Record<Verdict, { evidence: string; example: string }>,
   verdictExtra: { looksLike: "Pourquoi ce verdict", forExample: "Par exemple" },
   stages: {
     reading: "lecture de la source…",
-    claims: "{n} affirmation(s) trouvée(s) — lecture attentive…",
+    claims: "{n} affirmation(s) trouvée(s). Lecture attentive…",
     searching: "recherche dans la littérature…",
     grading: "évaluation des preuves…",
   },
@@ -288,58 +451,124 @@ const FR: Strings = {
     installApp: "installer l'appli",
     installed: "installée ✓",
     howToInstall: "comment installer",
-    installTitle: "Mets-la sur ton téléphone",
-    installBody: "Installe Bloomscroll comme une appli, puis vérifie n'importe quelle affirmation depuis ton menu Partager — sans App Store, sans compte.",
+    installTitle: "Là où tu scrolles",
+    installBody:
+      "Bloomscroll fonctionne depuis les mêmes applis où tu scrolles déjà. Installe-le une fois sur mobile ou desktop, et vérifie n'importe quelle affirmation en deux touchers.",
   },
-  stats: [
-    { value: "45 M+", label: "articles interrogeables via Europe PMC" },
-    { value: "5", label: "niveaux de preuve — jamais un simple vrai/faux" },
-    { value: "0", label: "citation inventée, bloqué par conception" },
-    { value: "3+", label: "plateformes lisibles, plus tout article" },
-  ],
+  results: {
+    citedTitle: "Cités dans la réponse",
+    poolTitle: "Tous les articles trouvés",
+    poolEmpty: "Europe PMC n'a renvoyé aucun article correspondant.",
+    poolHint:
+      "Ces résumés viennent d'Europe PMC. Le noteur les a lus, puis a choisi ceux cités ci-dessus.",
+    showPool: "Afficher tous les articles",
+    hidePool: "Masquer les articles",
+    cited: "cité",
+    read: "lire l'article",
+    verdictWhy: "Pourquoi ce verdict",
+    claimLabel: "L'affirmation",
+  },
+  useCases: {
+    title: "À utiliser pour",
+    sub: "Tout ce que tu ferais défiler sans réfléchir. Bloomscroll fonctionne sur :",
+    items: [
+      {
+        tag: "TikTok",
+        title: "Conseils santé de créateurs",
+        body:
+          "Compléments, hacks hormonaux, « 5 trucs qui ont réglé mon acné ». Colle le lien ou la légende.",
+      },
+      {
+        tag: "YouTube",
+        title: "Wellness et looksmaxxing",
+        body:
+          "Mewing, bains froids, biohacking, gadgets pour la mâchoire. On lit les sous-titres et on vérifie.",
+      },
+      {
+        tag: "Reddit",
+        title: "Threads compléments et fitness",
+        body:
+          "r/Nootropics, r/Fitness, r/SkincareAddiction. Colle le lien du post, on récupère le texte.",
+      },
+      {
+        tag: "Articles",
+        title: "« Une nouvelle étude dit… »",
+        body: "Sites bien-être, blogs, captures d'écran de titres. Colle l'URL ou le texte que tu as vu.",
+      },
+      {
+        tag: "Régime",
+        title: "Règles caloriques et macros",
+        body:
+          "« Pas de glucides après 18h », débats sur les huiles, jeûne. Voir ce que disent vraiment les essais.",
+      },
+      {
+        tag: "Skincare",
+        title: "Routines et ingrédients à la mode",
+        body: "Rétinol, mucine d'escargot, masques LED. Vois lesquels ont de vrais essais derrière eux.",
+      },
+    ],
+  },
   how: {
     title: "Comment ça marche",
+    sub: "Trois étapes. Environ douze secondes de l'affirmation au verdict.",
     steps: [
       {
         title: "Colle n'importe quoi",
-        body: "Un lien YouTube, TikTok ou Reddit, un article — ou tape l'affirmation toi-même. Appuie sur vérifier.",
+        body: "Un lien YouTube, TikTok ou Reddit, un article, ou tape l'affirmation toi-même. Appuie sur vérifier.",
       },
       {
         title: "Il trouve les vraies affirmations",
-        body: "Bloomscroll extrait ce qui est vraiment vérifiable et interroge Europe PMC — un index gratuit de plus de 45 millions d'articles biomédicaux.",
+        body:
+          "Bloomscroll extrait ce qui est vraiment vérifiable et interroge Europe PMC, un index gratuit de plus de 45 millions d'articles biomédicaux à comité de lecture.",
       },
       {
         title: "Des preuves, notées",
-        body: "Chaque affirmation reçoit un verdict sur cinq niveaux, un résumé en langage clair et de vraies citations cliquables. Jamais un simple vrai/faux.",
+        body:
+          "Chaque affirmation reçoit un verdict sur cinq niveaux, une réponse en langage clair et de vraies citations cliquables. Jamais un simple vrai ou faux.",
       },
     ],
   },
   verdictsTitle: "Ce que veulent dire les verdicts",
+  stats: [
+    { value: "45 M+", label: "articles à comité de lecture via Europe PMC" },
+    { value: "5", label: "niveaux de preuve. Jamais un simple vrai ou faux" },
+    { value: "0", label: "citation inventée. Bloqué par conception" },
+    { value: "3+", label: "plateformes lisibles, plus tout article" },
+  ],
   pricing: {
     title: "Des forfaits qui poussent avec toi",
-    sub: "Bloomscroll est gratuit pendant la bêta. Les forfaits payants arrivent — voici leur forme.",
+    sub:
+      "Le cœur de Bloomscroll reste gratuit. Passe à un plan payant pour des vérifications illimitées ou des fonctions d'équipe.",
     soon: "bientôt disponible",
-    freeBeta: "gratuit pendant la bêta",
+    freeBeta: "gratuit à vie",
+    get: "S'abonner",
+    opening: "ouverture du paiement…",
+    stripeError: "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.",
+    perMonth: "/mois",
     plans: [
       {
         name: "Seed",
         price: "0 $",
         tagline: "Pour scroller mieux",
-        features: ["Des vérifications chaque jour", "Les cinq niveaux de verdict", "De vraies citations cliquables"],
+        features: [
+          "Quelques vérifications par jour",
+          "Les cinq niveaux de verdict",
+          "De vraies citations cliquables",
+        ],
         live: true,
       },
       {
         name: "Sprout",
-        price: "—",
+        price: "5 $",
         tagline: "Pour les curieux",
-        features: ["Vérifications illimitées", "Historique des vérifications", "Cartes de verdict à partager"],
+        features: ["Vérifications illimitées", "Historique", "Cartes de verdict à partager", "Pipeline prioritaire"],
         live: false,
       },
       {
         name: "Canopy",
-        price: "—",
-        tagline: "Pour les classes et les communautés",
-        features: ["Espace d'équipe partagé", "Vérification de liens en masse", "Accès API"],
+        price: "19 $",
+        tagline: "Pour classes et communautés",
+        features: ["Tout Sprout", "Espace d'équipe partagé", "Vérification en masse", "Accès API"],
         live: false,
       },
     ],
@@ -348,72 +577,114 @@ const FR: Strings = {
     title: "Questions, réponses",
     items: [
       {
+        q: "C'est quoi Bloomscroll ?",
+        a:
+          "Un outil qui vérifie les affirmations santé et physique de ton feed contre la vraie littérature scientifique. Colle un lien, une légende ou une affirmation. Il en extrait ce qui est vérifiable, interroge Europe PMC, et montre ce que dit la recherche avec de vraies citations cliquables.",
+      },
+      {
+        q: "En quoi est-ce différent d'un chatbot IA ?",
+        a:
+          "Les chatbots inventent des sources quand ils ne savent pas. Bloomscroll ne cite que des articles réellement récupérés d'Europe PMC, et chaque citation est validée contre l'ensemble récupéré avant affichage. Une source inventée ne peut pas atteindre ton écran. Tu obtiens aussi un verdict noté, pas un oui ou non.",
+      },
+      {
+        q: "Est-ce qu'il stocke ce que je vérifie ?",
+        a:
+          "Non, pas pour l'instant. Le forfait gratuit n'exige pas de compte, et les résultats sont mis en cache en mémoire seulement. Les forfaits payants ajouteront un historique privé, que tu peux désactiver à tout moment.",
+      },
+      {
         q: "Est-ce un avis médical ?",
-        a: "Non. Bloomscroll explique ce que dit la recherche publiée sur une affirmation et la force de cette recherche. Il ne diagnostique pas, ne traite pas et ne remplace pas un professionnel de santé — et il le dit juste à côté du champ de saisie.",
+        a:
+          "Non. Bloomscroll explique ce que dit la recherche publiée et la force de cette recherche. Il ne diagnostique pas, ne traite pas, et ne remplace pas un professionnel. Pour décider d'un traitement, parle à un vrai professionnel.",
       },
       {
-        q: "D'où viennent les citations ?",
-        a: "D'Europe PMC, un index public et gratuit de plus de 45 millions d'articles biomédicaux. Chaque citation renvoie à un vrai article, et le pipeline valide chaque référence avant affichage — une citation inventée ne peut pas atteindre ton écran, par conception.",
-      },
-      {
-        q: "Qu'est-ce que je peux coller ?",
-        a: "Des liens YouTube (on lit les sous-titres), TikTok (la légende), des posts Reddit, la plupart des articles — ou tape l'affirmation toi-même. Instagram bloque ce type d'accès pour tous les outils tiers : pour IG, colle la légende.",
-      },
-      {
-        q: "Pourquoi « affirmation non testable » ?",
-        a: "Parce que beaucoup de ce qui défile est de l'opinion, de l'esthétique ou des vibes — et c'est très bien. Bloomscroll le signale comme un résultat à part entière au lieu de prétendre que la science a un verdict dessus.",
-      },
-      {
-        q: "C'est gratuit ?",
-        a: "Oui, entièrement gratuit pendant la bêta. Les forfaits payants (Sprout et Canopy) viendront plus tard — vérifier une affirmation restera toujours gratuit.",
+        q: "Ça marche sur quelles plateformes aujourd'hui ?",
+        a:
+          "YouTube (on lit les sous-titres), TikTok (la légende), les posts Reddit, et tout article web qu'on arrive à charger. Instagram bloque ce type d'accès pour tous les outils tiers. Pour IG, colle toi-même la légende.",
       },
     ],
   },
   contact: {
     title: "Écris au créateur",
-    body: "Bloomscroll est construit par un lycéen pour le challenge TKS Prompt → Product. Questions, retours, bugs ou idées — le mail arrive directement chez celui qui l'a construit.",
+    body:
+      "Bloomscroll est construit par une seule personne. Questions, retours, bugs ou idées lui arrivent directement.",
     button: "écrire au créateur",
-    subject: "Bloomscroll — retour",
+    subject: "Bloomscroll : retour",
   },
   cta: {
     title: "Ton feed raconte beaucoup de choses. Vérifie-les.",
-    button: "vérifier une affirmation",
+    button: "commencer",
   },
   access: {
-    title: "Mets Bloomscroll dans ton menu Partager",
-    sub: "Vérifie les affirmations sans quitter l'appli où tu les as vues. Choisis ton appareil — chaque installation prend moins d'une minute.",
+    title: "Là où tu scrolles",
+    sub:
+      "Bloomscroll fonctionne depuis le menu Partager de ton téléphone et depuis ton navigateur desktop. Choisis ton appareil. Chaque installation prend moins d'une minute.",
     androidTitle: "Android",
-    androidLede: "Installe une fois, et Bloomscroll apparaît dans ton menu Partager à côté de Messages et WhatsApp.",
+    androidLede:
+      "Installe une fois, et Bloomscroll apparaît dans ton menu Partager, à côté de Messages et WhatsApp.",
     androidSteps: [
-      "Ouvre bloomscroll dans Chrome",
-      "Menu ⋮ → « Ajouter à l'écran d'accueil » → Installer",
-      "Dans n'importe quelle appli : Partager → Bloomscroll",
+      "Ouvre bloomscroll.com dans Chrome",
+      "Menu ⋮, puis « Ajouter à l'écran d'accueil » ou Installer",
+      "Dans n'importe quelle appli, Partager, puis Bloomscroll",
       "La vérification se lance toute seule",
     ],
+    androidCta: "installer comme appli",
     iphoneTitle: "iPhone",
-    iphoneLede: "Ajoute-le une fois — il apparaîtra sous Partager → Raccourcis.",
+    iphoneLede: "Ajoute-le une fois, il apparaîtra sous Partager, puis Raccourcis.",
     iphoneSteps: [
-      "Ouvre l'appli Raccourcis → touche +",
+      "Ouvre l'appli Raccourcis, puis touche +",
       "Ajoute l'action « Ouvrir les URL »",
-      "Mets l'URL : bloomscroll…/?q= suivi de la variable Entrée du raccourci",
+      "Mets l'URL bloomscroll.com/?q= suivi de la variable Entrée du raccourci",
       "Dans les réglages du raccourci, active « Afficher dans la feuille de partage »",
-      "Nomme-le Bloomscroll — c'est fait",
+      "Nomme-le Bloomscroll, c'est fait",
     ],
-    iphoneNote: "Un lien iCloud officiel en un clic arrivera ici bientôt — d'ici là, les cinq étapes ci-dessus construisent exactement la même chose.",
-    desktopTitle: "Ordinateur",
-    desktopLede: "Glisse ce bouton dans ta barre de favoris. Clique dessus sur n'importe quelle page pour la vérifier.",
+    iphoneNote:
+      "Un lien iCloud officiel en un clic arrive. D'ici là, les cinq étapes ci-dessus construisent exactement la même chose.",
+    iphoneCta: "ajouter à l'iPhone",
+    desktopTitle: "Desktop",
+    desktopLede:
+      "L'extension Chrome ajoute « Vérifier avec Bloomscroll » sur tout texte surligné ou toute page. Clic droit, terminé.",
+    desktopSteps: [
+      "Récupère le dossier extension/ dans le dépôt",
+      "Ouvre chrome://extensions",
+      "Active le « Mode développeur » (en haut à droite)",
+      "Clique sur « Charger l'extension non empaquetée » et choisis le dossier extension/",
+      "Épingle l'icône Bloomscroll dans ta barre d'outils",
+    ],
+    desktopCta: "obtenir l'extension",
+    bookmarkletTitle: "ou un bookmarklet (tous navigateurs)",
+    bookmarkletLede:
+      "Pour Firefox, Safari, ou quand tu ne peux rien installer. Glisse ce bouton dans ta barre de favoris.",
     bookmarklet: "✓ vérifier avec bloomscroll",
-    desktopNote: "Fonctionne sur Chrome, Edge, Firefox et Safari.",
-    igNote: "Instagram bloque ce type d'accès pour tous les outils tiers — pas seulement celui-ci. Pour un post IG, copie la légende et colle-la.",
+    igNote:
+      "Instagram bloque ce type d'accès pour tous les outils tiers, pas seulement celui-ci. Pour un post IG, copie la légende et colle-la.",
     back: "retour à bloomscroll",
   },
   footer: {
     product: "Produit",
     about: "À propos",
     contactLink: "contacter le créateur",
-    tks: "challenge TKS prompt → product",
+    tks: "construit par un dev en solo",
     disclaimer: "Bloomscroll explique les preuves publiées. Ce n'est pas un avis médical et il ne diagnostique jamais.",
     rights: "© 2026 bloomscroll",
+  },
+  signin: {
+    title: "Se connecter à Bloomscroll",
+    sub: "Un compte. Google uniquement, aucun mot de passe à gérer.",
+    google: "Continuer avec Google",
+    terms: "En continuant tu acceptes les conditions bêta et la note vie privée de Bloomscroll.",
+    signedInAs: "Connecté en tant que",
+    signOut: "se déconnecter",
+  },
+  check: {
+    signInTitle: "Connecte-toi pour lancer une vérification",
+    signInBody:
+      "Bloomscroll utilise ton compte Google pour suivre tes vérifications gratuites et retenir ton forfait. Aucun mot de passe à créer.",
+    used: "{used} sur {limit} vérifications gratuites utilisées",
+    unlimited: "Illimité",
+    resetsOn: "réinitialise le {date}",
+    limitTitle: "Tu as utilisé tes vérifications gratuites du mois",
+    limitBody: "Passe à Sprout ou Canopy pour des vérifications illimitées, ou attends jusqu'au {date}.",
+    upgradeCta: "Voir les forfaits",
   },
 };
 

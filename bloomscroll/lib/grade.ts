@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { MissingKeyError } from "./extract";
+import { chargeSpend, ensureCanSpend } from "./spend";
 import type { Citation, Paper, Verdict } from "./types";
 
 // Phase 4: evidence grading + the anti-hallucination citation gate.
@@ -68,9 +69,9 @@ verdict is exactly one of:
 - "no_evidence": the papers don't actually address the claim, or the list is empty.
 - "not_empirical": the claim is an opinion/aesthetic judgment, not testable.
 
-summary: 2-3 sentences. Name the ACTUAL evidence type — "one small study in mice suggests..." not "studies show...". Be honest about limitations.
+summary: 3-5 sentences that read as a clear, thorough answer to the claim. Name the ACTUAL evidence type — "one small study in mice suggests..." not "studies show...". Note sample sizes, whether trials existed, and any conflicts. Be honest about limitations. Write for a curious teenager, not a journal.
 
-citation_ids: ONLY integers from the numbered list above. You may NEVER invent a title, author, journal, or ID that is not in the provided list. If a claim is not_empirical or no_evidence, use an empty array. Cite at most 4.`;
+citation_ids: ONLY integers from the numbered list above. You may NEVER invent a title, author, journal, or ID that is not in the provided list. If a claim is not_empirical or no_evidence, use an empty array. Cite up to 6 of the most relevant papers.`;
 }
 
 function papersBlock(papers: Paper[]): string {
@@ -122,12 +123,14 @@ export async function gradeClaim(claim: string, papers: Paper[]): Promise<Graded
   let output: GraderOutput | null = null;
 
   for (let attempt = 0; attempt < 2 && !output; attempt++) {
+    await ensureCanSpend();
     const res = await client.messages.create({
       model: MODEL,
       max_tokens: 1024,
       system: buildSystem(),
       messages: [{ role: "user", content: userContent }],
     });
+    await chargeSpend(res.usage, MODEL);
     const raw = res.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
       .map((b) => b.text)

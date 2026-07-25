@@ -1,0 +1,621 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useSession, signIn, signOut } from "next-auth/react";
+import Wordmark from "@/components/Wordmark";
+import { STRINGS, useLang, type Lang, type Strings } from "@/lib/i18n";
+import type { CheckResponse, Verdict } from "@/lib/types";
+
+const VERDICT_COLORS: Record<Verdict, { bg: string; text: string; border: string }> = {
+  supported: { bg: "#DDE7DA", text: "#204628", border: "#B8CCB8" },
+  mixed: { bg: "#EEE7CE", text: "#6B5015", border: "#DCC896" },
+  weak: { bg: "#F1E1CE", text: "#7A4E1B", border: "#DCC29A" },
+  no_evidence: { bg: "#E8E9E4", text: "#4B554E", border: "#C8CDC4" },
+  not_empirical: { bg: "#E4E1EE", text: "#4D4A72", border: "#C6C4DC" },
+};
+
+const EXAMPLES: Record<Lang, string[]> = {
+  en: [
+    "mewing reshapes your jawline",
+    "bone smashing sharpens your face",
+    "daily sunscreen prevents skin cancer",
+  ],
+  fr: [
+    "le mewing redessine ta mâchoire",
+    "le bone smashing affine ton visage",
+    "la crème solaire prévient le cancer de la peau",
+  ],
+};
+
+type Stage =
+  | { stage: "reading" }
+  | { stage: "claims"; n: number }
+  | { stage: "searching" }
+  | { stage: "grading" };
+
+interface UsageSnapshot {
+  signedIn: boolean;
+  plan: "seed" | "sprout" | "canopy";
+  used: number;
+  limit: number | null;
+  resetAt: string | null;
+}
+
+interface LimitError {
+  used: number;
+  limit: number;
+  resetAt: string;
+}
+
+function stageText(stage: Stage | null, t: Strings): string {
+  if (!stage) return t.status.checking;
+  switch (stage.stage) {
+    case "reading":
+      return t.stages.reading;
+    case "claims":
+      return t.stages.claims.replace("{n}", String(stage.n));
+    case "searching":
+      return t.stages.searching;
+    case "grading":
+      return t.stages.grading;
+    default:
+      return t.status.checking;
+  }
+}
+
+function Badge({ verdict, label }: { verdict: Verdict; label: string }) {
+  const v = VERDICT_COLORS[verdict];
+  return (
+    <span
+      className="inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.06em]"
+      style={{ background: v.bg, color: v.text, borderColor: v.border }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function formatDate(iso: string, lang: Lang): string {
+  try {
+    return new Date(iso).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US", {
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function UsagePill({ snap, t, lang }: { snap: UsageSnapshot; t: Strings; lang: Lang }) {
+  if (!snap.signedIn) return null;
+  const isPaid = snap.plan !== "seed";
+  const label = isPaid
+    ? `${t.check.unlimited} · ${snap.plan[0].toUpperCase()}${snap.plan.slice(1)}`
+    : t.check.used
+        .replace("{used}", String(snap.used))
+        .replace("{limit}", String(snap.limit ?? 0));
+  return (
+    <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-ink/10 bg-moss/60 px-3.5 py-1.5">
+      <span className="text-[12.5px] font-semibold text-forest">{label}</span>
+      {!isPaid && snap.resetAt && (
+        <span className="text-[11.5px] text-bark">
+          {t.check.resetsOn.replace("{date}", formatDate(snap.resetAt, lang))}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function LimitCard({
+  err,
+  t,
+  lang,
+}: {
+  err: LimitError;
+  t: Strings;
+  lang: Lang;
+}) {
+  return (
+    <div className="surface p-6 sm:p-7">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-forest">
+        {t.check.used
+          .replace("{used}", String(err.used))
+          .replace("{limit}", String(err.limit))}
+      </p>
+      <h2 className="mt-2 text-[22px] font-semibold leading-snug text-ink">
+        {t.check.limitTitle}
+      </h2>
+      <p className="mt-3 text-[15px] leading-relaxed text-bark">
+        {t.check.limitBody.replace("{date}", formatDate(err.resetAt, lang))}
+      </p>
+      <Link href="/#pricing" className="btn-primary focus-ring mt-6">
+        {t.check.upgradeCta} →
+      </Link>
+    </div>
+  );
+}
+
+function SignInCard({ t }: { t: Strings }) {
+  return (
+    <div className="surface p-6 sm:p-8">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-forest">
+        {t.hero.tagline}
+      </p>
+      <h2 className="mt-2 text-[24px] font-semibold leading-snug text-ink sm:text-[28px]">
+        {t.check.signInTitle}
+      </h2>
+      <p className="mt-3 text-[15.5px] leading-relaxed text-bark">{t.check.signInBody}</p>
+      <button
+        type="button"
+        onClick={() => signIn("google", { callbackUrl: "/check" })}
+        className="focus-ring mt-6 flex w-full items-center justify-center gap-3 rounded-full border border-ink/12 bg-white px-5 py-3.5 text-[15px] font-semibold text-ink transition hover:-translate-y-0.5 hover:border-ink/25 sm:w-auto"
+      >
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.4 0 6.4 1.2 8.8 3.5l6.6-6.6C35.4 2.7 30 .5 24 .5 14.7.5 6.7 5.8 2.8 13.5l7.7 6C12.4 13.6 17.7 9.5 24 9.5z" />
+          <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.2-.4-4.7H24v9.4h12.7c-.5 3-2.2 5.5-4.6 7.2l7.5 5.8c4.4-4 6.9-10 6.9-17.7z" />
+          <path fill="#FBBC05" d="M10.5 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.7-6C1 17.1 0 20.4 0 24s1 6.9 2.8 10.5l7.7-6z" />
+          <path fill="#34A853" d="M24 47.5c6.5 0 11.9-2.2 15.9-6l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.7 6C6.7 42.2 14.7 47.5 24 47.5z" />
+        </svg>
+        {t.signin.google}
+      </button>
+    </div>
+  );
+}
+
+export default function CheckPage() {
+  const [lang, setLang] = useLang();
+  const t = STRINGS[lang];
+  const { data: session, status: authStatus } = useSession();
+  const [input, setInput] = useState("");
+  const [status, setStatus] = useState<"idle" | "checking" | "done" | "error">("idle");
+  const [stage, setStage] = useState<Stage | null>(null);
+  const [data, setData] = useState<CheckResponse | null>(null);
+  const [usage, setUsage] = useState<UsageSnapshot | null>(null);
+  const [limitErr, setLimitErr] = useState<LimitError | null>(null);
+  const langRef = useRef(lang);
+  langRef.current = lang;
+  const runningRef = useRef(false);
+
+  const signedIn = authStatus === "authenticated";
+
+  const refreshUsage = useCallback(async () => {
+    try {
+      const res = await fetch("/api/usage", { cache: "no-store" });
+      if (!res.ok) return;
+      const snap = (await res.json()) as UsageSnapshot;
+      setUsage(snap);
+    } catch {
+      // fine — the counter is cosmetic
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authStatus === "loading") return;
+    void refreshUsage();
+  }, [authStatus, refreshUsage]);
+
+  async function runCheck(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || runningRef.current) return;
+    if (!signedIn) return;
+    runningRef.current = true;
+    setStatus("checking");
+    setStage(null);
+    setData(null);
+    setLimitErr(null);
+    try {
+      const res = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: trimmed, lang: langRef.current }),
+      });
+
+      if (res.status === 401) {
+        setStatus("idle");
+        return;
+      }
+      if (res.status === 429) {
+        const body = (await res.json()) as LimitError;
+        setLimitErr(body);
+        setStatus("idle");
+        return;
+      }
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let settled = false;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const parts = buf.split("\n\n");
+        buf = parts.pop() ?? "";
+        for (const part of parts) {
+          const line = part.replace(/^data: ?/, "").trim();
+          if (!line) continue;
+          const msg = JSON.parse(line) as
+            | Stage
+            | { stage: "done"; payload: CheckResponse }
+            | { stage: "usage" } & UsageSnapshot
+            | { stage: "error" };
+          if (msg.stage === "done") {
+            setData(msg.payload);
+            setStatus("done");
+            settled = true;
+          } else if (msg.stage === "usage") {
+            // The pipeline included a fresh snapshot — merge it in.
+            setUsage({
+              signedIn: true,
+              plan: msg.plan,
+              used: msg.used,
+              limit: msg.limit,
+              resetAt: msg.resetAt,
+            });
+          } else if (msg.stage === "error") {
+            setStatus("error");
+            settled = true;
+          } else {
+            setStage(msg);
+          }
+        }
+      }
+      if (!settled) setStatus("error");
+    } catch {
+      setStatus("error");
+    } finally {
+      runningRef.current = false;
+    }
+  }
+
+  function clearAll() {
+    setInput("");
+    setData(null);
+    setStatus("idle");
+    setStage(null);
+    setLimitErr(null);
+    document.getElementById("check-input")?.focus();
+  }
+
+  // Share targets, bookmarklet, and extension all land here as /check?q=…
+  useEffect(() => {
+    if (authStatus === "loading") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (!q) return;
+    setInput(q);
+    if (signedIn) {
+      void runCheck(q);
+    }
+    window.history.replaceState({}, "", "/check");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authStatus, signedIn]);
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    void runCheck(input);
+  }
+
+  return (
+    <div className="min-h-screen bg-canvas">
+      <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-5 sm:px-8">
+          <Link href="/" className="focus-ring rounded-md">
+            <Wordmark busy={status === "checking"} className="text-[22px]" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setLang(lang === "en" ? "fr" : "en")}
+              aria-label={lang === "en" ? "Passer en français" : "Switch to English"}
+              className="focus-ring rounded-full border border-ink/10 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-bark transition hover:text-ink"
+            >
+              {lang === "en" ? "FR" : "EN"}
+            </button>
+            {signedIn ? (
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="focus-ring rounded-full border border-ink/10 px-4 py-1.5 text-[13px] font-semibold text-ink transition hover:border-ink/25"
+              >
+                {t.signin.signOut}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => signIn("google", { callbackUrl: "/check" })}
+                className="focus-ring rounded-full border border-ink/10 px-4 py-1.5 text-[13px] font-semibold text-ink transition hover:border-ink/25"
+              >
+                {t.nav.signIn}
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <main className="relative mx-auto w-full max-w-4xl overflow-hidden px-5 pb-24 pt-14 sm:px-8">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 -right-32 h-[420px] w-[420px] rounded-full opacity-40 blur-3xl"
+          style={{ background: "radial-gradient(circle, #E8EDDE 0%, transparent 70%)" }}
+        />
+        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+          {t.hero.tagline}
+        </p>
+        <h1 className="relative mt-3 text-[42px] font-semibold leading-[1.02] tracking-display sm:text-[54px]">
+          {signedIn && session?.user?.name
+            ? `${t.signin.signedInAs} ${session.user.name.split(" ")[0]}. What are we checking?`
+            : "What are we checking?"}
+        </h1>
+        <p className="relative mt-4 max-w-[58ch] text-[17px] leading-relaxed text-bark">{t.hero.sub}</p>
+
+        {signedIn && usage && (
+          <div className="mt-6">
+            <UsagePill snap={usage} t={t} lang={lang} />
+          </div>
+        )}
+
+        {/* --- input or gate --- */}
+        {!signedIn && authStatus !== "loading" && (
+          <div className="mt-8">
+            <SignInCard t={t} />
+          </div>
+        )}
+
+        {signedIn && limitErr && (
+          <div className="mt-8">
+            <LimitCard err={limitErr} t={t} lang={lang} />
+          </div>
+        )}
+
+        {signedIn && !limitErr && (
+          <>
+            <form onSubmit={onSubmit} className="mt-8">
+              <label htmlFor="check-input" className="sr-only">
+                {t.hero.placeholder}
+              </label>
+              <div className="surface flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:p-2 sm:pl-5">
+                <input
+                  id="check-input"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={t.hero.placeholder}
+                  autoComplete="off"
+                  autoFocus
+                  className="focus-ring min-w-0 flex-1 bg-transparent px-2 py-3 text-[16.5px] text-ink placeholder:text-bark/70 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={status === "checking"}
+                  className="btn-primary shrink-0"
+                >
+                  {status === "checking" ? t.status.checking : t.hero.check}
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-[12px] font-medium uppercase tracking-[0.08em] text-bark">
+                {t.hero.tryOne}
+              </span>
+              {EXAMPLES[lang].map((x) => (
+                <button
+                  key={x}
+                  type="button"
+                  onClick={() => {
+                    setInput(x);
+                    void runCheck(x);
+                  }}
+                  className="focus-ring rounded-full border border-ink/10 bg-white/50 px-3.5 py-1.5 text-[13px] text-ink/80 transition hover:-translate-y-0.5 hover:border-ink/25"
+                >
+                  {x}
+                </button>
+              ))}
+            </div>
+
+            <p className="mt-4 text-[13.5px] text-bark">{t.hero.disclaimer}</p>
+          </>
+        )}
+
+        {/* --- status / results --- */}
+        <section aria-live="polite" className="mt-10">
+          {status === "checking" && (
+            <p className="flex items-center gap-2.5 text-[13.5px] text-bark">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-forest motion-reduce:animate-none" />
+              {stageText(stage, t)}
+            </p>
+          )}
+
+          {status === "error" && <p className="text-[13.5px] text-warn">{t.status.error}</p>}
+
+          {status === "done" && data?.resolveError && (
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="focus-ring rounded-full border border-ink/10 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-bark transition hover:text-ink"
+                >
+                  {t.ui.clear}
+                </button>
+              </div>
+              <div className="surface max-w-2xl p-6">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-bark">
+                  {t.status.couldntRead}
+                </p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink">
+                  {data.resolveError.message}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {status === "done" && data && !data.resolveError && (
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  {data.source && (
+                    <p className="text-[12px] uppercase tracking-[0.1em] text-bark">
+                      {t.status.read} · {data.source.type}
+                      {data.source.title ? ` — ${data.source.title.slice(0, 60)}` : ""}
+                      {data.source.chars ? ` · ${data.source.chars} ${t.status.chars}` : ""}
+                    </p>
+                  )}
+                  {data.mock && (
+                    <p className="text-[12px] uppercase tracking-[0.1em] text-warn">
+                      {t.status.sample}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="focus-ring rounded-full border border-ink/10 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-bark transition hover:text-ink"
+                >
+                  {t.ui.clear}
+                </button>
+              </div>
+
+              {data.inputWarning && (
+                <div className="rounded-2xl border border-warn/40 bg-warn/10 p-5">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-warn">
+                    ⚠ {data.inputWarning.label}
+                  </p>
+                  <p className="mt-2 text-[14.5px] leading-relaxed text-ink">
+                    {data.inputWarning.message}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-6">
+                {data.claims?.map((c) => {
+                  const citedUrls = new Set(c.citations.map((cit) => cit.url));
+                  const papers = c.papers ?? [];
+                  return (
+                    <article key={c.claim} className="surface anim-rise p-6 sm:p-7">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
+                        {t.results.claimLabel}
+                      </p>
+                      <p className="mt-1 text-[20px] font-semibold leading-snug text-ink sm:text-[22px]">
+                        &ldquo;{c.claim}&rdquo;
+                      </p>
+                      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <Badge verdict={c.verdict} label={t.verdictLabels[c.verdict]} />
+                        <span className="text-[13px] font-medium text-bark">
+                          {t.verdictMeanings[c.verdict]}
+                        </span>
+                      </div>
+                      {c.safety && (
+                        <p className="mt-4 rounded-xl border border-warn/40 bg-warn/10 p-3 text-[13px] leading-relaxed text-warn">
+                          ⚠ {c.safety.message}
+                        </p>
+                      )}
+                      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
+                        {t.results.verdictWhy}
+                      </p>
+                      <p className="mt-1.5 text-[15.5px] leading-relaxed text-ink/85">
+                        {c.summary}
+                      </p>
+
+                      {c.citations.length > 0 && (
+                        <div className="mt-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
+                            {t.results.citedTitle}
+                          </p>
+                          <ul className="mt-2 flex flex-col gap-2.5">
+                            {c.citations.map((cit) => (
+                              <li key={cit.url + cit.title}>
+                                <a
+                                  href={cit.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="focus-ring block rounded-xl border border-forest/25 bg-moss/50 px-4 py-3 transition hover:-translate-y-0.5 hover:border-forest/50"
+                                >
+                                  <span className="block text-[14.5px] font-semibold leading-snug text-ink">
+                                    {cit.title}
+                                  </span>
+                                  <span className="mt-1 block text-[12px] text-bark">
+                                    {cit.journal} · {cit.year || "n.d."}
+                                  </span>
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {papers.length > 0 && (
+                        <details className="group mt-5 border-t border-ink/10 pt-3">
+                          <summary className="focus-ring flex cursor-pointer list-none items-center justify-between text-[11px] font-semibold uppercase tracking-[0.1em] text-bark transition hover:text-ink [&::-webkit-details-marker]:hidden">
+                            <span>
+                              {t.results.poolTitle} ({papers.length})
+                            </span>
+                            <span
+                              aria-hidden="true"
+                              className="text-[16px] font-bold leading-none text-forest transition-transform duration-200 group-open:rotate-45"
+                            >
+                              +
+                            </span>
+                          </summary>
+                          <p className="mt-2.5 text-[13px] leading-relaxed text-bark">
+                            {t.results.poolHint}
+                          </p>
+                          <ul className="mt-3 flex flex-col gap-2.5">
+                            {papers.map((p) => {
+                              const isCited = citedUrls.has(p.url);
+                              const snippet =
+                                p.abstract.length > 260
+                                  ? p.abstract.slice(0, 260).replace(/\s+\S*$/, "") + "…"
+                                  : p.abstract;
+                              return (
+                                <li
+                                  key={p.id}
+                                  className="rounded-xl border border-ink/8 bg-white/40 p-3"
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <a
+                                      href={p.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="focus-ring text-[14px] font-semibold leading-snug text-ink underline-offset-[3px] hover:text-forest hover:underline"
+                                    >
+                                      {p.title}
+                                    </a>
+                                    {isCited && (
+                                      <span className="shrink-0 rounded-md border border-forest/40 bg-moss/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-forest">
+                                        {t.results.cited}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="mt-1 text-[11.5px] text-bark">
+                                    {p.journal} · {p.year ?? "n.d."}
+                                  </p>
+                                  <p className="mt-2 text-[13px] leading-relaxed text-bark">
+                                    {snippet}
+                                  </p>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </details>
+                      )}
+
+                      {papers.length === 0 &&
+                        c.verdict !== "not_empirical" &&
+                        c.citations.length === 0 && (
+                          <p className="mt-4 rounded-xl border border-ink/8 bg-white/40 p-3 text-[12px] text-bark">
+                            {t.results.poolEmpty}
+                          </p>
+                        )}
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}

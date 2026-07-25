@@ -5,11 +5,9 @@ import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
 import { STRINGS, useLang } from "@/lib/i18n";
 
-const FOCUS_RING =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chlorophyll";
-
-// Phase 8: the access page. Android = PWA share_target; iPhone = a Shortcut
-// built in the Shortcuts app; Desktop = a bookmarklet.
+// Three platform tiles get equal visual weight — Android, iPhone, Desktop.
+// The bookmarklet is a small extra card underneath, honest about being the
+// "any browser" fallback rather than a promoted path.
 export default function AccessPage() {
   const [lang, setLang] = useLang();
   const t = STRINGS[lang];
@@ -23,96 +21,149 @@ export default function AccessPage() {
   // React blocks javascript: hrefs in JSX (rightly) — the bookmarklet is the
   // one legitimate use, so it's set imperatively.
   useEffect(() => {
-    const code = `javascript:(()=>{location.href='${origin}/?q='+encodeURIComponent(location.href)})()`;
+    const code = `javascript:(()=>{location.href='${origin}/check?q='+encodeURIComponent(location.href)})()`;
     bookmarkletRef.current?.setAttribute("href", code);
   }, [origin]);
 
-  return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl px-5 sm:px-8">
-      <header className="flex h-16 items-center justify-between">
-        <Link href="/" className={`${FOCUS_RING} rounded-md`}>
-          <Wordmark className="text-[25px]" />
-        </Link>
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => setLang(lang === "en" ? "fr" : "en")}
-            aria-label={lang === "en" ? "Passer en français" : "Switch to English"}
-            className={`rounded-lg border border-loam/15 px-3 py-1.5 font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-fern transition hover:text-loam ${FOCUS_RING}`}
-          >
-            {lang === "en" ? "FR" : "EN"}
-          </button>
-          <Link
-            href="/"
-            className={`text-[14px] font-bold text-fern transition hover:text-loam ${FOCUS_RING}`}
-          >
-            ← {t.access.back}
-          </Link>
-        </div>
-      </header>
+  const platforms = [
+    {
+      key: "android",
+      title: t.access.androidTitle,
+      lede: t.access.androidLede,
+      steps: t.access.androidSteps,
+      note: null as string | null,
+      icon: (
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="6" y="9" width="12" height="10" rx="2" />
+          <path d="M9 9 L8 6" />
+          <path d="M15 9 L16 6" />
+          <path d="M3 12 L3 16" />
+          <path d="M21 12 L21 16" />
+          <path d="M9 19 L9 22" />
+          <path d="M15 19 L15 22" />
+        </svg>
+      ),
+    },
+    {
+      key: "iphone",
+      title: t.access.iphoneTitle,
+      lede: t.access.iphoneLede,
+      steps: t.access.iphoneSteps,
+      note: t.access.iphoneNote,
+      icon: (
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+          <path d="M10 5 L14 5" />
+          <circle cx="12" cy="18.5" r="0.7" fill="currentColor" />
+        </svg>
+      ),
+    },
+    {
+      key: "desktop",
+      title: t.access.desktopTitle,
+      lede: t.access.desktopLede,
+      steps: t.access.desktopSteps,
+      note: null as string | null,
+      icon: (
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="12" rx="2" />
+          <path d="M8 20 L16 20" />
+          <path d="M12 16 L12 20" />
+        </svg>
+      ),
+    },
+  ];
 
-      <main className="pb-20 pt-12">
-        <h1 className="anim-rise3d max-w-[24ch] font-display text-[34px] font-semibold leading-[1.1] sm:text-[46px]">
+  return (
+    <div className="min-h-screen bg-canvas">
+      <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
+          <Link href="/" className="focus-ring rounded-md">
+            <Wordmark className="text-[22px]" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setLang(lang === "en" ? "fr" : "en")}
+              aria-label={lang === "en" ? "Passer en français" : "Switch to English"}
+              className="focus-ring rounded-full border border-ink/10 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-bark transition hover:text-ink"
+            >
+              {lang === "en" ? "FR" : "EN"}
+            </button>
+            <Link
+              href="/"
+              className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"
+            >
+              ← {t.access.back}
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <main className="relative mx-auto w-full max-w-7xl overflow-hidden px-5 pb-24 pt-16 sm:px-8">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-32 -right-40 h-[520px] w-[520px] rounded-full opacity-40 blur-3xl"
+          style={{ background: "radial-gradient(circle, #E8EDDE 0%, transparent 70%)" }}
+        />
+        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+          install
+        </p>
+        <h1 className="relative mt-3 max-w-[24ch] text-[42px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[60px]">
           {t.access.title}
         </h1>
-        <p className="anim-rise mt-4 max-w-[58ch] text-[16px] leading-relaxed text-fern" style={{ animationDelay: "150ms" }}>
-          {t.access.sub}
-        </p>
+        <p className="relative mt-5 max-w-[62ch] text-[18px] leading-relaxed text-bark">{t.access.sub}</p>
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          <div className="glass anim-rise rounded-2xl p-6" style={{ animationDelay: "220ms" }}>
-            <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.1em] text-chlorophyll">
-              {t.access.androidTitle}
-            </p>
-            <p className="mt-2.5 text-[15px] font-bold leading-snug">{t.access.androidLede}</p>
-            <ol className="mt-4 flex flex-col gap-2.5">
-              {t.access.androidSteps.map((s, i) => (
-                <li key={s} className="flex gap-3 text-[14px] leading-relaxed text-fern">
-                  <span className="font-mono text-[12px] font-semibold text-chlorophyll">{i + 1}</span>
-                  {s}
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="glass anim-rise rounded-2xl p-6" style={{ animationDelay: "300ms" }}>
-            <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.1em] text-chlorophyll">
-              {t.access.iphoneTitle}
-            </p>
-            <p className="mt-2.5 text-[15px] font-bold leading-snug">{t.access.iphoneLede}</p>
-            <ol className="mt-4 flex flex-col gap-2.5">
-              {t.access.iphoneSteps.map((s, i) => (
-                <li key={s} className="flex gap-3 text-[14px] leading-relaxed text-fern">
-                  <span className="font-mono text-[12px] font-semibold text-chlorophyll">{i + 1}</span>
-                  {s}
-                </li>
-              ))}
-            </ol>
-            <p className="mt-4 border-t border-loam/10 pt-3 text-[13px] leading-relaxed text-stone">
-              {t.access.iphoneNote}
-            </p>
-          </div>
-
-          <div className="glass anim-rise rounded-2xl p-6" style={{ animationDelay: "380ms" }}>
-            <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.1em] text-chlorophyll">
-              {t.access.desktopTitle}
-            </p>
-            <p className="mt-2.5 text-[15px] font-bold leading-snug">{t.access.desktopLede}</p>
-            <p className="mt-5">
-              <a
-                ref={bookmarkletRef}
-                draggable
-                onClick={(e) => e.preventDefault()}
-                className={`inline-block cursor-grab rounded-xl bg-loam px-5 py-3 text-[15px] font-bold text-underleaf ${FOCUS_RING}`}
-              >
-                {t.access.bookmarklet}
-              </a>
-            </p>
-            <p className="mt-4 text-[13px] leading-relaxed text-stone">{t.access.desktopNote}</p>
-          </div>
+        {/* Three equal tiles */}
+        <div className="relative mt-14 grid gap-6 lg:grid-cols-3">
+          {platforms.map((p) => (
+            <div key={p.key} className="surface flex h-full flex-col p-8">
+              <div className="text-forest">{p.icon}</div>
+              <h2 className="mt-4 text-[22px] font-semibold text-ink">{p.title}</h2>
+              <p className="mt-2 text-[15px] leading-relaxed text-bark">{p.lede}</p>
+              <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
+                Setup
+              </p>
+              <ol className="mt-2 flex flex-col gap-2.5">
+                {p.steps.map((s, i) => (
+                  <li key={s} className="flex gap-3 text-[14px] leading-relaxed text-bark">
+                    <span className="min-w-[1.4rem] shrink-0 text-[12px] font-semibold text-forest">
+                      {i + 1}
+                    </span>
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ol>
+              {p.note && (
+                <p className="mt-5 border-t border-ink/8 pt-4 text-[12.5px] leading-relaxed text-bark">
+                  {p.note}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
 
-        <p className="mt-8 max-w-[70ch] rounded-2xl border border-loam/10 bg-[rgba(250,251,247,0.5)] p-5 text-[14px] leading-relaxed text-fern">
+        {/* Bookmarklet — smaller, honest fallback */}
+        <div className="surface mt-8 flex flex-col items-start justify-between gap-5 p-7 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-forest">
+              {t.access.bookmarkletTitle}
+            </p>
+            <p className="mt-2 max-w-[52ch] text-[15px] leading-relaxed text-bark">
+              {t.access.bookmarkletLede}
+            </p>
+          </div>
+          <a
+            ref={bookmarkletRef}
+            draggable
+            onClick={(e) => e.preventDefault()}
+            className="btn-primary focus-ring shrink-0 cursor-grab"
+          >
+            {t.access.bookmarklet}
+          </a>
+        </div>
+
+        <p className="mt-8 max-w-[70ch] rounded-2xl border border-ink/8 bg-white/40 p-5 text-[14px] leading-relaxed text-bark">
           {t.access.igNote}
         </p>
       </main>

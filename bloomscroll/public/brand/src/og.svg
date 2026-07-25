@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Open Graph / link preview. Cream base, forest b on left, wordmark + tagline right. -->
+  <defs>
+    <radialGradient id="glow" cx="0.85" cy="0.9" r="0.8">
+      <stop offset="0%" stop-color="#E8EDDE" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#F6F3EA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.1" cy="0.1" r="0.7">
+      <stop offset="0%" stop-color="#DDE7DA" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#F6F3EA" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#F6F3EA"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- b mark, ~320px tall, centered vertically on the left column -->
+  <g transform="translate(60 130)">
+    <path d="M 169 77 L 169 294 C 169 405, 310 435, 329 349 C 344 278, 259 244, 222 290 C 197 321, 219 362, 254 357"
+          stroke="#1E4D2B" stroke-width="45" stroke-linecap="round" stroke-linejoin="round" fill="none"
+          transform="scale(0.72)"/>
+  </g>
+
+  <!-- eyebrow -->
+  <text x="480" y="220" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="3.5" fill="#1E4D2B">
+    THE ANTI-DOOMSCROLL
+  </text>
+
+  <!-- wordmark -->
+  <text x="480" y="308" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif"
+        font-size="78" font-weight="600" letter-spacing="-2.5" fill="#12201A">
+    bloomscroll
+  </text>
+
+  <!-- tagline -->
+  <text x="480" y="392" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif"
+        font-size="44" font-weight="500" letter-spacing="-1.2" fill="#12201A">
+    Keep scrolling.
+  </text>
+  <text x="480" y="452" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif"
+        font-size="44" font-weight="600" letter-spacing="-1.2" fill="#1E4D2B">
+    Start growing.
+  </text>
+</svg>

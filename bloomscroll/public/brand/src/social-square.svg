@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <!-- Square social profile photo. Big centered mark with breathing room. -->
+  <defs>
+    <radialGradient id="sg1" cx="0.5" cy="0.5" r="0.7">
+      <stop offset="0%" stop-color="#EEF0E2" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#F6F3EA" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="#F6F3EA"/>
+  <rect width="1080" height="1080" fill="url(#sg1)"/>
+
+  <!-- b mark centered, ~600px tall -->
+  <g transform="translate(280 240) scale(1.05)">
+    <path d="M 169 77 L 169 294 C 169 405, 310 435, 329 349 C 344 278, 259 244, 222 290 C 197 321, 219 362, 254 357"
+          stroke="#1E4D2B" stroke-width="45" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

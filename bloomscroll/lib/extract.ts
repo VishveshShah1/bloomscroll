@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedClaim } from "./types";
+import { chargeSpend, ensureCanSpend } from "./spend";
 
 // Phase 2: claim extraction via the Anthropic API. Written and ready — the
 // route activates it once ANTHROPIC_API_KEY exists in the environment.
@@ -76,12 +77,14 @@ export async function extractClaims(text: string): Promise<ExtractedClaim[]> {
             },
           ];
 
+    await ensureCanSpend();
     const res = await client.messages.create({
       model: MODEL,
       max_tokens: 2048,
       system: SYSTEM,
       messages,
     });
+    await chargeSpend(res.usage, MODEL);
 
     lastRaw = res.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")

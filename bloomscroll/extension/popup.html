@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bloomscroll</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <h1>Bloomscroll</h1>
+      <button id="settings-toggle" type="button" aria-label="Settings" title="Settings">⚙</button>
+    </header>
+
+    <p class="hint">
+      Paste a claim, a link, or check the tab you're on.
+    </p>
+
+    <form id="check-form">
+      <textarea
+        id="claim"
+        rows="3"
+        placeholder="Paste a link, or paste the claim itself"
+        autofocus
+      ></textarea>
+      <div class="row">
+        <button type="submit" class="primary">Check</button>
+        <button type="button" id="check-tab" class="secondary">Check current tab</button>
+      </div>
+    </form>
+
+    <section id="settings" hidden>
+      <label for="site">Bloomscroll origin</label>
+      <input id="site" type="url" placeholder="https://bloomscroll…" />
+      <div class="row">
+        <button id="save-site" type="button" class="primary">Save</button>
+        <button id="reset-site" type="button" class="secondary">Reset</button>
+      </div>
+      <p class="tiny">
+        Change this if you're running Bloomscroll on a different URL (e.g. localhost:3000).
+      </p>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
