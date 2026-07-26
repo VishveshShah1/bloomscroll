@@ -612,6 +612,68 @@ summary:focus-visible {
   to { transform: scale(1.14) translateY(-1%); }
 }
 
+/* LIVE / REC pill — sits under the story-progress bars, top-left of
+   the video-post area. The dot pulses to sell "this is happening now".
+   Visible even through the share-sheet scrim so the video reads as
+   still playing behind the overlay. */
+.hp-rec {
+  position: absolute;
+  top: 3.4em;
+  left: 1em;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.15em 0.55em 0.15em 0.5em;
+  background: rgba(0, 0, 0, 0.42);
+  color: #f6f3ea;
+  border-radius: 999px;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.hp-rec-dot {
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: #ff3b30;
+  box-shadow: 0 0 0.35em rgba(255, 59, 48, 0.6);
+  animation: hp-rec-blink 1.4s ease-in-out infinite;
+}
+@keyframes hp-rec-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.28; }
+}
+
+/* Tiny audio-waveform indicator next to the creator handle — 4 bars
+   that pulse out of sync so it reads as "voice, right now". */
+.hp-audio {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.14em;
+  height: 0.95em;
+  margin-left: 0.25em;
+}
+.hp-audio i {
+  display: inline-block;
+  width: 0.14em;
+  border-radius: 0.05em;
+  background: #f6f3ea;
+  transform-origin: bottom;
+  animation: hp-audio-bar 0.95s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+.hp-audio i:nth-child(1) { height: 40%; animation-delay:    0s; }
+.hp-audio i:nth-child(2) { height: 78%; animation-delay: 0.15s; }
+.hp-audio i:nth-child(3) { height: 100%; animation-delay: 0.30s; }
+.hp-audio i:nth-child(4) { height: 55%; animation-delay: 0.45s; }
+@keyframes hp-audio-bar {
+  0%, 100% { transform: scaleY(0.5); opacity: 0.65; }
+  50%      { transform: scaleY(1);   opacity: 1; }
+}
+
 /* Story-style progress bars at the very top, safely below the status bar. */
 .hp-story-progress {
   position: absolute;
@@ -1060,13 +1122,17 @@ summary:focus-visible {
   .hp-checking-rows span,
   .hp-checking-rows span::before,
   .hp-verdict,
-  .hp-action.is-highlight .hp-action-btn {
+  .hp-action.is-highlight .hp-action-btn,
+  .hp-rec-dot,
+  .hp-audio i {
     animation: none !important;
   }
   .hp-verdict-layer { transform: translateY(0) !important; opacity: 1 !important; }
   .hp-sheet, .hp-sheet-scrim { display: none !important; }
   .hp-checking-rows span { opacity: 1 !important; }
   .hp-checking-rows span::before { transform: scale(1) !important; }
+  /* Freeze audio bars at a static readable height. */
+  .hp-audio i { transform: scaleY(0.75) !important; opacity: 1 !important; }
 }
 
 /* Scroll-reveal — restrained fade + slide, triggered by IntersectionObserver

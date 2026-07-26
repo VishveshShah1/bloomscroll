@@ -196,6 +196,12 @@ export default function HeroPhoneAnimation() {
               <span />
               <span className="is-current" />
             </div>
+            {/* REC pill — reinforces "this is a live video someone
+                is watching" without needing real footage. */}
+            <span className="hp-rec">
+              <span className="hp-rec-dot" />
+              LIVE
+            </span>
             {/* right-side action rail (generic silhouettes, non-branded) */}
             <div className="hp-actions">
               <ActionIcon kind="heart" label="12.4k" />
@@ -209,11 +215,19 @@ export default function HeroPhoneAnimation() {
               </ActionIcon>
               <ActionIcon kind="save" label="save" />
             </div>
-            {/* Caption + author */}
+            {/* Caption + author. Small audio-bars next to the handle
+                signal "they're talking right now" — the third visual cue
+                (with REC + progress bar) that this is a live video. */}
             <div className="hp-caption">
               <div className="hp-caption-head">
                 <span className="hp-avatar">{sample.handle[1]?.toUpperCase() ?? "•"}</span>
                 <span className="hp-handle">{sample.handle}</span>
+                <span className="hp-audio" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
                 <span className="hp-follow">Follow</span>
               </div>
               <p key={`cap-${sampleIndex}`} className="hp-caption-text hp-fade">
