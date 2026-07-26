@@ -390,10 +390,24 @@ const ScreenSlot = ScreenFrame;
 const DEMO_CLAIM = "Daily sunscreen use reduces long-term skin cancer risk.";
 const DEMO_SUMMARY =
   "Multiple randomized trials and large cohorts show daily broad-spectrum sunscreen lowers melanoma and squamous-cell risk. Effect size is modest per year and adds up over decades.";
+// Real papers backing the sample claim. URLs point at each paper's
+// public index page so clicks land on something real, not a dead demo.
 const DEMO_CITATIONS = [
-  { title: "Green AC et al., Reduced melanoma after regular sunscreen use", meta: "J Clin Oncol · 5,000+ citations" },
-  { title: "Van der Pols JC et al., Prolonged prevention of squamous cell carcinoma of the skin", meta: "Cancer Epidemiol Biomarkers Prev · long-term follow-up" },
-  { title: "Cochrane Review, Interventions for preventing keratinocyte cancers", meta: "Cochrane Database Syst Rev · systematic review" },
+  {
+    title: "Green AC et al., Reduced melanoma after regular sunscreen use",
+    meta: "J Clin Oncol, 2011",
+    url: "https://pubmed.ncbi.nlm.nih.gov/21135266/",
+  },
+  {
+    title: "van der Pols JC et al., Prolonged prevention of squamous cell carcinoma of the skin",
+    meta: "Cancer Epidemiol Biomarkers Prev, 2006",
+    url: "https://pubmed.ncbi.nlm.nih.gov/17148725/",
+  },
+  {
+    title: "Bath-Hextall FJ et al., Interventions for preventing non-melanoma skin cancers",
+    meta: "Cochrane Database Syst Rev, 2007",
+    url: "https://pubmed.ncbi.nlm.nih.gov/17253544/",
+  },
 ];
 
 /** Interactive demo panel — pre-filled sample claim, one click reveals a
@@ -493,19 +507,25 @@ function TryDemo() {
               </p>
               <ul className="mt-3 flex flex-col gap-2.5">
                 {DEMO_CITATIONS.map((c, i) => (
-                  <li
-                    key={c.title}
-                    className="flex gap-3 rounded-xl border border-forest/25 bg-moss/40 p-3"
-                  >
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-forest text-[11px] font-bold text-canvas">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p className="text-[13.5px] font-semibold leading-snug text-ink">
-                        {c.title}
-                      </p>
-                      <p className="mt-0.5 text-[12px] text-bark">{c.meta}</p>
-                    </div>
+                  <li key={c.title}>
+                    <a
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="focus-ring flex gap-3 rounded-xl border border-forest/25 bg-moss/40 p-3 transition hover:-translate-y-0.5 hover:border-forest/50 hover:bg-moss/60"
+                    >
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-forest text-[11px] font-bold text-canvas">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[13.5px] font-semibold leading-snug text-ink">
+                          {c.title}
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-bark">
+                          {c.meta} · opens on PubMed ↗
+                        </p>
+                      </div>
+                    </a>
                   </li>
                 ))}
               </ul>

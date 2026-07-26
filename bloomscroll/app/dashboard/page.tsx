@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
   if (!isPreview && (status === "loading" || status === "unauthenticated")) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-canvas text-bark">
+      <div className="flex min-h-screen items-center justify-center text-bark">
         <p className="text-[14px]">Loading…</p>
       </div>
     );

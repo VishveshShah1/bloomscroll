@@ -22,12 +22,20 @@ export default function ScrollBackground() {
     // still light enough for foreground text to read.
     const TOP = { r: 246, g: 243, b: 234 };
     const BOT = { r: 107, g: 150, b: 112 };
+    // Ramp is measured in VIEWPORT HEIGHTS, not per-page percentage. That
+    // way every page hits the same tint at the same absolute scroll depth
+    // — you see the same color at 500px scroll on /terms and on /. Short
+    // pages simply never reach the sage endpoint, which is honest: you
+    // haven't scrolled much on them. Long pages hit sage after RAMP_VH
+    // screens and stay there.
+    const RAMP_VH = 3;
     const update = () => {
       ticking = false;
       const el = document.documentElement;
-      const max = (el.scrollHeight || 0) - (window.innerHeight || 0);
+      const vh = window.innerHeight || 800;
+      const ramp = vh * RAMP_VH;
       const y = window.scrollY || 0;
-      const p = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+      const p = ramp > 0 ? Math.min(1, Math.max(0, y / ramp)) : 0;
       el.style.setProperty("--scroll-tint", p.toFixed(3));
       const r = Math.round(TOP.r + (BOT.r - TOP.r) * p);
       const g = Math.round(TOP.g + (BOT.g - TOP.g) * p);

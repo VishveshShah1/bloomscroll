@@ -381,10 +381,13 @@ summary:focus-visible {
 /* Dark section shell — used for the verdicts + final CTA sections so the
    scroll gets real light/dark rhythm instead of only warm cream. */
 .section-dark {
+  /* Warmer than the old #173d24 so the step-down from the body's sage
+     endpoint doesn't read as a cliff. Still clearly a dark band, still
+     safe for cream text. */
   background:
-    radial-gradient(1200px 500px at 15% 0%, rgba(74, 139, 90, 0.16) 0%, transparent 60%),
-    radial-gradient(900px 400px at 100% 100%, rgba(74, 139, 90, 0.12) 0%, transparent 55%),
-    #173d24;
+    radial-gradient(1200px 500px at 15% 0%, rgba(74, 139, 90, 0.18) 0%, transparent 60%),
+    radial-gradient(900px 400px at 100% 100%, rgba(74, 139, 90, 0.14) 0%, transparent 55%),
+    #254f30;
   color: #f6f3ea;
 }
 .section-dark .eyebrow {
