@@ -292,37 +292,44 @@ const EN = {
       "Bloomscroll works from your phone's share menu and your desktop browser. Pick your device. Each setup takes under a minute.",
     androidTitle: "Android",
     androidLede:
-      "Install once, then Bloomscroll shows up in your Share menu next to Messages and WhatsApp.",
+      "Two taps to add Bloomscroll to your home screen, then it shows up in every Share menu.",
     androidSteps: [
-      "Open bloomscroll.com in Chrome",
-      "Tap the ⋮ menu, then \"Add to Home screen\" or Install",
-      "In any app, hit Share, then Bloomscroll",
-      "The check runs automatically",
+      "Open bloomscroll.com in Chrome, tap the ⋮ menu, then \"Add to Home screen\".",
+      "Share anything from any app → pick Bloomscroll. The check runs automatically.",
     ],
     androidCta: "install as app",
     iphoneTitle: "iPhone",
-    iphoneLede: "Add this once, and it'll show up under Share, then Shortcuts.",
+    iphoneLede:
+      "One tap using the shortcut link below (fastest). Or build it yourself with the manual steps.",
     iphoneSteps: [
-      "Open the Shortcuts app, then tap +",
-      "Add action: \"Open URLs\"",
-      "Set the URL to bloomscroll.com/?q= followed by the Shortcut Input variable",
-      "In the shortcut's settings, enable \"Show in Share Sheet\"",
-      "Name it Bloomscroll, done",
+      "Tap the shortcut link and hit \"Add Shortcut\" when iOS asks.",
+      "In any app, use Share → Bloomscroll. The check runs automatically.",
     ],
     iphoneNote:
-      "An official one-tap iCloud shortcut link is on the way. Until then, the five steps above build the same thing.",
+      "Prefer to build it yourself? Open Shortcuts → +, add \"Open URLs\" set to bloomscroll.com/?q= plus the Shortcut Input variable, enable \"Show in Share Sheet\", name it Bloomscroll.",
     iphoneCta: "add to iPhone",
     desktopTitle: "Desktop",
     desktopLede:
-      "The Chrome extension puts \"Check with Bloomscroll\" on any highlighted text or page. Right-click, done.",
+      "Right-click any text or link and pick \"Check with Bloomscroll\". Works in Chrome, Edge, Brave.",
     desktopSteps: [
-      "Grab the extension/ folder from the repo",
-      "Open chrome://extensions",
-      "Toggle Developer mode on (top-right)",
-      "Click \"Load unpacked\" and pick the extension/ folder",
-      "Pin the Bloomscroll icon in your toolbar",
+      "Install the Bloomscroll extension from the Chrome Web Store.",
+      "Pin it to the toolbar so it's one click away.",
+      "Right-click anything → \"Check with Bloomscroll\".",
     ],
     desktopCta: "get the extension",
+    walkthroughLabel: "watch a 30-second walkthrough",
+    // TODO: real YouTube URLs — leaving as empty strings so the "watch"
+    // link is hidden until a real video is up. Set these per platform
+    // once the walkthrough videos are recorded.
+    walkthroughUrls: {
+      android: "",
+      iphone: "",
+      desktop: "",
+    },
+    // TODO: real Chrome Web Store listing URL once the extension is
+    // published. Also the iOS Shortcut iCloud link when it exists.
+    extensionUrl: "",
+    iphoneShortcutUrl: "",
     bookmarkletTitle: "or a bookmarklet (any browser)",
     bookmarkletLede:
       "For Firefox, Safari, or when you can't install anything. Drag this to your bookmarks bar.",
@@ -649,37 +656,39 @@ const FR: Strings = {
       "Bloomscroll fonctionne depuis le menu Partager de ton téléphone et depuis ton navigateur desktop. Choisis ton appareil. Chaque installation prend moins d'une minute.",
     androidTitle: "Android",
     androidLede:
-      "Installe une fois, et Bloomscroll apparaît dans ton menu Partager, à côté de Messages et WhatsApp.",
+      "Deux touches pour ajouter Bloomscroll à ton écran d'accueil, puis il apparaît dans tous les menus Partager.",
     androidSteps: [
-      "Ouvre bloomscroll.com dans Chrome",
-      "Menu ⋮, puis « Ajouter à l'écran d'accueil » ou Installer",
-      "Dans n'importe quelle appli, Partager, puis Bloomscroll",
-      "La vérification se lance toute seule",
+      "Ouvre bloomscroll.com dans Chrome, touche le menu ⋮, puis « Ajouter à l'écran d'accueil ».",
+      "Partage n'importe quoi depuis n'importe quelle appli → choisis Bloomscroll. La vérification se lance toute seule.",
     ],
     androidCta: "installer comme appli",
     iphoneTitle: "iPhone",
-    iphoneLede: "Ajoute-le une fois, il apparaîtra sous Partager, puis Raccourcis.",
+    iphoneLede:
+      "Un tap avec le lien de raccourci ci-dessous (le plus rapide). Ou construis-le à la main avec les étapes manuelles.",
     iphoneSteps: [
-      "Ouvre l'appli Raccourcis, puis touche +",
-      "Ajoute l'action « Ouvrir les URL »",
-      "Mets l'URL bloomscroll.com/?q= suivi de la variable Entrée du raccourci",
-      "Dans les réglages du raccourci, active « Afficher dans la feuille de partage »",
-      "Nomme-le Bloomscroll, c'est fait",
+      "Touche le lien du raccourci et « Ajouter le raccourci » quand iOS le demande.",
+      "Dans n'importe quelle appli, Partager → Bloomscroll. La vérification se lance toute seule.",
     ],
     iphoneNote:
-      "Un lien iCloud officiel en un clic arrive. D'ici là, les cinq étapes ci-dessus construisent exactement la même chose.",
+      "Tu préfères le construire toi-même ? Ouvre Raccourcis → +, ajoute « Ouvrir les URL » vers bloomscroll.com/?q= suivi de la variable Entrée du raccourci, active « Afficher dans la feuille de partage », nomme-le Bloomscroll.",
     iphoneCta: "ajouter à l'iPhone",
     desktopTitle: "Desktop",
     desktopLede:
-      "L'extension Chrome ajoute « Vérifier avec Bloomscroll » sur tout texte surligné ou toute page. Clic droit, terminé.",
+      "Clic droit sur n'importe quel texte ou lien, puis « Vérifier avec Bloomscroll ». Chrome, Edge, Brave.",
     desktopSteps: [
-      "Récupère le dossier extension/ dans le dépôt",
-      "Ouvre chrome://extensions",
-      "Active le « Mode développeur » (en haut à droite)",
-      "Clique sur « Charger l'extension non empaquetée » et choisis le dossier extension/",
-      "Épingle l'icône Bloomscroll dans ta barre d'outils",
+      "Installe l'extension Bloomscroll depuis le Chrome Web Store.",
+      "Épingle-la dans la barre d'outils pour qu'elle soit à un clic.",
+      "Clic droit sur n'importe quoi → « Vérifier avec Bloomscroll ».",
     ],
     desktopCta: "obtenir l'extension",
+    walkthroughLabel: "voir la démo de 30 secondes",
+    walkthroughUrls: {
+      android: "",
+      iphone: "",
+      desktop: "",
+    },
+    extensionUrl: "",
+    iphoneShortcutUrl: "",
     bookmarkletTitle: "ou un bookmarklet (tous navigateurs)",
     bookmarkletLede:
       "Pour Firefox, Safari, ou quand tu ne peux rien installer. Glisse ce bouton dans ta barre de favoris.",

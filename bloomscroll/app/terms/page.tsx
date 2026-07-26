@@ -147,19 +147,16 @@ export default function TermsPage() {
           ))}
         </div>
 
+        {/* TODO: wire the real support inbox here once the mailbox exists
+            (e.g. support@bloomscroll.app). Never expose a personal address. */}
         <div className="surface mt-14 p-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-forest">
             Questions about these terms
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-ink">
-            Email{" "}
-            <a
-              href="mailto:vishvesh380@gmail.com"
-              className="focus-ring font-semibold text-forest underline underline-offset-[3px]"
-            >
-              vishvesh380@gmail.com
-            </a>
-            . Real person, one inbox.
+            A dedicated support inbox is coming soon. Until then, questions
+            about these terms are collected through the review + feedback flow
+            in the app and answered from the same place.
           </p>
         </div>
 

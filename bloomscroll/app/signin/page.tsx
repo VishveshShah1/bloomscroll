@@ -23,6 +23,11 @@ function SignInInner() {
   const params = useSearchParams();
   const { status } = useSession();
   const [busy, setBusy] = useState(false);
+  // Required: must be checked before Google button is clickable. Fresh
+  // page load resets it — that's intentional, we ask each new session.
+  const [tosAccepted, setTosAccepted] = useState(false);
+  // Optional: opt-in (never opt-out). Unchecked by default.
+  const [emailOptIn, setEmailOptIn] = useState(false);
   const callbackUrl = params.get("callbackUrl") || "/check";
   const errorCode = params.get("error");
   const errorMessage = errorCode ? (ERRORS[errorCode] ?? "Sign-in failed. Try again.") : null;
@@ -33,7 +38,23 @@ function SignInInner() {
   }, [status, router, callbackUrl]);
 
   async function onGoogle() {
+    if (!tosAccepted) return;
     setBusy(true);
+    // Stash consent flags so a small post-auth sync (ConsentSync) can
+    // POST them to /api/consent once the session cookie exists. Cleared
+    // by the sync on success. Session-scoped: nothing persists across tabs.
+    try {
+      sessionStorage.setItem(
+        "bloom:pending-consent",
+        JSON.stringify({
+          tos: true,
+          email: emailOptIn,
+          at: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      // storage may be blocked (private mode) — sign-in still proceeds
+    }
     await signIn("google", { callbackUrl });
   }
 
@@ -79,11 +100,63 @@ function SignInInner() {
             </p>
           )}
 
+          {/* Consent block — must be checked before Google button becomes
+              live. Email opt-in is separate and default-off (opt-in, not
+              opt-out). Choices are persisted post-auth by ConsentSync. */}
+          <div className="mt-7 flex flex-col gap-3">
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-ink/10 bg-white/60 p-3.5 text-[13.5px] leading-relaxed text-ink transition hover:border-ink/25">
+              <input
+                type="checkbox"
+                checked={tosAccepted}
+                onChange={(e) => setTosAccepted(e.target.checked)}
+                className="focus-ring mt-0.5 h-4 w-4 shrink-0 accent-forest"
+                aria-required="true"
+              />
+              <span>
+                I agree to the{" "}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="focus-ring font-semibold text-forest underline underline-offset-[3px]"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="focus-ring font-semibold text-forest underline underline-offset-[3px]"
+                >
+                  Privacy Policy
+                </Link>
+                . <span className="text-bark">Required to sign up.</span>
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-ink/10 bg-white/40 p-3.5 text-[13.5px] leading-relaxed text-ink transition hover:border-ink/25">
+              <input
+                type="checkbox"
+                checked={emailOptIn}
+                onChange={(e) => setEmailOptIn(e.target.checked)}
+                className="focus-ring mt-0.5 h-4 w-4 shrink-0 accent-forest"
+              />
+              <span>
+                Send me occasional product updates and new-feature notes.
+                <span className="text-bark">
+                  {" "}
+                  Optional, off by default. You can turn this off any time in the
+                  dashboard.
+                </span>
+              </span>
+            </label>
+          </div>
+
           <button
             type="button"
             onClick={onGoogle}
-            disabled={busy}
-            className="focus-ring mt-8 flex w-full items-center justify-center gap-3 rounded-full border border-ink/12 bg-white px-5 py-3.5 text-[15px] font-semibold text-ink transition hover:-translate-y-0.5 hover:border-ink/25 disabled:translate-y-0 disabled:opacity-60"
+            disabled={busy || !tosAccepted}
+            aria-disabled={busy || !tosAccepted}
+            className="focus-ring mt-6 flex w-full items-center justify-center gap-3 rounded-full border border-ink/12 bg-white px-5 py-3.5 text-[15px] font-semibold text-ink transition hover:-translate-y-0.5 hover:border-ink/25 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#EA4335" d="M24 9.5c3.4 0 6.4 1.2 8.8 3.5l6.6-6.6C35.4 2.7 30 .5 24 .5 14.7.5 6.7 5.8 2.8 13.5l7.7 6C12.4 13.6 17.7 9.5 24 9.5z" />
@@ -94,7 +167,11 @@ function SignInInner() {
             {busy ? "…" : t.signin.google}
           </button>
 
-          <p className="mt-6 text-[12.5px] leading-relaxed text-bark">{t.signin.terms}</p>
+          {!tosAccepted && (
+            <p className="mt-3 text-[12.5px] text-bark">
+              Tick the Terms box above to unlock the Google button.
+            </p>
+          )}
         </div>
       </main>
     </div>

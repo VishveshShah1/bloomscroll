@@ -1,4 +1,5 @@
 import { kv, monthKey, monthResetIso, secondsUntilMonthEnd } from "./kv";
+import { getBonusChecks } from "./reviews";
 
 // Free-tier cap. Single source of truth. Change here to change everywhere.
 export const FREE_TIER_LIMIT = 5;
@@ -63,8 +64,10 @@ export async function incrementMonthlyUsage(userId: string): Promise<number> {
 export interface QuotaSnapshot {
   plan: Plan;
   used: number;
-  /** Number for finite plans, null for "unlimited". */
+  /** Number for finite plans, null for "unlimited". Includes any review bonus. */
   limit: number | null;
+  /** Bonus checks granted by leaving a review — added to the base free cap. */
+  bonus: number;
   resetAt: string;
 }
 
@@ -72,9 +75,14 @@ export async function readQuota(
   userId: string,
   email: string | null | undefined,
 ): Promise<QuotaSnapshot> {
-  const [plan, used] = await Promise.all([getPlan(email), getMonthlyUsage(userId)]);
-  const limit = plan === "seed" ? FREE_TIER_LIMIT : null;
-  return { plan, used, limit, resetAt: monthResetIso() };
+  const [plan, used, bonus] = await Promise.all([
+    getPlan(email),
+    getMonthlyUsage(userId),
+    getBonusChecks(email),
+  ]);
+  const baseLimit = plan === "seed" ? FREE_TIER_LIMIT : null;
+  const limit = baseLimit === null ? null : baseLimit + bonus;
+  return { plan, used, limit, bonus, resetAt: monthResetIso() };
 }
 
 /**

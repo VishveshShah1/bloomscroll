@@ -18,17 +18,24 @@ export default function ScrollBackground() {
     if (typeof window === "undefined") return;
     let ticking = false;
     // Endpoints of the scroll-linked page tint. Top = canvas cream
-    // (#F6F3EA), bottom = a mid sage-forest that's clearly greener but
-    // still light enough for foreground text to read.
+    // (#F6F3EA), bottom = a mild forest — clearly darker so scrolling
+    // down really does feel like sinking into green, but still light
+    // enough for text-ink and text-bark to read cleanly on top of it.
     const TOP = { r: 246, g: 243, b: 234 };
-    const BOT = { r: 107, g: 150, b: 112 };
+    // Push endpoint darker per user brief — should read as a true deep
+    // forest by the bottom. Foreground text on the lower half of the
+    // page uses the cream palette so it stays legible.
+    const BOT = { r: 22, g: 60, b: 38 };
     // Ramp is measured in VIEWPORT HEIGHTS, not per-page percentage. That
     // way every page hits the same tint at the same absolute scroll depth
     // — you see the same color at 500px scroll on /terms and on /. Short
-    // pages simply never reach the sage endpoint, which is honest: you
-    // haven't scrolled much on them. Long pages hit sage after RAMP_VH
-    // screens and stay there.
-    const RAMP_VH = 3;
+    // pages never reach the endpoint, which is honest — you haven't
+    // scrolled much on them. Long pages hit the mild-forest endpoint
+    // after RAMP_VH screens and hold there. Bumped from 3 → 5 so the
+    // darkening spans a much larger fraction of a normal-height page,
+    // reading as "getting darker as you scroll" instead of plateauing
+    // early.
+    const RAMP_VH = 5;
     const update = () => {
       ticking = false;
       const el = document.documentElement;

@@ -32,16 +32,22 @@ export function BMark({
 export default function Wordmark({
   className = "",
   busy = false,
+  inverted = false,
 }: {
   className?: string;
   busy?: boolean;
+  /** Flip the mark + text to cream — for placement on a dark forest
+   *  backdrop (e.g. the footer once the scroll-tint hits the endpoint). */
+  inverted?: boolean;
 }) {
+  const wrap = inverted ? "text-canvas" : "text-ink";
+  const mark = inverted ? "text-canvas" : "text-forest";
   return (
-    <span className={`inline-flex items-baseline font-semibold tracking-display text-ink ${className}`}>
+    <span className={`inline-flex items-baseline font-semibold tracking-display ${wrap} ${className}`}>
       <span className="sr-only">bloomscroll</span>
       <span aria-hidden="true" className="whitespace-nowrap">
         <BMark
-          className={`${busy ? "draw-loop " : ""}draw-once inline-block h-[0.9em] w-auto translate-y-[0.04em] align-baseline text-forest`}
+          className={`${busy ? "draw-loop " : ""}draw-once inline-block h-[0.9em] w-auto translate-y-[0.04em] align-baseline ${mark}`}
         />
         <span>loomscroll</span>
       </span>

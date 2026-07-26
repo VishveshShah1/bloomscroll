@@ -40,8 +40,8 @@ interface Sample {
 
 const SAMPLES: Sample[] = [
   {
-    handle: "@glow.girl",
-    caption: "daily spf is the only anti-aging you actually need ✨",
+    handle: "@holistic.md",
+    caption: "your dermatologist won't say this but daily spf > every serum 🌞",
     scene: "sunscreen",
     claim: "Daily sunscreen use reduces long-term skin cancer risk.",
     verdict: "supported",
@@ -55,8 +55,8 @@ const SAMPLES: Sample[] = [
     ],
   },
   {
-    handle: "@jaw.era",
-    caption: "day 47 of mewing 💪 tell me it's not working",
+    handle: "@jaw.doc",
+    caption: "day 47 of mewing — real doctors dont want you to know this 💪",
     scene: "mewing",
     claim: "Mewing reshapes the adult jawline.",
     verdict: "weak",
@@ -69,8 +69,8 @@ const SAMPLES: Sample[] = [
     ],
   },
   {
-    handle: "@waking.iron",
-    caption: "3-min ice bath and I already feel lighter tbh 🥶",
+    handle: "@wellness.rn",
+    caption: "3-min ice bath is basically a fat burner, no gym needed 🥶",
     scene: "cold",
     claim: "Cold plunges accelerate fat loss.",
     verdict: "mixed",

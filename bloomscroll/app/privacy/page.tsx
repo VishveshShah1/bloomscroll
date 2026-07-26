@@ -109,12 +109,16 @@ export default function PrivacyPage() {
           ))}
         </div>
 
+        {/* TODO: wire the real support inbox here once the mailbox exists
+            (e.g. support@bloomscroll.app). Never expose a personal address. */}
         <div className="surface mt-14 p-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-forest">
             Questions or a deletion request
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-ink">
-            Email <a href="mailto:vishvesh380@gmail.com" className="focus-ring font-semibold text-forest underline underline-offset-[3px]">vishvesh380@gmail.com</a>. It goes straight to the person who built this.
+            A dedicated support inbox is coming soon. Until then, reach out
+            through the same channel you were invited to the beta on and your
+            request will land with the right person.
           </p>
         </div>
 

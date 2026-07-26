@@ -17,6 +17,7 @@ export async function GET() {
       plan: "seed",
       used: 0,
       limit: FREE_TIER_LIMIT,
+      bonus: 0,
       resetAt: null,
     });
   }
@@ -26,6 +27,7 @@ export async function GET() {
     plan: snap.plan,
     used: snap.used,
     limit: snap.limit,
+    bonus: snap.bonus,
     resetAt: snap.resetAt,
     email,
   });

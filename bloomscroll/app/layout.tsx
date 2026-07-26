@@ -3,6 +3,7 @@ import SwRegister from "@/components/SwRegister";
 import Splash from "@/components/Splash";
 import AuthProvider from "@/components/AuthProvider";
 import ScrollBackground from "@/components/ScrollBackground";
+import ConsentSync from "@/components/ConsentSync";
 import "./globals.css";
 
 const siteUrl =
@@ -60,6 +61,7 @@ export default function RootLayout({
         <AuthProvider>
           <SwRegister />
           <ScrollBackground />
+          <ConsentSync />
           <Splash />
           {children}
         </AuthProvider>

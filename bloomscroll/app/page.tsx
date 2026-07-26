@@ -22,7 +22,10 @@ type PlanSlug = "sprout" | "canopy";
 const PLAN_SLUGS = ["seed", "sprout", "canopy"] as const;
 const STRIPE_ENABLED = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
 
-const CONTACT_EMAIL = "vishvesh380@gmail.com";
+// TODO: swap to a real support inbox once the mailbox exists
+// (e.g. "support@bloomscroll.app"). Until then the footer shows a
+// "contact coming soon" note instead of exposing a personal address.
+const CONTACT_EMAIL: string | null = null;
 
 type PlatformKind = "iphone" | "android" | "desktop";
 
@@ -550,8 +553,11 @@ export default function LandingPage() {
 
   const [checkoutPlan, setCheckoutPlan] = useState<PlanSlug | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  // Default to annual — it's the fairer per-month price for the user and
+  // aligns with the way we frame the plans in the copy. Visitors can flip
+  // back to monthly with one click.
   const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">(
-    "monthly",
+    "annual",
   );
 
   async function handleSubscribe(plan: PlanSlug) {
@@ -573,7 +579,12 @@ export default function LandingPage() {
     }
   }
 
-  const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.contact.subject)}`;
+  // Real inbox coming later; for now the footer shows a placeholder note
+  // rather than exposing a personal address. `mailto` stays typed so the
+  // switch is a one-line change when CONTACT_EMAIL becomes non-null.
+  const mailto: string | null = CONTACT_EMAIL
+    ? `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.contact.subject)}`
+    : null;
 
   return (
     <div>
@@ -774,14 +785,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Use cases --------------------------------------------------------- */}
-      <section
-        className="relative overflow-hidden py-20 sm:py-28"
-        style={{
-          background:
-            "linear-gradient(180deg, #F6F3EA 0%, #E8EDDE 40%, #DDE7DA 100%)",
-        }}
-      >
+      {/* Use cases — transparent so the shared ScrollBackground body tint
+          shows through, matching every other section. */}
+      <section className="relative overflow-hidden py-20 sm:py-28">
         <div className="brand-watermark top-12 -left-16 hidden md:block">
           <BMark className="h-[260px] w-auto" strokeWidth={2.4} />
         </div>
@@ -834,26 +840,29 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Verdicts — DARK forest section for real light/dark rhythm on scroll */}
+      {/* Verdicts — transparent so it joins the shared body scroll tint
+          instead of jumping to a hardcoded dark forest. Cards keep their
+          surface treatment; watermarks flip to the forest-on-light
+          variant. */}
       <section
         id="verdicts"
-        className="section-dark scroll-mt-20 relative overflow-hidden py-24 sm:py-32"
+        className="scroll-mt-20 relative overflow-hidden py-24 sm:py-32"
       >
-        <div className="brand-water -bottom-24 -right-10 sm:-right-24">
+        <div className="brand-watermark-light -bottom-24 -right-10 sm:-right-24">
           <BMark className="h-[380px] w-auto sm:h-[560px]" strokeWidth={2.4} />
         </div>
-        <div className="brand-water -top-16 -left-10 opacity-[0.03] sm:-left-20">
+        <div className="brand-watermark-light -top-16 -left-10 sm:-left-20">
           <BMark className="h-[300px] w-auto sm:h-[420px]" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div data-reveal className="reveal max-w-[62ch]">
-            <p className="eyebrow text-[13px] font-semibold uppercase tracking-[0.14em]">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-canvas/75">
               verdict scale
             </p>
-            <h2 className="heading mt-3 text-[36px] font-semibold leading-[1.02] tracking-display sm:text-[56px]">
+            <h2 className="mt-3 text-[36px] font-semibold leading-[1.02] tracking-display text-canvas sm:text-[56px]">
               {t.verdictsTitle}
             </h2>
-            <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-canvas/75 sm:text-[17.5px]">
+            <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-canvas/80 sm:text-[17.5px]">
               Every check lands on one of five tiers. Never a bare true or false —
               always the honest picture of how much the literature actually says.
             </p>
@@ -864,7 +873,7 @@ export default function LandingPage() {
                 key={verdict}
                 data-reveal
                 data-d={String((i % 3) + 1)}
-                className="reveal card-lift h-full rounded-[24px] bg-canvas p-6 text-ink shadow-[0_18px_48px_rgba(0,0,0,0.18)]"
+                className="reveal surface card-lift h-full p-6 text-ink"
               >
                 <VerdictChip verdict={verdict} label={t.verdictLabels[verdict]} />
                 <p className="mt-4 text-[16px] font-semibold leading-snug text-ink">
@@ -885,23 +894,25 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Access — reference's download-buttons row pattern ---------------- */}
+      {/* Access — reference's download-buttons row pattern. Sits deep in
+          the scroll where --bg-color is deep forest, so text + buttons
+          adopt the on-dark cream palette. */}
       <section id="access" className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28">
-        <div className="brand-watermark -top-10 -right-14 hidden md:block">
+        <div className="brand-watermark-light -top-10 -right-14 hidden md:block">
           <BMark className="h-[280px] w-auto" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark bottom-4 -left-12 hidden lg:block">
+        <div className="brand-watermark-light bottom-4 -left-12 hidden lg:block">
           <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-5xl px-4 text-center sm:px-8">
           <div data-reveal className="reveal">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-canvas/75">
               install
             </p>
-            <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[52px]">
+            <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-canvas sm:text-[52px]">
               {t.access.title}
             </h2>
-            <p className="mx-auto mt-5 max-w-[58ch] text-[17px] leading-relaxed text-bark sm:text-[18px]">
+            <p className="mx-auto mt-5 max-w-[58ch] text-[17px] leading-relaxed text-canvas/80 sm:text-[18px]">
               {t.access.sub}
             </p>
           </div>
@@ -914,9 +925,6 @@ export default function LandingPage() {
                 { key: "desktop", label: t.access.desktopTitle },
               ] as const
             ).map((tile) => {
-              // Once the platform is known, the visitor's own tile stays solid
-              // and the other two go ghost. Before that, first tile is solid
-              // so the layout doesn't look empty on first paint.
               const isYou = platform === tile.key;
               const isSolid = platform === null ? tile.key === "iphone" : isYou;
               return (
@@ -924,7 +932,7 @@ export default function LandingPage() {
                   key={tile.key}
                   href="/access"
                   aria-current={isYou ? "true" : undefined}
-                  className={`download-btn focus-ring ${isSolid ? "" : "is-ghost"} ${isYou ? "is-you" : ""}`}
+                  className={`download-btn on-dark focus-ring ${isSolid ? "" : "is-ghost"} ${isYou ? "is-you" : ""}`}
                 >
                   <PlatformIcon kind={tile.key} size={22} />
                   <span>Download for {tile.label}</span>
@@ -933,9 +941,9 @@ export default function LandingPage() {
               );
             })}
           </div>
-          <p className="mt-6 text-[13.5px] text-bark">
+          <p className="mt-6 text-[13.5px] text-canvas/70">
             All three take about a minute to set up.{" "}
-            <Link href="/access" className="focus-ring font-semibold text-forest underline underline-offset-[3px]">
+            <Link href="/access" className="focus-ring font-semibold text-canvas underline underline-offset-[3px] hover:text-white">
               Step-by-step guides
             </Link>
             .
@@ -948,32 +956,33 @@ export default function LandingPage() {
         id="pricing"
         className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28"
       >
-        <div className="brand-watermark top-8 right-[4%] hidden md:block">
+        <div className="brand-watermark-light top-8 right-[4%] hidden md:block">
           <BMark className="h-[260px] w-auto" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark -bottom-10 left-[8%] hidden lg:block">
+        <div className="brand-watermark-light -bottom-10 left-[8%] hidden lg:block">
           <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div data-reveal className="reveal max-w-[62ch]">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-canvas/75">
               pricing
             </p>
-            <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[52px]">
+            <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-canvas sm:text-[52px]">
               {t.pricing.title}
             </h2>
-            <p className="mt-5 text-[17px] leading-relaxed text-bark sm:text-[18px]">
+            <p className="mt-5 text-[17px] leading-relaxed text-canvas/80 sm:text-[18px]">
               {t.pricing.sub}
             </p>
           </div>
 
           {/* Monthly / Annual toggle — annual is a soft nudge, not a
-              default. Free tier ignores it since it's always $0. */}
+              default. Free tier ignores it since it's always $0. Toggle
+              container brightened so it reads on the deep-forest bg. */}
           <div
             data-reveal
             className="reveal mt-10 flex items-center justify-center"
           >
-            <div className="inline-flex items-center gap-1 rounded-full border border-ink/10 bg-white/70 p-1 shadow-[0_4px_14px_rgba(18,32,26,0.05)]">
+            <div className="inline-flex items-center gap-1 rounded-full border border-canvas/25 bg-canvas/12 p-1 shadow-[0_4px_14px_rgba(0,0,0,0.15)] backdrop-blur">
               {(["monthly", "annual"] as const).map((k) => {
                 const active = billingInterval === k;
                 return (
@@ -984,15 +993,17 @@ export default function LandingPage() {
                     aria-pressed={active}
                     className={`focus-ring inline-flex items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-semibold transition ${
                       active
-                        ? "bg-forest text-canvas shadow-[0_4px_14px_rgba(30,77,43,0.2)]"
-                        : "text-bark hover:text-ink"
+                        ? "bg-canvas text-forest shadow-[0_4px_14px_rgba(0,0,0,0.22)]"
+                        : "text-canvas/80 hover:text-canvas"
                     }`}
                   >
                     {k === "monthly" ? t.pricing.monthly : t.pricing.annual}
                     {k === "annual" && (
                       <span
                         className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${
-                          active ? "bg-canvas/22 text-canvas" : "bg-moss/70 text-forest"
+                          active
+                            ? "bg-forest/15 text-forest"
+                            : "bg-canvas/25 text-canvas"
                         }`}
                       >
                         {t.pricing.saveHint}
@@ -1109,100 +1120,114 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Final CTA — dark forest matching the verdicts section, so the page
-          bookends the light content with two moments of visual weight. */}
-      <section className="section-dark relative overflow-hidden py-20 sm:py-28">
-        <div className="brand-water -bottom-16 -right-14 sm:-right-24">
+      {/* Final CTA — sits deep in the scroll where --bg-color is at the
+          forest endpoint. Buttons + text switch to cream so they contrast
+          the dark backdrop; watermarks flip to the light variant. */}
+      <section className="relative overflow-hidden py-20 sm:py-28">
+        <div className="brand-watermark-light -bottom-16 -right-14 sm:-right-24">
           <BMark className="h-[340px] w-auto sm:h-[500px]" strokeWidth={2.4} />
         </div>
-        <div className="brand-water -top-10 -left-12 opacity-[0.03]">
+        <div className="brand-watermark-light -top-10 -left-12">
           <BMark className="h-[240px] w-auto sm:h-[360px]" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-4xl px-4 sm:px-8">
           <div data-reveal className="reveal text-center">
-            <p className="eyebrow text-[12px] font-semibold uppercase tracking-[0.16em]">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-canvas/70">
               ready when you are
             </p>
-            <p className="heading mx-auto mt-4 max-w-[22ch] text-[34px] font-semibold leading-[1.05] tracking-display sm:text-[58px]">
+            <p className="mx-auto mt-4 max-w-[22ch] text-[34px] font-semibold leading-[1.05] tracking-display text-canvas sm:text-[58px]">
               {t.cta.title}
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href={signedIn ? "/check" : "/signin"}
-                className="focus-ring inline-flex items-center gap-2 rounded-full bg-canvas px-8 py-4 text-[16px] font-semibold text-forest shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:-translate-y-0.5 hover:bg-white"
+                className="focus-ring inline-flex items-center gap-2 rounded-full bg-canvas px-8 py-4 text-[16px] font-semibold text-forest shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5 hover:bg-white"
               >
                 {signedIn ? t.nav.check : t.cta.button} →
               </Link>
               {!signedIn && (
                 <Link
                   href="/signin"
-                  className="focus-ring inline-flex items-center gap-2 rounded-full border border-canvas/25 px-7 py-[15px] text-[15px] font-semibold text-canvas transition hover:border-canvas/45 hover:bg-white/5"
+                  className="focus-ring inline-flex items-center gap-2 rounded-full border border-canvas/40 px-7 py-[15px] text-[15px] font-semibold text-canvas transition hover:border-canvas/70 hover:bg-canvas/10"
                 >
                   log in
                 </Link>
               )}
             </div>
-            <p className="mt-6 text-[13px] text-canvas/55">
+            <p className="mt-6 text-[13px] text-canvas/65">
               No credit card. Free tier stays free.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Footer ------------------------------------------------------------ */}
-      <footer className="border-t border-ink/8 py-14">
+      {/* Footer — the scroll tint is at the forest endpoint here, so the
+          whole footer switches to a cream palette to stay legible. */}
+      <footer className="border-t border-canvas/15 py-14 text-canvas">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
             <div>
-              <Wordmark className="text-[20px]" />
-              <p className="mt-3 max-w-[38ch] text-[14px] leading-relaxed text-bark">
+              <Wordmark inverted className="text-[20px]" />
+              <p className="mt-3 max-w-[38ch] text-[14px] leading-relaxed text-canvas/80">
                 {t.hero.line1} {t.hero.line2}
               </p>
-              <p className="mt-4 max-w-[46ch] text-[12.5px] leading-relaxed text-bark">
+              <p className="mt-4 max-w-[46ch] text-[12.5px] leading-relaxed text-canvas/65">
                 {t.footer.disclaimer}
               </p>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-bark">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas/60">
                 {t.footer.product}
               </p>
               <div className="mt-3 flex flex-col gap-2">
-                <a href="#how" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <a href="#how" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   {t.nav.how}
                 </a>
-                <a href="#verdicts" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <a href="#verdicts" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   {t.nav.verdicts}
                 </a>
-                <a href="#access" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <a href="#access" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   {t.nav.getApp}
                 </a>
-                <a href="#pricing" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <a href="#pricing" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   {t.nav.pricing}
                 </a>
-                <Link href="/access" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <Link href="/access" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   install guides
                 </Link>
-                <Link href="/privacy" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <Link href="/privacy" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   privacy
                 </Link>
-                <Link href="/terms" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                <Link href="/terms" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   terms of service
                 </Link>
               </div>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-bark">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas/60">
                 {t.footer.about}
               </p>
               <div className="mt-3 flex flex-col gap-2">
-                <a href={mailto} className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
-                  {t.footer.contactLink}
-                </a>
+                {mailto ? (
+                  <a
+                    href={mailto}
+                    className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas"
+                  >
+                    {t.footer.contactLink}
+                  </a>
+                ) : (
+                  <span
+                    className="w-fit text-[14px] font-semibold text-canvas/55"
+                    title="A dedicated support inbox is coming soon."
+                  >
+                    contact · coming soon
+                  </span>
+                )}
                 {signedIn ? (
                   <button
                     type="button"
                     onClick={() => signOut({ callbackUrl: "/" })}
-                    className="focus-ring w-fit text-left text-[14px] font-semibold text-bark transition hover:text-ink"
+                    className="focus-ring w-fit text-left text-[14px] font-semibold text-canvas/85 transition hover:text-canvas"
                   >
                     {t.signin.signOut}
                   </button>
@@ -1210,20 +1235,20 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => signIn("google", { callbackUrl: "/check" })}
-                    className="focus-ring w-fit text-left text-[14px] font-semibold text-bark transition hover:text-ink"
+                    className="focus-ring w-fit text-left text-[14px] font-semibold text-canvas/85 transition hover:text-canvas"
                   >
                     {t.nav.signIn}
                   </button>
                 )}
-                <p className="text-[14px] text-bark">{t.footer.tks}</p>
+                <p className="text-[14px] text-canvas/70">{t.footer.tks}</p>
               </div>
             </div>
           </div>
-          <div className="mt-10 flex flex-col justify-between gap-2 border-t border-ink/8 pt-6 sm:flex-row">
-            <p className="text-[12.5px] text-bark">
+          <div className="mt-10 flex flex-col justify-between gap-2 border-t border-canvas/15 pt-6 sm:flex-row">
+            <p className="text-[12.5px] text-canvas/65">
               {session?.user?.email ? `${t.signin.signedInAs} ${session.user.email}` : ""}
             </p>
-            <p className="text-[12px] font-medium text-bark">
+            <p className="text-[12px] font-medium text-canvas/70">
               © 2026 Bloomscroll. All rights reserved.
             </p>
           </div>

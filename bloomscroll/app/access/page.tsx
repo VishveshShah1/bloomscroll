@@ -25,13 +25,29 @@ export default function AccessPage() {
     bookmarkletRef.current?.setAttribute("href", code);
   }, [origin]);
 
-  const platforms = [
+  type PlatformKey = "android" | "iphone" | "desktop";
+  const platforms: Array<{
+    key: PlatformKey;
+    title: string;
+    lede: string;
+    steps: readonly string[];
+    note: string | null;
+    /** Primary CTA per platform — deep-links directly to the install
+     *  where possible. Empty string when the target isn't published yet
+     *  (renders a "coming soon" chip instead). */
+    primaryUrl: string;
+    primaryLabel: string;
+    icon: React.ReactNode;
+  }> = [
     {
       key: "android",
       title: t.access.androidTitle,
       lede: t.access.androidLede,
       steps: t.access.androidSteps,
-      note: null as string | null,
+      note: null,
+      // Android is just "add to home screen" — no external target needed.
+      primaryUrl: "https://bloomscroll.app",
+      primaryLabel: "Open bloomscroll.com",
       icon: (
         <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="6" y="9" width="12" height="10" rx="2" />
@@ -50,6 +66,8 @@ export default function AccessPage() {
       lede: t.access.iphoneLede,
       steps: t.access.iphoneSteps,
       note: t.access.iphoneNote,
+      primaryUrl: t.access.iphoneShortcutUrl,
+      primaryLabel: "Add the shortcut",
       icon: (
         <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
@@ -63,7 +81,9 @@ export default function AccessPage() {
       title: t.access.desktopTitle,
       lede: t.access.desktopLede,
       steps: t.access.desktopSteps,
-      note: null as string | null,
+      note: null,
+      primaryUrl: t.access.extensionUrl,
+      primaryLabel: "Get the Chrome extension",
       icon: (
         <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="3" y="4" width="18" height="12" rx="2" />
@@ -108,31 +128,69 @@ export default function AccessPage() {
 
         {/* Three equal tiles */}
         <div className="relative mt-14 grid gap-6 lg:grid-cols-3">
-          {platforms.map((p) => (
-            <div key={p.key} className="surface flex h-full flex-col p-8">
-              <div className="text-forest">{p.icon}</div>
-              <h2 className="mt-4 text-[22px] font-semibold text-ink">{p.title}</h2>
-              <p className="mt-2 text-[15px] leading-relaxed text-bark">{p.lede}</p>
-              <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
-                Setup
-              </p>
-              <ol className="mt-2 flex flex-col gap-2.5">
-                {p.steps.map((s, i) => (
-                  <li key={s} className="flex gap-3 text-[14px] leading-relaxed text-bark">
-                    <span className="min-w-[1.4rem] shrink-0 text-[12px] font-semibold text-forest">
-                      {i + 1}
+          {platforms.map((p) => {
+            const walkthrough = t.access.walkthroughUrls[p.key];
+            const primaryReady = Boolean(p.primaryUrl);
+            return (
+              <div key={p.key} className="surface flex h-full flex-col p-8">
+                <div className="text-forest">{p.icon}</div>
+                <h2 className="mt-4 text-[22px] font-semibold text-ink">{p.title}</h2>
+                <p className="mt-2 text-[15px] leading-relaxed text-bark">{p.lede}</p>
+
+                {/* Primary CTA — one big obvious button per platform. When
+                    the target URL isn't set yet, renders a coming-soon chip
+                    so it's still visually anchored. */}
+                <div className="mt-5">
+                  {primaryReady ? (
+                    <a
+                      href={p.primaryUrl}
+                      target={p.key === "desktop" || p.key === "iphone" ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="btn-primary focus-ring inline-flex w-full items-center justify-center gap-2 text-[14.5px]"
+                    >
+                      {p.primaryLabel} →
+                    </a>
+                  ) : (
+                    <span className="block w-full rounded-full border border-ink/12 bg-white/50 px-4 py-3 text-center text-[12px] font-semibold uppercase tracking-[0.08em] text-bark">
+                      {p.primaryLabel} · coming soon
                     </span>
-                    <span>{s}</span>
-                  </li>
-                ))}
-              </ol>
-              {p.note && (
-                <p className="mt-5 border-t border-ink/8 pt-4 text-[12.5px] leading-relaxed text-bark">
-                  {p.note}
+                  )}
+                </div>
+
+                {/* Optional 30-second walkthrough — hidden until a real
+                    YouTube URL is set in i18n.access.walkthroughUrls. */}
+                {walkthrough && (
+                  <a
+                    href={walkthrough}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-forest underline underline-offset-[3px] hover:text-ink"
+                  >
+                    ▶ {t.access.walkthroughLabel}
+                  </a>
+                )}
+
+                <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
+                  Or step-by-step
                 </p>
-              )}
-            </div>
-          ))}
+                <ol className="mt-2 flex flex-col gap-2.5">
+                  {p.steps.map((s, i) => (
+                    <li key={s} className="flex gap-3 text-[14px] leading-relaxed text-bark">
+                      <span className="min-w-[1.4rem] shrink-0 text-[12px] font-semibold text-forest">
+                        {i + 1}
+                      </span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ol>
+                {p.note && (
+                  <p className="mt-5 border-t border-ink/8 pt-4 text-[12.5px] leading-relaxed text-bark">
+                    {p.note}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Bookmarklet — smaller, honest fallback */}

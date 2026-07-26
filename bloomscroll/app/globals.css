@@ -172,6 +172,46 @@ body {
   border-color: rgba(18, 32, 26, 0.28);
   box-shadow: none;
 }
+/* On-dark variants — used inside sections that sit on the deep-forest
+   end of the body scroll-tint (e.g. the landing #access section). Solid
+   flips to cream-on-forest; ghost flips to cream border + cream text. */
+.download-btn.on-dark {
+  background: #f6f3ea;
+  color: #1e4d2b;
+  border-color: #f6f3ea;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+}
+.download-btn.on-dark:hover {
+  background: #ffffff;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
+}
+.download-btn.on-dark.is-ghost {
+  background: transparent;
+  color: #f6f3ea;
+  border-color: rgba(246, 243, 234, 0.45);
+  box-shadow: none;
+}
+.download-btn.on-dark.is-ghost:hover {
+  background: rgba(246, 243, 234, 0.1);
+  border-color: rgba(246, 243, 234, 0.75);
+  box-shadow: none;
+}
+.download-btn.on-dark.is-you {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28),
+    0 0 0 4px rgba(246, 243, 234, 0.2);
+}
+.download-btn.on-dark.is-you:hover {
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.34),
+    0 0 0 4px rgba(246, 243, 234, 0.3);
+}
+.download-btn.on-dark .you-tag {
+  background: rgba(30, 77, 43, 0.22);
+  color: #1e4d2b;
+}
+.download-btn.on-dark.is-ghost .you-tag {
+  background: rgba(246, 243, 234, 0.2);
+  color: #f6f3ea;
+}
 /* When a button is the visitor's own platform, give it an extra ring so it
    pops even at a glance. */
 .download-btn.is-you {
@@ -456,7 +496,9 @@ summary:focus-visible {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  font-size: clamp(9px, 1.05vw, 12px);
+  /* Min bumped 9 → 11 so caption / verdict copy reads on small phones
+     where the mockup itself is only ~280px wide. */
+  font-size: clamp(11px, 1.05vw, 12px);
 }
 .hp-body {
   position: relative;

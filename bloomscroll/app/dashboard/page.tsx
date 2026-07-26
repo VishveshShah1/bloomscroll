@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Wordmark from "@/components/Wordmark";
+import ReviewForm from "@/components/ReviewForm";
 
 type Plan = "seed" | "sprout" | "canopy";
 type UsageSnapshot = {
@@ -13,6 +14,8 @@ type UsageSnapshot = {
   used: number;
   /** null = unlimited (paid tier) */
   limit: number | null;
+  /** Bonus checks granted by leaving a review — already folded into `limit`. */
+  bonus: number;
   resetAt: string | null;
   email?: string;
 };
@@ -67,8 +70,9 @@ export default function DashboardPage() {
         plan: "seed" as Plan,
         used: 4,
         limit: 5,
+        bonus: 0,
         resetAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 8).toISOString(),
-        email: "arhaanie09@gmail.com",
+        email: "you@example.com",
       }
     : null;
 
@@ -80,33 +84,35 @@ export default function DashboardPage() {
     }
   }, [status, router, isPreview]);
 
-  // Fetch usage once we know the user is authed.
+  // Fetch usage — extracted so ReviewForm can trigger a refresh after
+  // the bonus is granted so the new limit shows up immediately.
+  const refreshUsage = useCallback(async () => {
+    if (isPreview) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await fetch("/api/usage", { cache: "no-store" });
+      if (!res.ok) throw new Error(`usage ${res.status}`);
+      const data = (await res.json()) as UsageSnapshot;
+      setSnap(data);
+      setErr(null);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "couldn't load usage");
+    } finally {
+      setLoading(false);
+    }
+  }, [isPreview]);
+
   useEffect(() => {
     if (isPreview) {
       setLoading(false);
       return;
     }
     if (status !== "authenticated") return;
-    let cancelled = false;
-    setLoading(true);
-    fetch("/api/usage", { cache: "no-store" })
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`usage ${r.status}`);
-        return (await r.json()) as UsageSnapshot;
-      })
-      .then((data) => {
-        if (!cancelled) setSnap(data);
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setErr(e instanceof Error ? e.message : "couldn't load usage");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [status, isPreview]);
+    void refreshUsage();
+  }, [status, isPreview, refreshUsage]);
 
   if (!isPreview && (status === "loading" || status === "unauthenticated")) {
     return (
@@ -131,9 +137,32 @@ export default function DashboardPage() {
     <div className="min-h-screen">
       <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-          <Link href="/" className="focus-ring rounded-md">
-            <Wordmark className="text-[22px]" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="focus-ring rounded-md">
+              <Wordmark className="text-[22px]" />
+            </Link>
+            <Link
+              href="/"
+              aria-label="Back to home"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/60 px-3 py-1.5 text-[12.5px] font-semibold text-bark transition hover:-translate-y-0.5 hover:border-ink/25 hover:text-ink"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+              </svg>
+              home
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             <Link
               href="/check"
@@ -208,6 +237,11 @@ export default function DashboardPage() {
                     / {limit === null ? "unlimited" : limit}
                   </span>
                 </p>
+                {activeSnap && activeSnap.bonus > 0 && (
+                  <p className="mt-2 inline-flex items-center gap-1 rounded-full border border-forest/30 bg-moss/60 px-2.5 py-0.5 text-[11px] font-semibold text-forest">
+                    +{activeSnap.bonus} review bonus applied
+                  </p>
+                )}
               </div>
               <span
                 className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] ${
@@ -330,23 +364,31 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Tiny help card */}
+            {/* Tiny help card. A real support inbox is on the way; for
+                now, the review flow below is the fastest way to send
+                anything through. TODO: swap to support@bloomscroll.app
+                once the mailbox exists. */}
             <div className="surface rounded-[24px] p-6">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
                 need something?
               </p>
               <p className="mt-2 text-[14px] leading-relaxed text-bark">
-                Bug, feature idea, or account help — one inbox goes straight to
-                the person who built this:
+                A dedicated support inbox is coming soon. Until then, use the
+                review below or the feedback prompt on a check result — both
+                land in the same place.
               </p>
-              <a
-                href="mailto:vishvesh380@gmail.com?subject=Bloomscroll%3A%20dashboard"
-                className="focus-ring mt-3 inline-block text-[14px] font-semibold text-forest underline underline-offset-[3px]"
-              >
-                vishvesh380@gmail.com
-              </a>
             </div>
           </div>
+        </div>
+
+        {/* Review widget. One per account, private, grants +3 checks
+            on first successful submit. Triggers a usage refresh so the
+            new limit shows up in the card above without a page reload. */}
+        <div className="relative mt-6">
+          <ReviewForm
+            signedIn={Boolean(activeSession?.user?.email) || isPreview}
+            onBonusGranted={() => void refreshUsage()}
+          />
         </div>
 
         <p className="mt-10 text-[12px] text-bark">

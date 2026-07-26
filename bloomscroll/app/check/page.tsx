@@ -40,7 +40,77 @@ interface UsageSnapshot {
   plan: "seed" | "sprout" | "canopy";
   used: number;
   limit: number | null;
+  bonus?: number;
   resetAt: string | null;
+}
+
+/** Small, dismissible upgrade nudge that sits next to the usage pill.
+ *  Only shows for free-tier users with 1–2 checks left. Persists a
+ *  dismissed flag in sessionStorage so it doesn't come back every check
+ *  within the same tab. */
+function UsageNudge({ remaining }: { remaining: number }) {
+  const [dismissed, setDismissed] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setDismissed(sessionStorage.getItem("bloom:usage-nudge-dismissed") === "1");
+  }, []);
+  if (dismissed) return null;
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-forest/30 bg-canvas px-3 py-1.5 text-[12px] font-semibold text-forest shadow-[0_2px_6px_rgba(30,77,43,0.08)]">
+      <span>
+        {remaining === 1 ? "1 check left this month" : `${remaining} checks left this month`}
+      </span>
+      <span aria-hidden="true">·</span>
+      <Link
+        href="/#pricing"
+        className="focus-ring rounded underline underline-offset-[3px] hover:text-ink"
+      >
+        see plans
+      </Link>
+      <button
+        type="button"
+        onClick={() => {
+          sessionStorage.setItem("bloom:usage-nudge-dismissed", "1");
+          setDismissed(true);
+        }}
+        aria-label="Dismiss"
+        className="focus-ring ml-0.5 rounded-full text-bark/60 transition hover:text-ink"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <path
+            d="M2 2 L10 10 M10 2 L2 10"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+/** Non-blocking inline upgrade prompt shown after a graded result for
+ *  free-tier users. Sits before the FeedbackPrompt, above the ↑fold of
+ *  the citation-list block. Nothing covers the result. */
+function AfterResultUpgrade() {
+  return (
+    <div className="rounded-2xl border border-forest/25 bg-moss/40 p-4 sm:p-5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
+        want more of this?
+      </p>
+      <p className="mt-2 text-[14px] leading-relaxed text-ink">
+        Sprout ($4.99/mo) removes the monthly cap and saves every check to
+        your history. Canopy adds faster processing and deeper citation
+        detail.
+      </p>
+      <Link
+        href="/#pricing"
+        className="focus-ring mt-3 inline-flex items-center gap-2 rounded-full border border-forest/30 px-3.5 py-1.5 text-[12.5px] font-semibold text-forest transition hover:bg-forest hover:text-canvas"
+      >
+        See plans →
+      </Link>
+    </div>
+  );
 }
 
 interface LimitError {
@@ -165,7 +235,7 @@ function SignInCard({ t }: { t: Strings }) {
 }
 
 export default function CheckPage() {
-  const [lang, setLang] = useLang();
+  const [lang] = useLang();
   const t = STRINGS[lang];
   const { data: session, status: authStatus } = useSession();
   const [input, setInput] = useState("");
@@ -306,22 +376,28 @@ export default function CheckPage() {
             <Wordmark busy={status === "checking"} className="text-[22px]" />
           </Link>
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setLang(lang === "en" ? "fr" : "en")}
-              aria-label={lang === "en" ? "Passer en français" : "Switch to English"}
-              className="focus-ring rounded-full border border-ink/10 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-bark transition hover:text-ink"
+            <Link
+              href="/"
+              className="focus-ring text-[13px] font-semibold text-bark transition hover:text-ink"
             >
-              {lang === "en" ? "FR" : "EN"}
-            </button>
+              ← home
+            </Link>
             {signedIn ? (
-              <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="focus-ring rounded-full border border-ink/10 px-4 py-1.5 text-[13px] font-semibold text-ink transition hover:border-ink/25"
-              >
-                {t.signin.signOut}
-              </button>
+              <>
+                <Link
+                  href="/dashboard"
+                  className="focus-ring rounded-full border border-ink/10 px-4 py-1.5 text-[13px] font-semibold text-ink transition hover:border-ink/25"
+                >
+                  dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="focus-ring rounded-full border border-ink/10 px-4 py-1.5 text-[13px] font-semibold text-ink transition hover:border-ink/25"
+                >
+                  {t.signin.signOut}
+                </button>
+              </>
             ) : (
               <button
                 type="button"
@@ -352,8 +428,16 @@ export default function CheckPage() {
         <p className="relative mt-4 max-w-[58ch] text-[17px] leading-relaxed text-bark">{t.hero.sub}</p>
 
         {signedIn && usage && (
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap items-center gap-2">
             <UsagePill snap={usage} t={t} lang={lang} />
+            {/* Proactive nudge — appears when a free user has 1–2 checks
+                left, before they actually hit the hard block. */}
+            {usage.plan === "seed" &&
+              usage.limit !== null &&
+              usage.limit - usage.used > 0 &&
+              usage.limit - usage.used <= 2 && (
+                <UsageNudge remaining={usage.limit - usage.used} />
+              )}
           </div>
         )}
 
@@ -614,13 +698,19 @@ export default function CheckPage() {
                 })}
               </div>
               {data.claims && data.claims.length > 0 && (
-                <FeedbackPrompt
-                  // Fresh mount per result so a new check clears any prior
-                  // dismiss / sent state and lets the visitor rate this one.
-                  key={`fb-${data.claims[0].claim}`}
-                  claimTag={data.claims[0].claim.slice(0, 120)}
-                  verdict={data.claims[0].verdict}
-                />
+                <>
+                  {/* Contextual upgrade nudge — only for free-tier users,
+                      inline with the result, non-blocking. Skipped for paid
+                      plans since the message wouldn't apply. */}
+                  {usage?.plan === "seed" && <AfterResultUpgrade />}
+                  <FeedbackPrompt
+                    // Fresh mount per result so a new check clears any prior
+                    // dismiss / sent state and lets the visitor rate this one.
+                    key={`fb-${data.claims[0].claim}`}
+                    claimTag={data.claims[0].claim.slice(0, 120)}
+                    verdict={data.claims[0].verdict}
+                  />
+                </>
               )}
             </div>
           )}
