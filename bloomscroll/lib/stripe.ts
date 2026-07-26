@@ -17,12 +17,35 @@ export function getStripe(): Stripe {
 }
 
 export type PlanSlug = "sprout" | "canopy";
+export type BillingInterval = "monthly" | "annual";
 
 /**
- * Map of paid plan slug → Stripe Price ID env var. Set these in .env.local
- * once you've created the recurring prices in the Stripe dashboard.
+ * Map of (paid plan slug, billing interval) → Stripe Price ID env var. Set
+ * these in .env.local once you've created the recurring prices in the
+ * Stripe dashboard. If the annual price is missing, callers should fall
+ * back to the monthly one rather than fail.
  */
-export function priceIdFor(plan: PlanSlug): string | null {
+export function priceIdFor(
+  plan: PlanSlug,
+  interval: BillingInterval = "monthly",
+): string | null {
+  if (interval === "annual") {
+    if (plan === "sprout") {
+      return (
+        process.env.STRIPE_PRICE_SPROUT_ANNUAL ??
+        process.env.STRIPE_PRICE_SPROUT ??
+        null
+      );
+    }
+    if (plan === "canopy") {
+      return (
+        process.env.STRIPE_PRICE_CANOPY_ANNUAL ??
+        process.env.STRIPE_PRICE_CANOPY ??
+        null
+      );
+    }
+    return null;
+  }
   if (plan === "sprout") return process.env.STRIPE_PRICE_SPROUT ?? null;
   if (plan === "canopy") return process.env.STRIPE_PRICE_CANOPY ?? null;
   return null;

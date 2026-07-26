@@ -2,15 +2,17 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Wordmark, { BMark } from "@/components/Wordmark";
 import {
-  PhoneHeroArt,
   StepInputArt,
   StepScanArt,
   StepGradedArt,
   UseCaseArt,
 } from "@/components/PlaceholderArt";
+import HeroPhoneAnimation from "@/components/HeroPhoneAnimation";
+import { BrandIcon, brandKindFor } from "@/components/BrandIcon";
 import { STRINGS, useLang, type Lang } from "@/lib/i18n";
 import type { Verdict } from "@/lib/types";
 
@@ -87,21 +89,31 @@ function useRevealOnScroll() {
   }, []);
 }
 
-const VERDICT_TINT: Record<Verdict, { bg: string; text: string; border: string }> = {
-  supported: { bg: "#DDE7DA", text: "#204628", border: "#B8CCB8" },
-  mixed: { bg: "#EEE7CE", text: "#6B5015", border: "#DCC896" },
-  weak: { bg: "#F1E1CE", text: "#7A4E1B", border: "#DCC29A" },
-  no_evidence: { bg: "#E8E9E4", text: "#4B554E", border: "#C8CDC4" },
-  not_empirical: { bg: "#E4E1EE", text: "#4D4A72", border: "#C6C4DC" },
+// Verdict tiers stay in a forest-derived palette but crank up the contrast
+// so each one is instantly distinguishable at a glance. Each tier gets its
+// own solid saturation + a small leading glyph so the meaning reads even at
+// small sizes or with a colour-vision difference.
+const VERDICT_TINT: Record<
+  Verdict,
+  { bg: string; text: string; border: string; glyph: string }
+> = {
+  supported: { bg: "#1E4D2B", text: "#F6F3EA", border: "#1E4D2B", glyph: "✓" },
+  mixed: { bg: "#B78628", text: "#FDF7E6", border: "#8F6712", glyph: "≈" },
+  weak: { bg: "#B45A34", text: "#FBEDDE", border: "#8B4322", glyph: "△" },
+  no_evidence: { bg: "#3F5049", text: "#EBEFEB", border: "#2C3A34", glyph: "○" },
+  not_empirical: { bg: "#615A82", text: "#EEEBF6", border: "#3E385C", glyph: "◇" },
 };
 
 function VerdictChip({ verdict, label }: { verdict: Verdict; label: string }) {
   const v = VERDICT_TINT[verdict];
   return (
     <span
-      className="inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.06em]"
+      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.06em] shadow-[0_2px_6px_rgba(18,32,26,0.08)]"
       style={{ background: v.bg, color: v.text, borderColor: v.border }}
     >
+      <span aria-hidden="true" className="text-[13px] leading-none">
+        {v.glyph}
+      </span>
       {label}
     </span>
   );
@@ -152,23 +164,37 @@ function PlatformIcon({ kind, size = 22 }: { kind: "android" | "iphone" | "deskt
 function Nav({
   lang,
   signedIn,
+  avatar,
+  userName,
 }: {
   lang: Lang;
   signedIn: boolean;
+  avatar?: string | null;
+  userName?: string | null;
 }) {
   const t = STRINGS[lang];
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const links = [
     { href: "#how", label: t.nav.how },
     { href: "#verdicts", label: t.nav.verdicts },
     { href: "#access", label: t.nav.getApp },
     { href: "#pricing", label: t.nav.pricing },
   ];
+  // Clicking the wordmark always returns home; if already on '/', asks the
+  // Splash to replay (throttled inside Splash so mashing it doesn't loop).
+  function onWordmarkClick(e: React.MouseEvent) {
+    if (pathname === "/") {
+      e.preventDefault();
+      window.dispatchEvent(new Event("bloom:splash-replay"));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
   return (
     <nav className="sticky top-0 z-40 border-b border-ink/5 bg-canvas/85 backdrop-blur">
       {/* 3-column: logo left, links dead-center, controls right. */}
       <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-8">
-        <Link href="/" className="focus-ring rounded-md">
+        <Link href="/" onClick={onWordmarkClick} className="focus-ring rounded-md">
           <Wordmark className="text-[22px]" />
         </Link>
         <div className="hidden items-center justify-center gap-8 md:flex">
@@ -183,20 +209,43 @@ function Nav({
           ))}
         </div>
         <div className="flex items-center justify-end gap-2 sm:gap-3">
-          {!signedIn && (
+          {signedIn ? (
             <Link
-              href="/signin"
-              className="focus-ring hidden rounded-full border border-ink/12 px-4 py-2 text-[13.5px] font-semibold text-ink transition hover:border-ink/25 hover:bg-white/60 sm:inline-block"
+              href="/dashboard"
+              aria-label="Open dashboard"
+              className="focus-ring group flex items-center gap-2 rounded-full border border-ink/10 bg-white/70 py-1 pl-1 pr-3 text-[13px] font-semibold text-ink shadow-[0_4px_14px_rgba(18,32,26,0.06)] transition hover:-translate-y-0.5 hover:border-forest/40 hover:bg-white"
             >
-              log in
+              {avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatar}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  className="h-7 w-7 rounded-full ring-2 ring-forest/30 transition group-hover:ring-forest"
+                />
+              ) : (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-forest text-[11px] font-bold text-canvas">
+                  {(userName?.[0] ?? "b").toUpperCase()}
+                </span>
+              )}
+              <span className="hidden sm:inline">dashboard</span>
             </Link>
+          ) : (
+            <>
+              <Link
+                href="/signin"
+                className="focus-ring hidden rounded-full border border-ink/12 px-4 py-2 text-[13.5px] font-semibold text-ink transition hover:border-ink/25 hover:bg-white/60 sm:inline-block"
+              >
+                log in
+              </Link>
+              <Link
+                href="/signin"
+                className="focus-ring hidden rounded-full bg-forest px-5 py-2.5 text-[13.5px] font-semibold text-canvas shadow-[0_8px_22px_rgba(30,77,43,0.22)] ring-2 ring-forest/15 transition hover:-translate-y-0.5 hover:bg-[#16391f] sm:inline-block"
+              >
+                {t.nav.startFree}
+              </Link>
+            </>
           )}
-          <Link
-            href={signedIn ? "/check" : "/signin"}
-            className="focus-ring hidden rounded-full bg-forest px-5 py-2.5 text-[13.5px] font-semibold text-canvas shadow-[0_8px_22px_rgba(30,77,43,0.22)] ring-2 ring-forest/15 transition hover:-translate-y-0.5 hover:bg-[#16391f] sm:inline-block"
-          >
-            {signedIn ? t.nav.check : t.nav.startFree}
-          </Link>
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
@@ -221,13 +270,32 @@ function Nav({
                 {l.label}
               </a>
             ))}
-            <Link
-              href={signedIn ? "/check" : "/signin"}
-              onClick={() => setOpen(false)}
-              className="focus-ring text-[16px] font-semibold text-forest"
-            >
-              {signedIn ? t.nav.check : t.nav.startFree}
-            </Link>
+            {signedIn ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setOpen(false)}
+                className="focus-ring text-[16px] font-semibold text-forest"
+              >
+                dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/signin"
+                  onClick={() => setOpen(false)}
+                  className="focus-ring text-[16px] font-semibold text-ink"
+                >
+                  log in
+                </Link>
+                <Link
+                  href="/signin"
+                  onClick={() => setOpen(false)}
+                  className="focus-ring text-[16px] font-semibold text-forest"
+                >
+                  {t.nav.startFree}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -317,6 +385,141 @@ function ScreenFrame({
 // still reads as "screenshot slot" at each call site.
 const ScreenSlot = ScreenFrame;
 
+// A canned sample verdict used by the TryDemo panel. Written once here so
+// the panel doesn't need any i18n plumbing or backend call.
+const DEMO_CLAIM = "Daily sunscreen use reduces long-term skin cancer risk.";
+const DEMO_SUMMARY =
+  "Multiple randomized trials and large cohorts show daily broad-spectrum sunscreen lowers melanoma and squamous-cell risk. Effect size is modest per year and adds up over decades.";
+const DEMO_CITATIONS = [
+  { title: "Green AC et al., Reduced melanoma after regular sunscreen use", meta: "J Clin Oncol · 5,000+ citations" },
+  { title: "Van der Pols JC et al., Prolonged prevention of squamous cell carcinoma of the skin", meta: "Cancer Epidemiol Biomarkers Prev · long-term follow-up" },
+  { title: "Cochrane Review, Interventions for preventing keratinocyte cancers", meta: "Cochrane Database Syst Rev · systematic review" },
+];
+
+/** Interactive demo panel — pre-filled sample claim, one click reveals a
+ *  graded verdict card with mock citations. Never touches the real API. */
+function TryDemo() {
+  const [phase, setPhase] = useState<"idle" | "running" | "done">("idle");
+  const [progress, setProgress] = useState(0);
+
+  function runDemo() {
+    if (phase === "running") return;
+    setPhase("running");
+    setProgress(0);
+    const start = performance.now();
+    const tick = () => {
+      const elapsed = performance.now() - start;
+      const p = Math.min(1, elapsed / 1400);
+      setProgress(p);
+      if (p < 1) requestAnimationFrame(tick);
+      else setPhase("done");
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function reset() {
+    setPhase("idle");
+    setProgress(0);
+  }
+
+  return (
+    <section aria-label="Try a live demo" className="relative overflow-hidden py-14 sm:py-20">
+      <div className="brand-watermark -bottom-10 -left-16 hidden sm:block">
+        <BMark className="h-[280px] w-auto" strokeWidth={2.4} />
+      </div>
+      <div className="brand-watermark top-6 right-[-3%] hidden md:block">
+        <BMark className="h-[200px] w-auto" strokeWidth={2.4} />
+      </div>
+      <div className="relative mx-auto w-full max-w-5xl px-4 sm:px-8">
+        <div data-reveal className="reveal">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+            try it now
+          </p>
+          <h2 className="mt-3 text-[30px] font-semibold leading-[1.05] tracking-display text-ink sm:text-[42px]">
+            See a graded verdict — no sign-up.
+          </h2>
+          <p className="mt-4 max-w-[54ch] text-[16px] leading-relaxed text-bark sm:text-[17px]">
+            One click on a real, pre-filled sample claim. The output below is what
+            you get when you run your own.
+          </p>
+        </div>
+
+        <div data-reveal data-d="1" className="reveal surface-lg mt-8 rounded-[24px] p-6 sm:p-8">
+          {/* Input row */}
+          <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-bark">
+            sample claim
+          </label>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+            <div className="flex-1 rounded-2xl border border-ink/10 bg-white px-4 py-3 text-[15px] italic text-ink">
+              &ldquo;{DEMO_CLAIM}&rdquo;
+            </div>
+            <button
+              type="button"
+              onClick={phase === "done" ? reset : runDemo}
+              disabled={phase === "running"}
+              className="btn-primary focus-ring shrink-0"
+            >
+              {phase === "idle" && "Run demo →"}
+              {phase === "running" && "Checking…"}
+              {phase === "done" && "Reset"}
+            </button>
+          </div>
+
+          {/* Progress bar */}
+          {phase !== "idle" && (
+            <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-moss/60">
+              <div
+                className="h-full rounded-full bg-forest transition-[width] duration-100 ease-linear"
+                style={{ width: `${Math.round(progress * 100)}%` }}
+              />
+            </div>
+          )}
+
+          {/* Result reveal */}
+          {phase === "done" && (
+            <div className="mt-6 rounded-[18px] border border-ink/6 bg-canvas p-5 sm:p-6">
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-bark">
+                verdict
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <VerdictChip verdict="supported" label={STRINGS.en.verdictLabels.supported} />
+                <span className="text-[13px] text-bark">
+                  Consistent evidence across multiple decent studies.
+                </span>
+              </div>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink">{DEMO_SUMMARY}</p>
+              <p className="mt-6 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-bark">
+                cited in the answer
+              </p>
+              <ul className="mt-3 flex flex-col gap-2.5">
+                {DEMO_CITATIONS.map((c, i) => (
+                  <li
+                    key={c.title}
+                    className="flex gap-3 rounded-xl border border-forest/25 bg-moss/40 p-3"
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-forest text-[11px] font-bold text-canvas">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-[13.5px] font-semibold leading-snug text-ink">
+                        {c.title}
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-bark">{c.meta}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-[12px] text-bark">
+                Sample output — for your own claim, sign in and run a real check.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const [lang] = useLang();
   const t = STRINGS[lang];
@@ -327,6 +530,9 @@ export default function LandingPage() {
 
   const [checkoutPlan, setCheckoutPlan] = useState<PlanSlug | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">(
+    "monthly",
+  );
 
   async function handleSubscribe(plan: PlanSlug) {
     if (checkoutPlan) return;
@@ -336,7 +542,7 @@ export default function LandingPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, interval: billingInterval }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) throw new Error(data.error || "checkout failed");
@@ -351,7 +557,12 @@ export default function LandingPage() {
 
   return (
     <div>
-      <Nav lang={lang} signedIn={signedIn} />
+      <Nav
+        lang={lang}
+        signedIn={signedIn}
+        avatar={session?.user?.image ?? null}
+        userName={session?.user?.name ?? null}
+      />
 
       {/* Hero -------------------------------------------------------------- */}
       <section className="relative overflow-hidden">
@@ -374,7 +585,7 @@ export default function LandingPage() {
         >
           <BMark className="h-[560px] w-auto text-forest" strokeWidth={2.4} />
         </div>
-        <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 pb-14 pt-3 sm:px-8 sm:pt-6 lg:grid-cols-[1.05fr_0.85fr] lg:gap-14 lg:pb-20 lg:pt-10">
+        <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 pb-14 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[1.05fr_0.85fr] lg:gap-14 lg:pb-20 lg:pt-16">
           <div className="flex flex-col justify-start">
             <p data-reveal className="reveal text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               {t.hero.tagline}
@@ -384,24 +595,24 @@ export default function LandingPage() {
               <br />
               <span className="text-forest">{t.hero.line2}</span>
             </h1>
-            <p data-reveal data-d="2" className="reveal mt-5 max-w-[52ch] text-[17px] leading-relaxed text-bark sm:mt-6 sm:text-[18px]">
+            <p data-reveal data-d="2" className="reveal mt-5 max-w-[42ch] text-[18px] leading-relaxed text-bark sm:mt-6 sm:text-[19px]">
               {t.hero.sub}
             </p>
-            <div data-reveal data-d="3" className="reveal mt-7 flex flex-wrap items-center gap-3">
-              <Link href={signedIn ? "/check" : "/signin"} className="btn-primary focus-ring">
+            <div data-reveal data-d="3" className="reveal mt-7">
+              <Link
+                href={signedIn ? "/check" : "/signin"}
+                className="btn-primary focus-ring text-[17px]"
+              >
                 {signedIn ? t.nav.check : t.hero.primaryCta} →
               </Link>
-              <a href="#how" className="btn-ghost focus-ring">
-                {t.hero.secondaryCta}
-              </a>
             </div>
 
-            {/* Above-the-fold platform row so all 3 options are visible immediately.
-                Chunky pill buttons — the visitor's own platform is solid forest,
-                the other two are ghost. */}
+            {/* Download row — one row of "Download for X" pills. Visitor's own
+                platform is solid forest with a "you" tag, the other two are
+                ghost. */}
             <div data-reveal data-d="4" className="reveal mt-8">
               <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-bark">
-                available on
+                download
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
                 {(
@@ -424,7 +635,7 @@ export default function LandingPage() {
                       }`}
                     >
                       <PlatformIcon kind={tile.key} size={20} />
-                      {tile.label}
+                      Download for {tile.label}
                       {isYou && (
                         <span className="ml-1 rounded-full bg-canvas/22 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]">
                           you
@@ -439,13 +650,13 @@ export default function LandingPage() {
             <p className="mt-6 text-[13px] text-bark">{t.hero.disclaimer}</p>
           </div>
 
-          {/* Phone-mockup hero visual — sized so the hero doesn't feel dominated
-              by the graphic. Tilts a hair on hover. */}
+          {/* Animated phone hero — passive vignette that loops through
+              claim → checking → verdict without touching the real API. */}
           <div className="mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[360px]">
             <ScreenSlot
               src="/screenshots/hero.png"
               alt="Bloomscroll checker with a graded verdict card"
-              fallback={<PhoneHeroArt />}
+              fallback={<HeroPhoneAnimation />}
               phone
               emphasis
             />
@@ -481,16 +692,22 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Try-a-demo — pre-filled interactive panel. Client-only mock so
+          visitors can see a graded verdict without signing up. */}
+      <TryDemo />
+
       {/* How it works ------------------------------------------------------ */}
       <section
         id="how"
-        className="scroll-mt-20 py-20 sm:py-28"
-        style={{
-          background:
-            "linear-gradient(180deg, #F6F3EA 0%, #EEF0E2 12%, #EEF0E2 88%, #F6F3EA 100%)",
-        }}
+        className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28"
       >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
+        <div className="brand-watermark -top-10 right-[3%] hidden md:block">
+          <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="brand-watermark -bottom-16 left-[6%] hidden lg:block">
+          <BMark className="h-[300px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div data-reveal className="reveal max-w-[54ch]">
             <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               how it works
@@ -545,7 +762,13 @@ export default function LandingPage() {
             "linear-gradient(180deg, #F6F3EA 0%, #E8EDDE 40%, #DDE7DA 100%)",
         }}
       >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
+        <div className="brand-watermark top-12 -left-16 hidden md:block">
+          <BMark className="h-[260px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="brand-watermark -bottom-14 right-[8%] hidden lg:block">
+          <BMark className="h-[200px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div data-reveal className="reveal max-w-[54ch]">
             <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               use cases
@@ -556,27 +779,37 @@ export default function LandingPage() {
             <p className="mt-5 text-[17px] leading-relaxed text-bark sm:text-[18px]">{t.useCases.sub}</p>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {t.useCases.items.map((u, i) => (
-              <div
-                key={u.title}
-                data-reveal
-                data-d={String((i % 3) + 1)}
-                className="reveal surface card-lift flex h-full flex-col overflow-hidden"
-              >
-                <div className="border-b border-ink/6 bg-moss/40">
-                  <UseCaseArt kind={u.tag} />
+            {t.useCases.items.map((u, i) => {
+              const brand = brandKindFor(u.tag);
+              return (
+                <div
+                  key={u.title}
+                  data-reveal
+                  data-d={String((i % 3) + 1)}
+                  className="reveal surface card-lift flex h-full flex-col overflow-hidden"
+                >
+                  <div className="relative border-b border-ink/6 bg-moss/40">
+                    <UseCaseArt kind={u.tag} />
+                    {/* branded platform mark, top-right of the mockup area */}
+                    <div className="absolute right-3 top-3 rounded-xl bg-canvas/95 p-1.5 shadow-[0_4px_14px_rgba(18,32,26,0.14)]">
+                      <BrandIcon kind={brand} size={28} />
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col p-7">
+                    <div className="flex items-center gap-2">
+                      <BrandIcon kind={brand} size={18} />
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-forest">
+                        {u.tag}
+                      </p>
+                    </div>
+                    <h3 className="mt-3 text-[19px] font-semibold leading-snug text-ink">
+                      {u.title}
+                    </h3>
+                    <p className="mt-3 text-[15px] leading-relaxed text-bark">{u.body}</p>
+                  </div>
                 </div>
-                <div className="flex flex-1 flex-col p-7">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-forest">
-                    {u.tag}
-                  </p>
-                  <h3 className="mt-3 text-[19px] font-semibold leading-snug text-ink">
-                    {u.title}
-                  </h3>
-                  <p className="mt-3 text-[15px] leading-relaxed text-bark">{u.body}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -633,8 +866,14 @@ export default function LandingPage() {
       </section>
 
       {/* Access — reference's download-buttons row pattern ---------------- */}
-      <section id="access" className="scroll-mt-20 py-20 sm:py-28">
-        <div className="mx-auto w-full max-w-5xl px-4 text-center sm:px-8">
+      <section id="access" className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28">
+        <div className="brand-watermark -top-10 -right-14 hidden md:block">
+          <BMark className="h-[280px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="brand-watermark bottom-4 -left-12 hidden lg:block">
+          <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="relative mx-auto w-full max-w-5xl px-4 text-center sm:px-8">
           <div data-reveal className="reveal">
             <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               install
@@ -668,7 +907,7 @@ export default function LandingPage() {
                   className={`download-btn focus-ring ${isSolid ? "" : "is-ghost"} ${isYou ? "is-you" : ""}`}
                 >
                   <PlatformIcon kind={tile.key} size={22} />
-                  <span>Get it on {tile.label}</span>
+                  <span>Download for {tile.label}</span>
                   {isYou && <span className="you-tag">you</span>}
                 </Link>
               );
@@ -687,23 +926,65 @@ export default function LandingPage() {
       {/* Pricing ----------------------------------------------------------- */}
       <section
         id="pricing"
-        className="scroll-mt-20 py-20 sm:py-28"
-        style={{
-          background:
-            "linear-gradient(180deg, #F6F3EA 0%, #EEF0E2 12%, #EEF0E2 88%, #F6F3EA 100%)",
-        }}
+        className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28"
       >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
-          <div data-reveal className="reveal max-w-[54ch]">
+        <div className="brand-watermark top-8 right-[4%] hidden md:block">
+          <BMark className="h-[260px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="brand-watermark -bottom-10 left-[8%] hidden lg:block">
+          <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
+        </div>
+        <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
+          <div data-reveal className="reveal max-w-[62ch]">
             <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               pricing
             </p>
             <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[52px]">
               {t.pricing.title}
             </h2>
-            <p className="mt-5 text-[17px] leading-relaxed text-bark sm:text-[18px]">{t.pricing.sub}</p>
+            <p className="mt-5 text-[17px] leading-relaxed text-bark sm:text-[18px]">
+              {t.pricing.sub}
+            </p>
           </div>
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+
+          {/* Monthly / Annual toggle — annual is a soft nudge, not a
+              default. Free tier ignores it since it's always $0. */}
+          <div
+            data-reveal
+            className="reveal mt-10 flex items-center justify-center"
+          >
+            <div className="inline-flex items-center gap-1 rounded-full border border-ink/10 bg-white/70 p-1 shadow-[0_4px_14px_rgba(18,32,26,0.05)]">
+              {(["monthly", "annual"] as const).map((k) => {
+                const active = billingInterval === k;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setBillingInterval(k)}
+                    aria-pressed={active}
+                    className={`focus-ring inline-flex items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-semibold transition ${
+                      active
+                        ? "bg-forest text-canvas shadow-[0_4px_14px_rgba(30,77,43,0.2)]"
+                        : "text-bark hover:text-ink"
+                    }`}
+                  >
+                    {k === "monthly" ? t.pricing.monthly : t.pricing.annual}
+                    {k === "annual" && (
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${
+                          active ? "bg-canvas/22 text-canvas" : "bg-moss/70 text-forest"
+                        }`}
+                      >
+                        {t.pricing.saveHint}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
             {t.pricing.plans.map((p, i) => {
               const slug = PLAN_SLUGS[i];
               const isPaid = slug !== "seed";
@@ -711,24 +992,45 @@ export default function LandingPage() {
                 slug === "sprout" || slug === "canopy" ? slug : null;
               const canSubscribe = isPaid && STRIPE_ENABLED && paidPlan !== null;
               const isLoading = checkoutPlan === paidPlan && checkoutPlan !== null;
+              const isFeatured = slug === "sprout";
+              const displayPrice =
+                billingInterval === "annual" && isPaid
+                  ? p.priceAnnual ?? p.price
+                  : p.price;
+              const displaySuffix = isPaid
+                ? billingInterval === "annual"
+                  ? t.pricing.perYear
+                  : t.pricing.perMonth
+                : null;
               return (
                 <div
                   key={p.name}
                   data-reveal
                   data-d={String((i % 3) + 1)}
-                  className={`reveal surface card-lift flex h-full flex-col p-8 ${
-                    i === 1 ? "ring-2 ring-forest/30" : ""
+                  className={`reveal card-lift relative flex h-full flex-col rounded-[24px] p-8 ${
+                    isFeatured
+                      ? "border-2 border-forest bg-canvas shadow-[0_20px_50px_rgba(30,77,43,0.16)] ring-4 ring-forest/10"
+                      : "surface"
                   }`}
                 >
-                  <div className="flex items-baseline justify-between">
-                    <h3 className="text-[26px] font-semibold tracking-display text-ink">
+                  {isFeatured && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-forest px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-canvas shadow-[0_6px_18px_rgba(30,77,43,0.28)]">
+                      {t.pricing.mostPopular}
+                    </span>
+                  )}
+                  <div className="flex items-baseline justify-between gap-4">
+                    <h3
+                      className={`text-[26px] font-semibold tracking-display text-ink ${
+                        isFeatured ? "text-forest" : ""
+                      }`}
+                    >
                       {p.name}
                     </h3>
-                    <span className="text-[16px] font-semibold text-ink">
-                      {p.price}
-                      {isPaid && (
+                    <span className="text-right text-[18px] font-semibold text-ink">
+                      {displayPrice}
+                      {displaySuffix && (
                         <span className="text-[12px] font-medium text-bark">
-                          {t.pricing.perMonth}
+                          {displaySuffix}
                         </span>
                       )}
                     </span>
@@ -738,8 +1040,15 @@ export default function LandingPage() {
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
                     {p.features.map((f) => (
-                      <li key={f} className="flex gap-3 text-[15px] leading-relaxed text-bark">
-                        <span className="font-bold text-forest">✓</span>
+                      <li
+                        key={f}
+                        className="flex gap-3 text-[15px] leading-relaxed text-bark"
+                      >
+                        <span
+                          className={`font-bold ${isFeatured ? "text-forest" : "text-forest/70"}`}
+                        >
+                          ✓
+                        </span>
                         {f}
                       </li>
                     ))}
@@ -755,7 +1064,11 @@ export default function LandingPage() {
                         type="button"
                         disabled={isLoading}
                         onClick={() => paidPlan && handleSubscribe(paidPlan)}
-                        className="btn-primary focus-ring w-full"
+                        className={
+                          isFeatured
+                            ? "btn-primary focus-ring w-full"
+                            : "focus-ring block w-full rounded-full border border-ink/12 bg-white/70 px-4 py-3 text-center text-[14px] font-semibold text-ink transition hover:-translate-y-0.5 hover:border-ink/25 hover:bg-white"
+                        }
                       >
                         {isLoading ? t.pricing.opening : `${t.pricing.get} ${p.name}`}
                       </button>
@@ -852,6 +1165,9 @@ export default function LandingPage() {
                 <Link href="/privacy" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
                   privacy
                 </Link>
+                <Link href="/terms" className="focus-ring w-fit text-[14px] font-semibold text-bark transition hover:text-ink">
+                  terms of service
+                </Link>
               </div>
             </div>
             <div>
@@ -887,7 +1203,9 @@ export default function LandingPage() {
             <p className="text-[12.5px] text-bark">
               {session?.user?.email ? `${t.signin.signedInAs} ${session.user.email}` : ""}
             </p>
-            <p className="text-[11.5px] text-bark">{t.footer.rights}</p>
+            <p className="text-[12px] font-medium text-bark">
+              © 2026 Bloomscroll. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>

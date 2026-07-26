@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Wordmark from "@/components/Wordmark";
+import FeedbackPrompt from "@/components/FeedbackPrompt";
 import { STRINGS, useLang, type Lang, type Strings } from "@/lib/i18n";
 import type { CheckResponse, Verdict } from "@/lib/types";
 
@@ -298,7 +299,7 @@ export default function CheckPage() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen">
       <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="focus-ring rounded-md">
@@ -488,7 +489,7 @@ export default function CheckPage() {
                 </div>
               )}
 
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6" key={`claims-${data.claims?.length ?? 0}-${data.claims?.[0]?.claim ?? ""}`}>
                 {data.claims?.map((c) => {
                   const citedUrls = new Set(c.citations.map((cit) => cit.url));
                   const papers = c.papers ?? [];
@@ -612,6 +613,15 @@ export default function CheckPage() {
                   );
                 })}
               </div>
+              {data.claims && data.claims.length > 0 && (
+                <FeedbackPrompt
+                  // Fresh mount per result so a new check clears any prior
+                  // dismiss / sent state and lets the visitor rate this one.
+                  key={`fb-${data.claims[0].claim}`}
+                  claimTag={data.claims[0].claim.slice(0, 120)}
+                  verdict={data.claims[0].verdict}
+                />
+              )}
             </div>
           )}
         </section>

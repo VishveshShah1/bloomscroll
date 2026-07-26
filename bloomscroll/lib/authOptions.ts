@@ -34,4 +34,47 @@ export const authOptions: AuthOptions = {
   ],
   session: { strategy: "jwt" },
   pages: { signIn: "/signin" },
+  // TEMP: verbose diagnostics for the OAuthCallback failure. The default
+  // NextAuth logger swallows the underlying error and only surfaces a code
+  // like ?error=OAuthCallback in the URL. Overriding logger.error catches
+  // the full error object server-side so we can see the actual cause of a
+  // token-exchange or state-verification failure. Delete once sign-in is
+  // stable.
+  debug: true,
+  logger: {
+    error(code, metadata) {
+      console.error("[auth:logger:error]", code, metadata);
+    },
+    warn(code) {
+      console.warn("[auth:logger:warn]", code);
+    },
+    debug(code, metadata) {
+      console.log("[auth:logger:debug]", code, metadata);
+    },
+  },
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      console.log("[auth:signIn]", {
+        userEmail: user?.email,
+        accountProvider: account?.provider,
+        accountType: account?.type,
+        hasIdToken: Boolean(account?.id_token),
+        hasAccessToken: Boolean(account?.access_token),
+        profileEmail: (profile as { email?: string } | undefined)?.email,
+      });
+      return true;
+    },
+  },
+  events: {
+    async signIn(message) {
+      console.log("[auth:event:signIn]", {
+        provider: message.account?.provider,
+        userEmail: message.user?.email,
+        isNewUser: message.isNewUser,
+      });
+    },
+    async signOut() {
+      console.log("[auth:event:signOut]");
+    },
+  },
 };

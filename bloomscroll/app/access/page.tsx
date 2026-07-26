@@ -9,7 +9,7 @@ import { STRINGS, useLang } from "@/lib/i18n";
 // The bookmarklet is a small extra card underneath, honest about being the
 // "any browser" fallback rather than a promoted path.
 export default function AccessPage() {
-  const [lang, setLang] = useLang();
+  const [lang] = useLang();
   const t = STRINGS[lang];
   const bookmarkletRef = useRef<HTMLAnchorElement>(null);
   const [origin, setOrigin] = useState("https://bloomscroll-maharshi-n-vv.vercel.app");
@@ -75,21 +75,13 @@ export default function AccessPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen">
       <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="focus-ring rounded-md">
             <Wordmark className="text-[22px]" />
           </Link>
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setLang(lang === "en" ? "fr" : "en")}
-              aria-label={lang === "en" ? "Passer en français" : "Switch to English"}
-              className="focus-ring rounded-full border border-ink/10 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-bark transition hover:text-ink"
-            >
-              {lang === "en" ? "FR" : "EN"}
-            </button>
             <Link
               href="/"
               className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"

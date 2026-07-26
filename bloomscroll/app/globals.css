@@ -6,11 +6,55 @@
 
 html,
 body {
-  background: #f6f3ea;
   color: #12201a;
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Page-level backdrop — scroll-linked. `--scroll-tint` is set 0→1 by the
+   ScrollBackground client component as the user scrolls the page. At the
+   top the body reads as canvas cream; at the bottom it lands on a deeper
+   sage-forest. Sections with their own background (the dark forest
+   verdicts and CTA, the moss use-cases gradient) sit on top and cover it
+   in their bands; between them, the scroll-linked tint shows through. */
+:root {
+  --scroll-tint: 0;
+}
+body {
+  min-height: 100vh;
+  /* --bg-color is set by JS (ScrollBackground) — lerped from cream at
+     scroll top to a mid sage-forest at scroll bottom. color-mix inside
+     the `background:` shorthand didn't reliably paint across every
+     browser build we hit, so we do the interpolation in JS and set a
+     plain rgb() value. Two soft radial highlights sit on top, drifted
+     up so they decorate only the head of the page. */
+  background-color: var(--bg-color, #f6f3ea);
+  background-image:
+    radial-gradient(1400px 900px at 20% -5%, rgba(232, 237, 222, 0.55), transparent 60%),
+    radial-gradient(1200px 800px at 100% 20%, rgba(221, 231, 218, 0.4), transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transition: background-color 0.15s ease-out;
+}
+
+/* Faint B-mark watermark helpers. Two flavors:
+   - .brand-watermark        → forest ink on a light backdrop (top of page)
+   - .brand-watermark-light  → cream ink on a dark backdrop (mid/bottom)
+   Positioning is per-instance. Opacity ramps a touch as the page tint
+   deepens, so lower-page watermarks stay legible. */
+.brand-watermark {
+  position: absolute;
+  pointer-events: none;
+  color: #1e4d2b;
+  opacity: calc(0.045 + var(--scroll-tint) * 0.03);
+}
+.brand-watermark-light {
+  position: absolute;
+  pointer-events: none;
+  color: #f6f3ea;
+  opacity: calc(0.05 + var(--scroll-tint) * 0.045);
 }
 
 ::selection {
@@ -394,6 +438,590 @@ summary:focus-visible {
   border-radius: 50%;
   background: #4a8b5a;
   animation: tick 2.2s ease-in-out infinite;
+}
+
+/* Animated hero phone (components/HeroPhoneAnimation.tsx) ---------------
+   The hero shows the actual use case: short-form video post plays, user
+   taps share, a share sheet slides up with Bloomscroll, then the verdict
+   overlays the post. All layout, chrome, and animations for that vignette
+   live here. Sized in em so it scales with its font-size — the parent
+   wraps it in an aspect-locked container. */
+
+.hero-phone {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  font-size: clamp(9px, 1.05vw, 12px);
+}
+.hp-body {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 400 / 820;
+  background: #12201a;
+  border-radius: 5.2em;
+  padding: 0.7em;
+  box-shadow: 0 24px 60px rgba(18, 32, 26, 0.24);
+}
+.hp-glass {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #0d1116;
+  border-radius: 4.5em;
+  overflow: hidden;
+  color: #f6f3ea;
+}
+
+/* Notch + status bar ---------------------------------------------------- */
+.hp-notch {
+  position: absolute;
+  top: 0.55em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7em;
+  height: 1.8em;
+  background: #000;
+  border-radius: 1em;
+  z-index: 5;
+}
+.hp-status {
+  position: absolute;
+  top: 0.9em;
+  left: 1.6em;
+  right: 1.6em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #f6f3ea;
+  z-index: 6;
+  pointer-events: none;
+}
+.hp-time { padding-left: 0.4em; }
+.hp-status-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding-right: 0.4em;
+}
+.hp-signal { display: inline-flex; align-items: flex-end; gap: 0.12em; }
+.hp-signal i {
+  display: inline-block;
+  width: 0.22em;
+  background: #f6f3ea;
+  border-radius: 0.05em;
+}
+.hp-signal i:nth-child(1) { height: 0.32em; }
+.hp-signal i:nth-child(2) { height: 0.5em; }
+.hp-signal i:nth-child(3) { height: 0.68em; }
+.hp-signal i:nth-child(4) { height: 0.85em; }
+.hp-battery {
+  position: relative;
+  width: 1.6em;
+  height: 0.78em;
+  border: 0.1em solid #f6f3ea;
+  border-radius: 0.22em;
+  padding: 0.08em;
+}
+.hp-battery span {
+  display: block;
+  height: 100%;
+  width: 82%;
+  background: #f6f3ea;
+  border-radius: 0.08em;
+}
+
+/* Home indicator */
+.hp-home {
+  position: absolute;
+  left: 50%;
+  bottom: 0.5em;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 0.32em;
+  background: rgba(246, 243, 234, 0.55);
+  border-radius: 0.2em;
+  z-index: 6;
+}
+
+/* Video-post layer ------------------------------------------------------ */
+.hp-post {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4.5em;
+}
+.hp-video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  animation: hp-bg-drift 14s ease-in-out infinite alternate;
+}
+@keyframes hp-bg-drift {
+  from { transform: scale(1.06) translateY(0); }
+  to { transform: scale(1.14) translateY(-1%); }
+}
+
+/* Story-style progress bars at the very top, safely below the status bar. */
+.hp-story-progress {
+  position: absolute;
+  top: 2.9em;
+  left: 1em;
+  right: 1em;
+  display: flex;
+  gap: 0.3em;
+  z-index: 3;
+}
+.hp-story-progress span {
+  flex: 1;
+  height: 0.18em;
+  background: rgba(246, 243, 234, 0.35);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.hp-story-progress span.is-current {
+  background: rgba(246, 243, 234, 0.25);
+  position: relative;
+}
+.hp-story-progress span.is-current::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #f6f3ea;
+  transform-origin: left;
+  transform: scaleX(0);
+  animation: hp-story-fill 15.3s linear infinite;
+}
+@keyframes hp-story-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Right-side action rail ------------------------------------------------ */
+.hp-actions {
+  position: absolute;
+  right: 0.9em;
+  bottom: 5em;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15em;
+  z-index: 3;
+  color: #f6f3ea;
+}
+.hp-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+.hp-action-btn {
+  position: relative;
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.hp-action.is-highlight .hp-action-btn {
+  background: rgba(30, 77, 43, 0.7);
+  transform: scale(1.08);
+  animation: hp-highlight-pulse 1.4s ease-in-out infinite;
+}
+@keyframes hp-highlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(246, 243, 234, 0.35); }
+  50%      { box-shadow: 0 0 0 0.5em rgba(246, 243, 234, 0); }
+}
+.hp-action-btn svg { width: 60%; height: 60%; color: #f6f3ea; }
+.hp-action-label {
+  font-size: 0.7em;
+  font-weight: 700;
+  color: #f6f3ea;
+}
+/* The tap dot — a small ring that lands on the share icon. */
+.hp-tap-dot {
+  position: absolute;
+  inset: -0.4em;
+  border: 0.16em solid rgba(246, 243, 234, 0.9);
+  border-radius: 999px;
+  animation: hp-tap 1.1s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes hp-tap {
+  0%   { transform: scale(0.75); opacity: 0; }
+  35%  { opacity: 1; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* Caption + author (bottom-left of post) -------------------------------- */
+.hp-caption {
+  position: absolute;
+  left: 1.2em;
+  right: 5.2em;
+  bottom: 2.8em;
+  z-index: 3;
+  color: #f6f3ea;
+}
+.hp-caption-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+.hp-avatar {
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #4a8b5a, #1e4d2b);
+  color: #f6f3ea;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  font-weight: 700;
+  border: 0.12em solid #f6f3ea;
+}
+.hp-handle {
+  font-size: 0.95em;
+  font-weight: 700;
+}
+.hp-follow {
+  margin-left: 0.4em;
+  padding: 0.15em 0.7em;
+  border: 0.09em solid rgba(246, 243, 234, 0.8);
+  border-radius: 999px;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.hp-caption-text {
+  margin: 0.5em 0 0;
+  font-size: 0.95em;
+  line-height: 1.35;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+/* Share sheet ----------------------------------------------------------- */
+.hp-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 4;
+}
+.hp-sheet-scrim.on { background: rgba(0, 0, 0, 0.35); opacity: 1; }
+.hp-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f4f2ec;
+  color: #12201a;
+  padding: 0.9em 1.2em 1.5em;
+  border-radius: 1.6em 1.6em 0 0;
+  transform: translateY(110%);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 4;
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.25);
+}
+.hp-sheet.on { transform: translateY(0); }
+.hp-sheet-handle {
+  width: 3em;
+  height: 0.3em;
+  border-radius: 999px;
+  background: rgba(18, 32, 26, 0.25);
+  margin: 0 auto 0.9em;
+}
+.hp-sheet-title {
+  margin: 0 0 0.7em;
+  font-size: 0.9em;
+  font-weight: 700;
+  color: rgba(18, 32, 26, 0.65);
+  text-align: left;
+}
+.hp-sheet-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.7em;
+}
+.hp-sheet-icon {
+  aspect-ratio: 1;
+  border-radius: 0.9em;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hp-sheet-icon svg { width: 100%; height: 100%; display: block; border-radius: 0.9em; }
+.hp-sheet-icon.is-active {
+  transform: translateY(-0.25em) scale(1.06);
+  box-shadow: 0 8px 20px rgba(30, 77, 43, 0.35);
+  outline: 0.18em solid #1e4d2b;
+  outline-offset: 0.15em;
+  animation: hp-highlight-pulse 1.4s ease-in-out infinite;
+}
+.hp-sheet-labels {
+  margin-top: 0.55em;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.7em;
+  font-size: 0.72em;
+  font-weight: 500;
+  color: rgba(18, 32, 26, 0.65);
+  text-align: center;
+}
+.hp-sheet-labels .is-active {
+  color: #1e4d2b;
+  font-weight: 700;
+}
+
+/* Verdict panel (slides up on top) ------------------------------------- */
+.hp-verdict-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 68%;
+  background: #f6f3ea;
+  color: #12201a;
+  border-radius: 1.6em 1.6em 0 0;
+  padding: 1em 1.1em 1.4em;
+  transform: translateY(105%);
+  opacity: 0;
+  transition:
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease;
+  z-index: 5;
+  overflow: hidden;
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.28);
+}
+.hp-verdict-layer.in {
+  transform: translateY(0);
+  opacity: 1;
+}
+.hp-verdict-layer::before {
+  content: "";
+  position: absolute;
+  top: 0.45em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3em;
+  height: 0.3em;
+  border-radius: 999px;
+  background: rgba(18, 32, 26, 0.18);
+}
+
+/* Checking state inside the verdict layer */
+.hp-checking {
+  padding-top: 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+.hp-checking-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+}
+.hp-spinner {
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 50%;
+  border: 0.18em solid rgba(30, 77, 43, 0.2);
+  border-top-color: #1e4d2b;
+  animation: hp-spin 0.85s linear infinite;
+}
+@keyframes hp-spin { to { transform: rotate(360deg); } }
+.hp-checking-title {
+  font-size: 0.98em;
+  font-weight: 600;
+  color: #12201a;
+}
+.hp-checking-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  font-size: 0.85em;
+  color: #5b6b5e;
+}
+.hp-checking-rows span {
+  padding-left: 1.1em;
+  position: relative;
+  opacity: 0;
+  animation: hp-check-in 0.5s ease forwards;
+}
+.hp-checking-rows span::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: #1e4d2b;
+  transform: scale(0);
+  animation: hp-check-dot 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hp-checking-rows span.delay-1 { animation-delay: 0.65s; }
+.hp-checking-rows span.delay-1::before { animation-delay: 0.65s; }
+.hp-checking-rows span.delay-2 { animation-delay: 1.35s; }
+.hp-checking-rows span.delay-2::before { animation-delay: 1.35s; }
+@keyframes hp-check-in { to { opacity: 1; } }
+@keyframes hp-check-dot { to { transform: scale(1); } }
+
+/* Verdict content --------------------------------------------------- */
+.hp-verdict {
+  padding-top: 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  animation: hp-verdict-fade 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes hp-verdict-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.hp-verdict-label,
+.hp-cited-label {
+  margin: 0;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #5b6b5e;
+}
+.hp-verdict-claim {
+  margin: 0.15em 0 0;
+  font-size: 1.05em;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.25;
+  color: #12201a;
+}
+.hp-verdict-row {
+  margin-top: 0.6em;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.hp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.32em 0.75em;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: box-shadow 0.4s ease;
+}
+.hp-badge.is-resolving {
+  animation: hp-badge-glow 1.6s ease-out 1 both;
+}
+@keyframes hp-badge-glow {
+  0%   { box-shadow: 0 0 0 0 var(--verdict-glow); }
+  35%  { box-shadow: 0 0 0 0.55em var(--verdict-glow); }
+  100% { box-shadow: 0 0 0 0 var(--verdict-glow); }
+}
+.hp-verdict-meaning {
+  font-size: 0.82em;
+  color: #5b6b5e;
+}
+.hp-verdict-summary {
+  margin: 0.35em 0 0;
+  font-size: 0.9em;
+  line-height: 1.45;
+  color: rgba(18, 32, 26, 0.85);
+}
+.hp-cited-label { margin-top: 0.9em; }
+.hp-cited-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4em 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.hp-cited-item {
+  display: flex;
+  gap: 0.55em;
+  padding: 0.55em 0.7em;
+  background: rgba(232, 237, 222, 0.6);
+  border: 1px solid rgba(30, 77, 43, 0.28);
+  border-radius: 0.7em;
+}
+.hp-cited-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  background: #1e4d2b;
+  color: #f6f3ea;
+  border-radius: 0.35em;
+  font-size: 0.78em;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.hp-cited-body { display: flex; flex-direction: column; min-width: 0; }
+.hp-cited-title {
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #12201a;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.hp-cited-meta {
+  font-size: 0.72em;
+  color: #5b6b5e;
+  margin-top: 0.15em;
+}
+
+/* Fade utility, used by the caption on sample change. */
+.hp-fade {
+  animation: hp-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes hp-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Reduced motion: freeze everything, show only the verdict card. */
+@media (prefers-reduced-motion: reduce) {
+  .hp-video-bg,
+  .hp-story-progress span.is-current::after,
+  .hp-tap-dot,
+  .hp-badge.is-resolving,
+  .hp-fade,
+  .hp-spinner,
+  .hp-checking-rows span,
+  .hp-checking-rows span::before,
+  .hp-verdict,
+  .hp-action.is-highlight .hp-action-btn {
+    animation: none !important;
+  }
+  .hp-verdict-layer { transform: translateY(0) !important; opacity: 1 !important; }
+  .hp-sheet, .hp-sheet-scrim { display: none !important; }
+  .hp-checking-rows span { opacity: 1 !important; }
+  .hp-checking-rows span::before { transform: scale(1) !important; }
 }
 
 /* Scroll-reveal — restrained fade + slide, triggered by IntersectionObserver

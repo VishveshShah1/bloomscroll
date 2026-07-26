@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { B_MARK_PATH } from "@/components/Wordmark";
 
 const TAGLINE = "Keep scrolling. Start growing.";
@@ -8,10 +8,16 @@ const TAGLINE = "Keep scrolling. Start growing.";
 // Splash intro on every page load. The b-mark draws itself in like a
 // fiddlehead unfurling, then "loomscroll" pops in beside it, then the
 // tagline. `prefers-reduced-motion` shortens it to a plain fade.
+//
+// Also listens for a "bloom:splash-replay" window event so clicking the
+// wordmark in the nav can retrigger the intro (throttled — won't replay
+// if it just finished less than 30s ago, so nav-mashing doesn't loop it).
 export default function Splash() {
+  const [replayKey, setReplayKey] = useState(0);
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
   const [reduced, setReduced] = useState(false);
+  const lastRanRef = useRef<number>(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -19,14 +25,32 @@ export default function Splash() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onReplay = () => {
+      // Throttle — don't loop the intro if it just ran.
+      const now = performance.now();
+      if (now - lastRanRef.current < 30_000 && lastRanRef.current !== 0) return;
+      setExiting(false);
+      setVisible(true);
+      setReplayKey((k) => k + 1);
+    };
+    window.addEventListener("bloom:splash-replay", onReplay);
+    return () => window.removeEventListener("bloom:splash-replay", onReplay);
+  }, []);
+
+  useEffect(() => {
     const total = reduced ? 550 : 1750;
     const exit = setTimeout(() => setExiting(true), total);
-    const done = setTimeout(() => setVisible(false), total + 400);
+    const done = setTimeout(() => {
+      setVisible(false);
+      lastRanRef.current = performance.now();
+    }, total + 400);
     return () => {
       clearTimeout(exit);
       clearTimeout(done);
     };
-  }, [reduced]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduced, replayKey]);
 
   if (!visible) return null;
 
@@ -37,7 +61,7 @@ export default function Splash() {
         exiting ? "splash-overlay-exit" : ""
       }`}
     >
-      <div className="flex items-baseline gap-[0.05em] text-[48px] font-semibold tracking-display text-ink sm:text-[68px]">
+      <div key={replayKey} className="flex items-baseline gap-[0.05em] text-[48px] font-semibold tracking-display text-ink sm:text-[68px]">
         <span className="relative inline-flex text-forest">
           <svg
             viewBox="11.4 1 15.2 26"

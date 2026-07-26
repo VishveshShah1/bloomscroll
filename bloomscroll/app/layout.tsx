@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import SwRegister from "@/components/SwRegister";
 import Splash from "@/components/Splash";
 import AuthProvider from "@/components/AuthProvider";
+import ScrollBackground from "@/components/ScrollBackground";
 import "./globals.css";
 
 const siteUrl =
@@ -52,9 +53,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className="bg-canvas font-sans text-ink antialiased">
+      {/* No bg-canvas here — the body background is driven by
+          ScrollBackground via the `--bg-color` CSS var (see globals.css).
+          A hardcoded class would win by specificity and freeze the tint. */}
+      <body className="font-sans text-ink antialiased">
         <AuthProvider>
           <SwRegister />
+          <ScrollBackground />
           <Splash />
           {children}
         </AuthProvider>

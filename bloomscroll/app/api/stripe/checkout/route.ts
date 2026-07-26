@@ -1,4 +1,10 @@
-import { getStripe, priceIdFor, stripeIsConfigured, type PlanSlug } from "@/lib/stripe";
+import {
+  getStripe,
+  priceIdFor,
+  stripeIsConfigured,
+  type BillingInterval,
+  type PlanSlug,
+} from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,10 +25,17 @@ export async function POST(request: Request) {
   }
 
   let plan: PlanSlug | null = null;
+  let interval: BillingInterval = "monthly";
   try {
-    const body = (await request.json()) as { plan?: unknown };
+    const body = (await request.json()) as {
+      plan?: unknown;
+      interval?: unknown;
+    };
     if (body.plan === "sprout" || body.plan === "canopy") {
       plan = body.plan;
+    }
+    if (body.interval === "annual" || body.interval === "monthly") {
+      interval = body.interval;
     }
   } catch {
     // fall through to the invalid-plan branch below
@@ -31,10 +44,10 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unknown plan." }, { status: 400 });
   }
 
-  const priceId = priceIdFor(plan);
+  const priceId = priceIdFor(plan, interval);
   if (!priceId) {
     return Response.json(
-      { error: `Price ID for "${plan}" is not configured.` },
+      { error: `Price ID for "${plan}" (${interval}) is not configured.` },
       { status: 503 },
     );
   }
@@ -52,7 +65,7 @@ export async function POST(request: Request) {
       cancel_url: `${origin}/canceled`,
       allow_promotion_codes: true,
       billing_address_collection: "auto",
-      metadata: { plan },
+      metadata: { plan, interval },
     });
     if (!session.url) {
       return Response.json({ error: "Stripe did not return a checkout URL." }, { status: 502 });
