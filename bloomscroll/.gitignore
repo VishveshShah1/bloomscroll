@@ -37,3 +37,14 @@ next-env.d.ts
 
 # design reference exports — not part of the product
 /reference/
+
+# Claude Code — per-machine settings (permission allow-list) stay local.
+# The installed skills under .claude/skills are symlinks into .agents/skills
+# and are shared with the team so everyone runs the same skill versions.
+.claude/settings.local.json
+
+# Impeccable design detector — ship only the shared project config.
+# hook state, dedup caches, Cursor pending queue, and per-dev consent
+# (.impeccable/config.local.json) all sit alongside it and stay local.
+.impeccable/*
+!.impeccable/config.json
