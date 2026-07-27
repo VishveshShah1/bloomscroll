@@ -109,6 +109,10 @@ body {
   transform: translateY(-1px);
   background: #16391f;
 }
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+  transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
 .btn-primary:disabled {
   opacity: 0.55;
   transform: none;
@@ -133,6 +137,10 @@ body {
 .btn-ghost:hover {
   border-color: rgba(18, 32, 26, 0.28);
   background: rgba(232, 237, 222, 0.5);
+}
+.btn-ghost:active {
+  transform: scale(0.97);
+  transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* Platform-download button — bigger, one per row on mobile, side-by-side
@@ -160,6 +168,10 @@ body {
   transform: translateY(-2px);
   background: #16391f;
   box-shadow: 0 16px 38px rgba(30, 77, 43, 0.22);
+}
+.download-btn:active {
+  transform: scale(0.97);
+  transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .download-btn.is-ghost {
   background: transparent;
@@ -612,41 +624,6 @@ summary:focus-visible {
   to { transform: scale(1.14) translateY(-1%); }
 }
 
-/* LIVE / REC pill — sits under the story-progress bars, top-left of
-   the video-post area. The dot pulses to sell "this is happening now".
-   Visible even through the share-sheet scrim so the video reads as
-   still playing behind the overlay. */
-.hp-rec {
-  position: absolute;
-  top: 3.4em;
-  left: 1em;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  padding: 0.15em 0.55em 0.15em 0.5em;
-  background: rgba(0, 0, 0, 0.42);
-  color: #f6f3ea;
-  border-radius: 999px;
-  font-size: 0.7em;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.hp-rec-dot {
-  width: 0.45em;
-  height: 0.45em;
-  border-radius: 50%;
-  background: #ff3b30;
-  box-shadow: 0 0 0.35em rgba(255, 59, 48, 0.6);
-  animation: hp-rec-blink 1.4s ease-in-out infinite;
-}
-@keyframes hp-rec-blink {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.28; }
-}
-
 /* Tiny audio-waveform indicator next to the creator handle — 4 bars
    that pulse out of sync so it reads as "voice, right now". */
 .hp-audio {
@@ -702,7 +679,10 @@ summary:focus-visible {
   background: #f6f3ea;
   transform-origin: left;
   transform: scaleX(0);
-  animation: hp-story-fill 15.3s linear infinite;
+  /* Duration = full phase-loop length in HeroPhoneAnimation
+     (3200 + 2200 + 2600 + 5500 + 2800 ms). Kept in sync so the top
+     progress bar and the on-phone sample never drift apart. */
+  animation: hp-story-fill 16.3s linear infinite;
 }
 @keyframes hp-story-fill {
   from { transform: scaleX(0); }
@@ -768,12 +748,16 @@ summary:focus-visible {
   100% { transform: scale(1.35); opacity: 0; }
 }
 
-/* Caption + author (bottom-left of post) -------------------------------- */
+/* Caption + author. Pushed further up from the bottom so it can never
+   collide with the home indicator (~0.5em from the very bottom edge),
+   and styled bigger/bolder like the "text-over-video" overlays creators
+   type onto Reels/TikToks — heavy shadow so it stays legible over any
+   photo. */
 .hp-caption {
   position: absolute;
   left: 1.2em;
   right: 5.2em;
-  bottom: 2.8em;
+  bottom: 5.5em;
   z-index: 3;
   color: #f6f3ea;
 }
@@ -781,7 +765,7 @@ summary:focus-visible {
   display: flex;
   align-items: center;
   gap: 0.5em;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
 }
 .hp-avatar {
   width: 1.9em;
@@ -811,11 +795,14 @@ summary:focus-visible {
   letter-spacing: 0.08em;
 }
 .hp-caption-text {
-  margin: 0.5em 0 0;
-  font-size: 0.95em;
-  line-height: 1.35;
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  margin: 0.7em 0 0;
+  font-size: 1.15em;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    0 1px 2px rgba(0, 0, 0, 0.55);
 }
 
 /* Share sheet ----------------------------------------------------------- */
@@ -1102,6 +1089,85 @@ summary:focus-visible {
   margin-top: 0.15em;
 }
 
+/* Evidence-strength mini chart — 5 bars showing the pool's break-down
+   from supporting → refuting. Sits between the summary and the
+   citation list so a short list doesn't leave the card empty. */
+.hp-evidence-label {
+  margin: 0.9em 0 0.3em;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #5b6b5e;
+}
+.hp-evidence-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6em;
+}
+.hp-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.25em;
+  height: 1.8em;
+  padding-bottom: 0.05em;
+}
+.hp-bars i {
+  display: inline-block;
+  width: 0.32em;
+  border-radius: 0.08em 0.08em 0 0;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  animation: hp-bars-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hp-bars i:nth-child(1) { animation-delay: 0.05s; }
+.hp-bars i:nth-child(2) { animation-delay: 0.13s; }
+.hp-bars i:nth-child(3) { animation-delay: 0.21s; }
+.hp-bars i:nth-child(4) { animation-delay: 0.29s; }
+.hp-bars i:nth-child(5) { animation-delay: 0.37s; }
+@keyframes hp-bars-rise {
+  to { transform: scaleY(1); }
+}
+.hp-evidence-copy {
+  font-size: 0.78em;
+  font-weight: 600;
+  color: #12201a;
+}
+
+/* Trust footer strip — brand mark + "checked in Ns · Europe PMC".
+   Locks the bottom of the verdict card so no white gap even when the
+   citation list is short. */
+.hp-verdict-footer {
+  margin-top: auto;
+  padding-top: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  border-top: 1px solid rgba(18, 32, 26, 0.08);
+}
+.hp-verdict {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.hp-verdict-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: #1e4d2b;
+}
+.hp-verdict-brand svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+.hp-verdict-meta-strip {
+  font-size: 0.7em;
+  color: #5b6b5e;
+  letter-spacing: 0.02em;
+}
+
 /* Fade utility, used by the caption on sample change. */
 .hp-fade {
   animation: hp-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1123,16 +1189,17 @@ summary:focus-visible {
   .hp-checking-rows span::before,
   .hp-verdict,
   .hp-action.is-highlight .hp-action-btn,
-  .hp-rec-dot,
-  .hp-audio i {
+  .hp-audio i,
+  .hp-bars i {
     animation: none !important;
   }
   .hp-verdict-layer { transform: translateY(0) !important; opacity: 1 !important; }
   .hp-sheet, .hp-sheet-scrim { display: none !important; }
   .hp-checking-rows span { opacity: 1 !important; }
   .hp-checking-rows span::before { transform: scale(1) !important; }
-  /* Freeze audio bars at a static readable height. */
+  /* Freeze the small oscillating bits at readable static heights. */
   .hp-audio i { transform: scaleY(0.75) !important; opacity: 1 !important; }
+  .hp-bars i  { transform: scaleY(1) !important; }
 }
 
 /* Scroll-reveal — restrained fade + slide, triggered by IntersectionObserver
@@ -1144,7 +1211,6 @@ summary:focus-visible {
   transition:
     opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
 }
 .reveal.in {
   opacity: 1;
@@ -1155,24 +1221,32 @@ summary:focus-visible {
 .reveal[data-d="3"] { transition-delay: 0.21s; }
 .reveal[data-d="4"] { transition-delay: 0.28s; }
 
-/* Reduced motion — everything collapses to instant. --------------------- */
-
+/* Reduced motion — kill the infinite decorative loops and freeze the
+   scroll-reveal at its end state. Deliberately targeted (not a global
+   `* { animation-duration: 0.01ms }` sweep) so user-triggered state
+   transitions — button press, focus ring, dialog fade — still play at
+   their normal short duration. One-shot forward animations under 500ms
+   (splash intro, entrance fades, verdict-fade) are left alone: WCAG's
+   trigger is looping or vestibular motion, not brief state changes. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
+  /* Decorative loops sprinkled around the marketing pages. */
+  .shimmer,
+  .verdict-glow,
+  .trust-dot,
+  .draw-loop path {
+    animation: none !important;
   }
-  /* Ensure scroll-reveal elements are visible even if IO hasn't fired. */
+  /* Snap the wordmark's busy-state stroke to a finished mark. */
+  .draw-loop path {
+    stroke-dashoffset: 0 !important;
+  }
+  /* Scroll-reveal: skip the fade-slide, show the end state. */
   .reveal {
     opacity: 1 !important;
     transform: none !important;
+    transition: none !important;
   }
 }

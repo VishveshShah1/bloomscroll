@@ -7,14 +7,7 @@ import Wordmark from "@/components/Wordmark";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import { STRINGS, useLang, type Lang, type Strings } from "@/lib/i18n";
 import type { CheckResponse, Verdict } from "@/lib/types";
-
-const VERDICT_COLORS: Record<Verdict, { bg: string; text: string; border: string }> = {
-  supported: { bg: "#DDE7DA", text: "#204628", border: "#B8CCB8" },
-  mixed: { bg: "#EEE7CE", text: "#6B5015", border: "#DCC896" },
-  weak: { bg: "#F1E1CE", text: "#7A4E1B", border: "#DCC29A" },
-  no_evidence: { bg: "#E8E9E4", text: "#4B554E", border: "#C8CDC4" },
-  not_empirical: { bg: "#E4E1EE", text: "#4D4A72", border: "#C6C4DC" },
-};
+import { VERDICT_COLORS } from "@/lib/verdicts";
 
 const EXAMPLES: Record<Lang, string[]> = {
   en: [
@@ -44,17 +37,17 @@ interface UsageSnapshot {
   resetAt: string | null;
 }
 
-/** Small, dismissible upgrade nudge that sits next to the usage pill.
- *  Only shows for free-tier users with 1–2 checks left. Persists a
- *  dismissed flag in sessionStorage so it doesn't come back every check
- *  within the same tab. */
-function UsageNudge({ remaining }: { remaining: number }) {
-  const [dismissed, setDismissed] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setDismissed(sessionStorage.getItem("bloom:usage-nudge-dismissed") === "1");
-  }, []);
-  if (dismissed) return null;
+/** Small, dismissible upgrade nudge that sits in place of the usage pill.
+ *  Only shows for free-tier users with 1–2 checks left. The parent
+ *  decides whether to render this or the pill (never both) so the
+ *  count isn't repeated side-by-side. */
+function UsageNudge({
+  remaining,
+  onDismiss,
+}: {
+  remaining: number;
+  onDismiss: () => void;
+}) {
   return (
     <div className="inline-flex items-center gap-2 rounded-full border border-forest/30 bg-canvas px-3 py-1.5 text-[12px] font-semibold text-forest shadow-[0_2px_6px_rgba(30,77,43,0.08)]">
       <span>
@@ -69,14 +62,11 @@ function UsageNudge({ remaining }: { remaining: number }) {
       </Link>
       <button
         type="button"
-        onClick={() => {
-          sessionStorage.setItem("bloom:usage-nudge-dismissed", "1");
-          setDismissed(true);
-        }}
+        onClick={onDismiss}
         aria-label="Dismiss"
-        className="focus-ring ml-0.5 rounded-full text-bark/60 transition hover:text-ink"
+        className="focus-ring ml-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full p-1 text-bark/70 transition hover:text-ink"
       >
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true">
           <path
             d="M2 2 L10 10 M10 2 L2 10"
             stroke="currentColor"
@@ -249,6 +239,13 @@ export default function CheckPage() {
   const runningRef = useRef(false);
 
   const signedIn = authStatus === "authenticated";
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setNudgeDismissed(
+      sessionStorage.getItem("bloom:usage-nudge-dismissed") === "1",
+    );
+  }, []);
 
   const refreshUsage = useCallback(async () => {
     try {
@@ -378,7 +375,8 @@ export default function CheckPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="focus-ring text-[13px] font-semibold text-bark transition hover:text-ink"
+              aria-label="Back to home"
+              className="focus-ring hidden sm:inline text-[13px] font-semibold text-bark transition hover:text-ink"
             >
               ← home
             </Link>
@@ -427,19 +425,36 @@ export default function CheckPage() {
         </h1>
         <p className="relative mt-4 max-w-[58ch] text-[17px] leading-relaxed text-bark">{t.hero.sub}</p>
 
-        {signedIn && usage && (
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <UsagePill snap={usage} t={t} lang={lang} />
-            {/* Proactive nudge — appears when a free user has 1–2 checks
-                left, before they actually hit the hard block. */}
-            {usage.plan === "seed" &&
-              usage.limit !== null &&
-              usage.limit - usage.used > 0 &&
-              usage.limit - usage.used <= 2 && (
-                <UsageNudge remaining={usage.limit - usage.used} />
+        {signedIn && usage && (() => {
+          // Pill vs. nudge, never both — the nudge already includes the
+          // remaining count, so stacking them next to each other reads
+          // as broken state. Nudge takes over when a free user is down
+          // to 1–2 checks (and hasn't dismissed it this session).
+          const nudgeEligible =
+            usage.plan === "seed" &&
+            usage.limit !== null &&
+            usage.limit - usage.used > 0 &&
+            usage.limit - usage.used <= 2;
+          const showNudge = nudgeEligible && !nudgeDismissed;
+          return (
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              {showNudge ? (
+                <UsageNudge
+                  remaining={usage.limit! - usage.used}
+                  onDismiss={() => {
+                    sessionStorage.setItem(
+                      "bloom:usage-nudge-dismissed",
+                      "1",
+                    );
+                    setNudgeDismissed(true);
+                  }}
+                />
+              ) : (
+                <UsagePill snap={usage} t={t} lang={lang} />
               )}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         {/* --- input or gate --- */}
         {!signedIn && authStatus !== "loading" && (
@@ -468,7 +483,7 @@ export default function CheckPage() {
                   placeholder={t.hero.placeholder}
                   autoComplete="off"
                   autoFocus
-                  className="focus-ring min-w-0 flex-1 bg-transparent px-2 py-3 text-[16.5px] text-ink placeholder:text-bark/70 focus:outline-none"
+                  className="focus-ring min-w-0 flex-1 bg-transparent px-2 py-3 text-[16.5px] text-ink placeholder:text-bark/85 focus:outline-none"
                 />
                 <button
                   type="submit"

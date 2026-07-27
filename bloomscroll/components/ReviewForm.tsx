@@ -111,12 +111,13 @@ export default function ReviewForm({
   if (phase === "already") {
     return (
       <div className="surface rounded-[24px] p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
-          review received
-        </p>
-        <p className="mt-2 text-[14px] leading-relaxed text-bark">
-          You&apos;ve already left a review — one per account, so this slot is
-          done. The 3-check bonus is applied to your monthly quota above.
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-forest/30 bg-moss/70 px-3 py-1 text-[12px] font-bold uppercase tracking-[0.1em] text-forest">
+          <span aria-hidden="true">✓</span>
+          <span>bonus applied</span>
+        </div>
+        <p className="text-[15px] leading-relaxed text-ink">
+          You&apos;ve already left a review. The +3 check bonus is applied to
+          your monthly quota above.
         </p>
       </div>
     );
@@ -150,17 +151,21 @@ export default function ReviewForm({
   const commentLen = comment.trim().length;
 
   return (
-    <div className="surface rounded-[24px] p-6">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
-        leave a review
-      </p>
-      <h3 className="mt-2 text-[18px] font-semibold leading-snug text-ink">
-        How&apos;s Bloomscroll going?
+    <div className="surface relative overflow-hidden rounded-[24px] p-6">
+      {/* Reward ribbon — the +3 bonus checks is the point of this
+          widget, so it leads. Colored to draw the eye without
+          feeling spammy. */}
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-forest/30 bg-moss/70 px-3 py-1 text-[12px] font-bold uppercase tracking-[0.1em] text-forest shadow-[0_4px_14px_rgba(30,77,43,0.12)]">
+        <span aria-hidden="true">🎁</span>
+        <span>+3 bonus checks · one per account</span>
+      </div>
+      <h3 className="text-[24px] font-semibold leading-tight tracking-display text-ink">
+        Leave a review, get 3 free checks this month.
       </h3>
-      <p className="mt-1 text-[13px] text-bark">
-        Genuine reviews (with a sentence or two) unlock +3 checks this month.
-        One per account. Reviews are private unless we ask permission to quote
-        you later.
+      <p className="mt-2 text-[13.5px] leading-relaxed text-bark">
+        A real sentence or two — what worked, what didn&apos;t. The bonus is
+        applied to your usage the moment you submit. Reviews stay private
+        unless we ask before quoting.
       </p>
 
       {/* stars */}
@@ -180,7 +185,7 @@ export default function ReviewForm({
             aria-label={`${n} star${n === 1 ? "" : "s"}`}
             aria-checked={stars === n}
             role="radio"
-            className="focus-ring rounded-md p-1 transition"
+            className="focus-ring rounded-md p-2.5 transition"
           >
             <svg
               width="26"
@@ -215,7 +220,7 @@ export default function ReviewForm({
         onChange={(e) => setComment(e.target.value.slice(0, 2000))}
         rows={4}
         placeholder="A real sentence or two — the more specific, the more it actually helps."
-        className="focus-ring mt-2 block w-full resize-y rounded-2xl border border-ink/12 bg-white px-4 py-3 text-[14px] leading-relaxed text-ink placeholder:text-bark/60"
+        className="focus-ring mt-2 block w-full resize-y rounded-2xl border border-ink/12 bg-white px-4 py-3 text-[14px] leading-relaxed text-ink placeholder:text-bark/85"
       />
       <div className="mt-1 flex justify-between text-[11.5px] text-bark/80">
         <span>

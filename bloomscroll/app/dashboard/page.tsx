@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
   const previewSession = isPreview
     ? {
-        user: { name: "Arhaan", email: "arhaanie09@gmail.com", image: null },
+        user: { name: "Arhaan", email: "you@example.com", image: null },
       }
     : null;
   const previewSnap: UsageSnapshot | null = isPreview
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <Link
               href="/"
               aria-label="Back to home"
-              className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/60 px-3 py-1.5 text-[12.5px] font-semibold text-bark transition hover:-translate-y-0.5 hover:border-ink/25 hover:text-ink"
+              className="focus-ring hidden sm:inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/60 px-3 py-1.5 text-[12.5px] font-semibold text-bark transition hover:-translate-y-0.5 hover:border-ink/25 hover:text-ink"
             >
               <svg
                 width="14"
@@ -213,6 +213,9 @@ export default function DashboardPage() {
               src={activeSession.user.image}
               alt=""
               referrerPolicy="no-referrer"
+              loading="lazy"
+              width={80}
+              height={80}
               className="h-20 w-20 rounded-full ring-4 ring-forest/25"
             />
           ) : (

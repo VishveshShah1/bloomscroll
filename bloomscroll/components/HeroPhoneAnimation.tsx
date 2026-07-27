@@ -36,6 +36,21 @@ interface Sample {
   meaning: string;
   summary: string;
   citations: { title: string; meta: string }[];
+  /** Evidence-strength mini-chart data — 5 bars, 0–1 heights each,
+   *  plus a total-papers count and a "check took" seconds figure.
+   *  Drives the compact chart + metadata footer at the bottom of the
+   *  verdict card so the panel doesn't leave empty white space when
+   *  the citation list is short. */
+  evidence: {
+    /** Five bar heights (0–1) — left-to-right = supported → mixed →
+     *  weak → thin → refuting. Roughly how the retrieved set breaks
+     *  down for this sample. */
+    bars: [number, number, number, number, number];
+    /** Total papers surfaced in the pool for the check. */
+    papersFound: number;
+    /** How long the check took (seconds). */
+    checkSeconds: number;
+  };
 }
 
 const SAMPLES: Sample[] = [
@@ -53,6 +68,7 @@ const SAMPLES: Sample[] = [
       { title: "Reduced melanoma after regular sunscreen use", meta: "J Clin Oncol · 5000+ citations" },
       { title: "Prolonged prevention of squamous cell carcinoma", meta: "Cancer Epidemiol · long follow-up" },
     ],
+    evidence: { bars: [1, 0.85, 0.55, 0.35, 0.15], papersFound: 43, checkSeconds: 8 },
   },
   {
     handle: "@jaw.doc",
@@ -67,6 +83,7 @@ const SAMPLES: Sample[] = [
     citations: [
       { title: "Tongue posture and craniofacial morphology", meta: "Angle Orthod · 42 subjects" },
     ],
+    evidence: { bars: [0.2, 0.35, 0.65, 0.85, 0.5], papersFound: 6, checkSeconds: 5 },
   },
   {
     handle: "@wellness.rn",
@@ -82,6 +99,7 @@ const SAMPLES: Sample[] = [
       { title: "Cold exposure and brown adipose activation", meta: "J Clin Endocrinol Metab" },
       { title: "Cold-water immersion and body composition", meta: "Sports Med · systematic review" },
     ],
+    evidence: { bars: [0.55, 0.75, 0.7, 0.55, 0.4], papersFound: 22, checkSeconds: 7 },
   },
 ];
 
@@ -196,12 +214,6 @@ export default function HeroPhoneAnimation() {
               <span />
               <span className="is-current" />
             </div>
-            {/* REC pill — reinforces "this is a live video someone
-                is watching" without needing real footage. */}
-            <span className="hp-rec">
-              <span className="hp-rec-dot" />
-              LIVE
-            </span>
             {/* right-side action rail (generic silhouettes, non-branded) */}
             <div className="hp-actions">
               <ActionIcon kind="heart" label="12.4k" />
@@ -300,6 +312,30 @@ export default function HeroPhoneAnimation() {
                   <span className="hp-verdict-meaning">{sample.meaning}</span>
                 </div>
                 <p className="hp-verdict-summary">{sample.summary}</p>
+
+                {/* Evidence strength — 5 tiny bars showing how the pool
+                    breaks down (supporting → refuting), so the card
+                    doesn't fall to empty space with short citation
+                    lists. */}
+                <p className="hp-evidence-label">EVIDENCE STRENGTH</p>
+                <div className="hp-evidence-row">
+                  <span className="hp-bars" aria-hidden="true">
+                    {sample.evidence.bars.map((h, i) => (
+                      <i
+                        key={i}
+                        style={{
+                          height: `${Math.round(h * 100)}%`,
+                          background:
+                            i < 2 ? "#1e4d2b" : i < 4 ? "#4a8b5a" : "#b78628",
+                        }}
+                      />
+                    ))}
+                  </span>
+                  <span className="hp-evidence-copy">
+                    {sample.evidence.papersFound} papers weighed
+                  </span>
+                </div>
+
                 <p className="hp-cited-label">CITED IN THE ANSWER</p>
                 <ul className="hp-cited-list">
                   {sample.citations.map((c, i) => (
@@ -312,6 +348,21 @@ export default function HeroPhoneAnimation() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Trust footer strip — brand mark + how many sources,
+                    how fast. Anchors the bottom of the card so short
+                    citation lists don't leave a white gap. */}
+                <div className="hp-verdict-footer">
+                  <span className="hp-verdict-brand" aria-hidden="true">
+                    <svg viewBox="11.4 1 15.2 26" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M13.5 3 L13.5 17 C13.5 24.2 22.6 26.1 23.8 20.6 C24.8 16 19.3 13.8 16.9 16.8 C15.3 18.8 16.7 21.4 19 21.1" />
+                    </svg>
+                    bloomscroll
+                  </span>
+                  <span className="hp-verdict-meta-strip">
+                    checked in ~{sample.evidence.checkSeconds}s · Europe PMC
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -326,27 +377,135 @@ export default function HeroPhoneAnimation() {
 /* ------------------------------------------------------------------ */
 /* Sub-components — the video background and the icon silhouettes.    */
 
+/**
+ * Renders the "video" behind the phone content. Priority order:
+ *   1. `/hero/reel-{scene}.mp4`   → silent looping video
+ *   2. `/hero/reel-{scene}.webp`  → real photo (best size/quality)
+ *   3. `/hero/reel-{scene}.jpg`   → real photo (fallback)
+ *   4. `/hero/reel-{scene}.png`   → real photo (last resort)
+ *   5. Hand-built SVG scene       → default until real assets land
+ *
+ * To upgrade: drop any of the above into `public/hero/` for each of
+ * `sunscreen`, `mewing`, `cold`. Vertical 9:16 assets look best.
+ * Silent muted-loop is fine for MP4. See the answer alongside this
+ * commit for licensing guidance on what photos are safe to use.
+ */
+type MediaKind = "video" | "image";
+interface FoundMedia {
+  url: string;
+  kind: MediaKind;
+}
+const MEDIA_CANDIDATES: { ext: string; kind: MediaKind }[] = [
+  { ext: "mp4", kind: "video" },
+  { ext: "webp", kind: "image" },
+  { ext: "jpg", kind: "image" },
+  { ext: "png", kind: "image" },
+];
+
 function VideoBackground({ scene }: { scene: Sample["scene"] }) {
+  const [media, setMedia] = useState<FoundMedia | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      for (const c of MEDIA_CANDIDATES) {
+        try {
+          const url = `/hero/reel-${scene}.${c.ext}`;
+          const r = await fetch(url, { method: "HEAD" });
+          if (cancelled) return;
+          if (r.ok) {
+            setMedia({ url, kind: c.kind });
+            return;
+          }
+        } catch {
+          // network hiccup — keep probing the rest
+        }
+      }
+      if (!cancelled) setMedia(null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [scene]);
+
+  if (media?.kind === "video") {
+    return (
+      <video
+        key={media.url}
+        className="hp-video-bg"
+        src={media.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+    );
+  }
+  if (media?.kind === "image") {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        key={media.url}
+        className="hp-video-bg"
+        src={media.url}
+        alt=""
+        aria-hidden="true"
+      />
+    );
+  }
+  return <SvgScene scene={scene} />;
+}
+
+function SvgScene({ scene }: { scene: Sample["scene"] }) {
   if (scene === "sunscreen") {
     return (
       <svg viewBox="0 0 400 720" className="hp-video-bg" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <linearGradient id="hv-sun" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F7B67C" />
-            <stop offset="60%" stopColor="#E68B58" />
-            <stop offset="100%" stopColor="#6C3A24" />
+          <linearGradient id="hv-sun-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFB782" />
+            <stop offset="55%" stopColor="#E68B58" />
+            <stop offset="100%" stopColor="#4E2A18" />
           </linearGradient>
-          <radialGradient id="hv-sun-glow" cx="0.75" cy="0.15" r="0.55">
-            <stop offset="0%" stopColor="#FFE8B5" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#FFE8B5" stopOpacity="0" />
+          <radialGradient id="hv-sun-glow" cx="0.78" cy="0.18" r="0.55">
+            <stop offset="0%" stopColor="#FFF2CB" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#FFF2CB" stopOpacity="0" />
           </radialGradient>
+          <linearGradient id="hv-sun-skin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#F0BE95" />
+            <stop offset="60%" stopColor="#C68A64" />
+            <stop offset="100%" stopColor="#6C412A" />
+          </linearGradient>
+          <radialGradient id="hv-vignette" cx="0.5" cy="0.5" r="0.75">
+            <stop offset="55%" stopColor="#000" stopOpacity="0" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.55" />
+          </radialGradient>
+          <filter id="hv-blur-1"><feGaussianBlur stdDeviation="12" /></filter>
         </defs>
-        <rect width="400" height="720" fill="url(#hv-sun)" />
+        {/* sky + sun */}
+        <rect width="400" height="720" fill="url(#hv-sun-sky)" />
+        <circle cx="312" cy="126" r="42" fill="#FFF3CE" opacity="0.95" />
         <rect width="400" height="720" fill="url(#hv-sun-glow)" />
-        {/* silhouette shoulders / face */}
-        <ellipse cx="200" cy="430" rx="150" ry="180" fill="#3A1F14" opacity="0.6" />
-        <circle cx="200" cy="300" r="90" fill="#2C1810" opacity="0.7" />
-        <circle cx="278" cy="126" r="34" fill="#FFF3CE" opacity="0.85" />
+        {/* bokeh — blurred foliage circles */}
+        <g filter="url(#hv-blur-1)" opacity="0.55">
+          <circle cx="60" cy="640" r="80" fill="#2E4A2F" />
+          <circle cx="340" cy="660" r="70" fill="#3A5D3B" />
+          <circle cx="200" cy="700" r="60" fill="#294024" />
+          <circle cx="100" cy="250" r="34" fill="#F5D9B3" />
+          <circle cx="360" cy="360" r="26" fill="#F7C99A" />
+        </g>
+        {/* subject: shoulders + head with skin-tone gradient */}
+        <ellipse cx="200" cy="620" rx="170" ry="220" fill="url(#hv-sun-skin)" opacity="0.9" />
+        <circle cx="200" cy="360" r="115" fill="url(#hv-sun-skin)" opacity="0.95" />
+        {/* hair silhouette */}
+        <path
+          d="M110 340 C 110 240 165 200 200 200 C 235 200 290 240 290 340 C 288 320 260 300 244 305 L 244 260 C 224 260 176 260 156 260 L 156 305 C 140 300 112 320 110 340 Z"
+          fill="#2A180E"
+          opacity="0.85"
+        />
+        {/* rim light on left cheek */}
+        <ellipse cx="128" cy="380" rx="10" ry="40" fill="#FFEBC7" opacity="0.35" />
+        {/* vignette on top */}
+        <rect width="400" height="720" fill="url(#hv-vignette)" />
       </svg>
     );
   }
@@ -354,46 +513,102 @@ function VideoBackground({ scene }: { scene: Sample["scene"] }) {
     return (
       <svg viewBox="0 0 400 720" className="hp-video-bg" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <linearGradient id="hv-mew" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2D3844" />
-            <stop offset="70%" stopColor="#1B2129" />
-            <stop offset="100%" stopColor="#0B0E12" />
+          <linearGradient id="hv-mew-wall" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3A4753" />
+            <stop offset="70%" stopColor="#1F262E" />
+            <stop offset="100%" stopColor="#0C0F13" />
           </linearGradient>
+          <linearGradient id="hv-mew-skin" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#5A4032" />
+            <stop offset="50%" stopColor="#B48967" />
+            <stop offset="100%" stopColor="#EACCA6" />
+          </linearGradient>
+          <radialGradient id="hv-vignette-2" cx="0.5" cy="0.5" r="0.75">
+            <stop offset="55%" stopColor="#000" stopOpacity="0" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.6" />
+          </radialGradient>
+          <filter id="hv-blur-2"><feGaussianBlur stdDeviation="14" /></filter>
         </defs>
-        <rect width="400" height="720" fill="url(#hv-mew)" />
-        {/* side-profile silhouette — bathroom-mirror selfie vibe */}
+        <rect width="400" height="720" fill="url(#hv-mew-wall)" />
+        {/* bathroom vanity light hint (bokeh) */}
+        <g filter="url(#hv-blur-2)" opacity="0.7">
+          <circle cx="80" cy="120" r="38" fill="#F0E6C8" />
+          <circle cx="320" cy="140" r="30" fill="#F0E6C8" />
+          <circle cx="60" cy="560" r="60" fill="#25313D" />
+        </g>
+        {/* side-profile skin-toned silhouette */}
         <path
-          d="M120 720 L120 300 C120 220 170 160 240 160 L290 160 Q310 175 300 210 L280 260 Q270 300 250 320 L235 360 Q225 400 250 430 Q265 445 260 470 L260 720 Z"
-          fill="#0D1116"
-          opacity="0.85"
+          d="M120 720 L120 300 C120 220 170 160 240 160 L290 160 Q312 175 302 210 L282 260 Q272 300 252 320 L235 360 Q225 400 250 430 Q265 445 260 470 L260 720 Z"
+          fill="url(#hv-mew-skin)"
+          opacity="0.95"
         />
-        {/* mirror shine */}
-        <rect x="20" y="80" width="4" height="560" fill="#8FA6C0" opacity="0.25" />
+        {/* hair block on top */}
+        <path
+          d="M170 200 Q 175 130 260 145 Q 300 155 300 195 L 280 208 Q 265 175 220 175 Q 195 180 180 210 Z"
+          fill="#141B1F"
+          opacity="0.9"
+        />
+        {/* rim highlight along the jawline */}
+        <path
+          d="M232 300 Q 250 340 250 400 Q 250 435 246 465"
+          fill="none"
+          stroke="#FFF2D8"
+          strokeWidth="3"
+          strokeLinecap="round"
+          opacity="0.35"
+        />
+        {/* thin mirror strip on the left */}
+        <rect x="14" y="60" width="3" height="600" fill="#C3D5E4" opacity="0.35" />
+        <rect width="400" height="720" fill="url(#hv-vignette-2)" />
       </svg>
     );
   }
-  // cold plunge
   return (
     <svg viewBox="0 0 400 720" className="hp-video-bg" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <linearGradient id="hv-cold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7DB6C6" />
-          <stop offset="60%" stopColor="#3E6C7A" />
-          <stop offset="100%" stopColor="#122229" />
+        <linearGradient id="hv-cold-water" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#98CDDA" />
+          <stop offset="45%" stopColor="#3E6C7A" />
+          <stop offset="100%" stopColor="#0C1A22" />
         </linearGradient>
+        <linearGradient id="hv-cold-skin" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#E6BDA0" />
+          <stop offset="100%" stopColor="#8A5F45" />
+        </linearGradient>
+        <radialGradient id="hv-vignette-3" cx="0.5" cy="0.5" r="0.75">
+          <stop offset="55%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.55" />
+        </radialGradient>
+        <filter id="hv-blur-3"><feGaussianBlur stdDeviation="10" /></filter>
       </defs>
-      <rect width="400" height="720" fill="url(#hv-cold)" />
-      {/* torso silhouette in ice water */}
-      <ellipse cx="200" cy="260" r="70" fill="#0D1E24" opacity="0.75" />
+      <rect width="400" height="720" fill="url(#hv-cold-water)" />
+      {/* breath / mist bokeh */}
+      <g filter="url(#hv-blur-3)" opacity="0.55">
+        <circle cx="80" cy="200" r="42" fill="#EAF2F6" />
+        <circle cx="330" cy="240" r="32" fill="#EAF2F6" />
+      </g>
+      {/* head + torso in cool light */}
+      <circle cx="200" cy="250" r="72" fill="url(#hv-cold-skin)" opacity="0.95" />
+      {/* wet hair */}
+      <path
+        d="M132 240 Q 130 165 200 165 Q 270 165 268 245 Q 250 210 200 210 Q 150 210 132 240 Z"
+        fill="#1B2126"
+        opacity="0.9"
+      />
       <path
         d="M100 720 L100 460 C120 400 180 380 200 380 C220 380 280 400 300 460 L300 720 Z"
-        fill="#0D1E24"
-        opacity="0.85"
+        fill="url(#hv-cold-skin)"
+        opacity="0.9"
       />
-      {/* water surface highlights */}
-      <ellipse cx="200" cy="470" rx="180" ry="14" fill="#B4D8E4" opacity="0.35" />
-      <ellipse cx="130" cy="480" rx="60" ry="4" fill="#E6F1F6" opacity="0.6" />
-      <ellipse cx="300" cy="482" rx="45" ry="3" fill="#E6F1F6" opacity="0.5" />
+      {/* water line + ripples */}
+      <ellipse cx="200" cy="470" rx="180" ry="14" fill="#B4D8E4" opacity="0.5" />
+      <ellipse cx="130" cy="480" rx="60" ry="4" fill="#E6F1F6" opacity="0.75" />
+      <ellipse cx="300" cy="482" rx="45" ry="3" fill="#E6F1F6" opacity="0.6" />
+      {/* small ice cubes floating */}
+      <rect x="70" y="470" width="18" height="12" rx="2" fill="#F1F7FA" opacity="0.85" />
+      <rect x="290" y="466" width="14" height="10" rx="2" fill="#F1F7FA" opacity="0.8" />
+      <rect x="230" y="472" width="12" height="8" rx="2" fill="#F1F7FA" opacity="0.7" />
+      <rect width="400" height="720" fill="url(#hv-vignette-3)" />
     </svg>
   );
 }

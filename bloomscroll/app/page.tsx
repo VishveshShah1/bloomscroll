@@ -15,6 +15,7 @@ import HeroPhoneAnimation from "@/components/HeroPhoneAnimation";
 import { BrandIcon, brandKindFor } from "@/components/BrandIcon";
 import { STRINGS, useLang, type Lang } from "@/lib/i18n";
 import type { Verdict } from "@/lib/types";
+import { VERDICT_TINT } from "@/lib/verdicts";
 
 const VERDICT_ORDER: Verdict[] = ["supported", "mixed", "weak", "no_evidence", "not_empirical"];
 
@@ -91,21 +92,6 @@ function useRevealOnScroll() {
     };
   }, []);
 }
-
-// Verdict tiers stay in a forest-derived palette but crank up the contrast
-// so each one is instantly distinguishable at a glance. Each tier gets its
-// own solid saturation + a small leading glyph so the meaning reads even at
-// small sizes or with a colour-vision difference.
-const VERDICT_TINT: Record<
-  Verdict,
-  { bg: string; text: string; border: string; glyph: string }
-> = {
-  supported: { bg: "#1E4D2B", text: "#F6F3EA", border: "#1E4D2B", glyph: "✓" },
-  mixed: { bg: "#B78628", text: "#FDF7E6", border: "#8F6712", glyph: "≈" },
-  weak: { bg: "#B45A34", text: "#FBEDDE", border: "#8B4322", glyph: "△" },
-  no_evidence: { bg: "#3F5049", text: "#EBEFEB", border: "#2C3A34", glyph: "○" },
-  not_empirical: { bg: "#615A82", text: "#EEEBF6", border: "#3E385C", glyph: "◇" },
-};
 
 function VerdictChip({ verdict, label }: { verdict: Verdict; label: string }) {
   const v = VERDICT_TINT[verdict];
@@ -357,6 +343,7 @@ function ScreenFrame({
           <img
             src={src}
             alt={alt}
+            loading="lazy"
             className="block h-full w-full rounded-[54px] object-cover object-top"
           />
         ) : (
@@ -374,6 +361,7 @@ function ScreenFrame({
           <img
             src={src}
             alt={alt}
+            loading="lazy"
             className="block h-full w-full object-cover object-top"
           />
         ) : (
@@ -746,13 +734,22 @@ export default function LandingPage() {
             <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[52px]">
               {t.how.title}
             </h2>
-            <p className="mt-5 text-[17px] leading-relaxed text-bark sm:text-[18px]">{t.how.sub}</p>
+            <p className="mt-5 text-[17px] leading-relaxed text-ink/90 sm:text-[18px]">{t.how.sub}</p>
           </div>
           <div className="mt-14 flex flex-col gap-16">
             {t.how.steps.map((s, i) => {
               const art =
                 i === 0 ? <StepInputArt /> : i === 1 ? <StepScanArt /> : <StepGradedArt />;
               const flip = i % 2 === 1;
+              // Later steps sit deeper in the scroll where the body
+              // backdrop is already trending toward forest. Bump those
+              // paragraphs to near-cream so they stay legible.
+              const bodyTint =
+                i === 0
+                  ? "text-ink/90"
+                  : i === 1
+                    ? "text-canvas/95"
+                    : "text-canvas";
               return (
                 <div
                   key={s.title}
@@ -768,13 +765,21 @@ export default function LandingPage() {
                     />
                   </div>
                   <div data-reveal data-d="1" className="reveal">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-forest">
+                    <p
+                      className={`text-[12px] font-semibold uppercase tracking-[0.14em] ${
+                        i === 0 ? "text-forest" : "text-canvas/75"
+                      }`}
+                    >
                       Step 0{i + 1}
                     </p>
-                    <h3 className="mt-2 text-[26px] font-semibold leading-tight tracking-display text-ink sm:text-[34px]">
+                    <h3
+                      className={`mt-2 text-[26px] font-semibold leading-tight tracking-display sm:text-[34px] ${
+                        i === 0 ? "text-ink" : "text-canvas"
+                      }`}
+                    >
                       {s.title}
                     </h3>
-                    <p className="mt-4 max-w-[42ch] text-[16.5px] leading-relaxed text-bark sm:text-[17px]">
+                    <p className={`mt-4 max-w-[42ch] text-[16.5px] leading-relaxed sm:text-[17px] ${bodyTint}`}>
                       {s.body}
                     </p>
                   </div>
@@ -917,37 +922,29 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div data-reveal data-d="1" className="reveal mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap">
-            {(
-              [
-                { key: "iphone", label: t.access.iphoneTitle },
-                { key: "android", label: t.access.androidTitle },
-                { key: "desktop", label: t.access.desktopTitle },
-              ] as const
-            ).map((tile) => {
-              const isYou = platform === tile.key;
-              const isSolid = platform === null ? tile.key === "iphone" : isYou;
-              return (
-                <Link
-                  key={tile.key}
-                  href="/access"
-                  aria-current={isYou ? "true" : undefined}
-                  className={`download-btn on-dark focus-ring ${isSolid ? "" : "is-ghost"} ${isYou ? "is-you" : ""}`}
-                >
-                  <PlatformIcon kind={tile.key} size={22} />
-                  <span>Download for {tile.label}</span>
-                  {isYou && <span className="you-tag">you</span>}
-                </Link>
-              );
-            })}
-          </div>
-          <p className="mt-6 text-[13.5px] text-canvas/70">
-            All three take about a minute to set up.{" "}
-            <Link href="/access" className="focus-ring font-semibold text-canvas underline underline-offset-[3px] hover:text-white">
-              Step-by-step guides
+          {/* The hero already renders the three-platform download picker
+              at the top of the page. This section used to duplicate it
+              verbatim, which read as a template glitch. Now it's a single
+              callout that jumps to the /access guides, personalized to
+              the visitor's own platform when we can detect it. */}
+          <div data-reveal data-d="1" className="reveal mt-12 flex flex-col items-center justify-center gap-3">
+            <Link
+              href="/access"
+              aria-label="Open the install guides"
+              className="download-btn on-dark focus-ring"
+            >
+              {platform && <PlatformIcon kind={platform} size={22} />}
+              <span>
+                {platform === "iphone" && "See the iPhone install guide"}
+                {platform === "android" && "See the Android install guide"}
+                {platform === "desktop" && "See the Chrome install guide"}
+                {!platform && "See install guides for every platform"}
+              </span>
             </Link>
-            .
-          </p>
+            <p className="text-[13.5px] text-canvas/70">
+              Takes about a minute — iPhone, Android, or Chrome.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -1176,7 +1173,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas/60">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas/70">
                 {t.footer.product}
               </p>
               <div className="mt-3 flex flex-col gap-2">
@@ -1204,7 +1201,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas/60">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas/70">
                 {t.footer.about}
               </p>
               <div className="mt-3 flex flex-col gap-2">
@@ -1217,7 +1214,7 @@ export default function LandingPage() {
                   </a>
                 ) : (
                   <span
-                    className="w-fit text-[14px] font-semibold text-canvas/55"
+                    className="w-fit text-[14px] font-semibold text-canvas/70"
                     title="A dedicated support inbox is coming soon."
                   >
                     contact · coming soon
