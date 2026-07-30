@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import Wordmark from "@/components/Wordmark";
 import { STRINGS, useLang } from "@/lib/i18n";
 
@@ -49,14 +50,8 @@ export default function AccessPage() {
       primaryUrl: "https://bloomscroll.app",
       primaryLabel: "Open bloomscroll.com",
       icon: (
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="6" y="9" width="12" height="10" rx="2" />
-          <path d="M9 9 L8 6" />
-          <path d="M15 9 L16 6" />
-          <path d="M3 12 L3 16" />
-          <path d="M21 12 L21 16" />
-          <path d="M9 19 L9 22" />
-          <path d="M15 19 L15 22" />
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true">
+          <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2C4.5 5.65 4.41 6 4.56 6.29L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" />
         </svg>
       ),
     },
@@ -69,10 +64,8 @@ export default function AccessPage() {
       primaryUrl: t.access.iphoneShortcutUrl,
       primaryLabel: "Add the shortcut",
       icon: (
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
-          <path d="M10 5 L14 5" />
-          <circle cx="12" cy="18.5" r="0.7" fill="currentColor" />
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true">
+          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
         </svg>
       ),
     },
@@ -131,6 +124,9 @@ export default function AccessPage() {
           {platforms.map((p) => {
             const walkthrough = t.access.walkthroughUrls[p.key];
             const primaryReady = Boolean(p.primaryUrl);
+            // QR only on mobile tiles — a desktop QR would be scanned by the
+            // device it's meant to install on, which makes no sense.
+            const showQr = primaryReady && (p.key === "android" || p.key === "iphone");
             return (
               <div key={p.key} className="surface flex h-full flex-col p-8">
                 <div className="text-forest">{p.icon}</div>
@@ -157,6 +153,29 @@ export default function AccessPage() {
                   )}
                 </div>
 
+                {showQr && (
+                  <div className="mt-5 flex items-center gap-4 rounded-xl border border-ink/8 bg-white/50 p-3">
+                    <div className="shrink-0 rounded-lg bg-white p-2 shadow-[0_1px_3px_rgba(18,32,26,0.06)]">
+                      <QRCodeSVG
+                        value={p.primaryUrl}
+                        size={84}
+                        bgColor="#ffffff"
+                        fgColor="#12201A"
+                        level="M"
+                        aria-label={`QR code linking to ${p.primaryLabel}`}
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-forest">
+                        On a laptop?
+                      </p>
+                      <p className="mt-1 text-[12.5px] leading-snug text-bark">
+                        Scan to open the install straight on your phone.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Optional 30-second walkthrough — hidden until a real
                     YouTube URL is set in i18n.access.walkthroughUrls. */}
                 {walkthrough && (
@@ -171,7 +190,7 @@ export default function AccessPage() {
                 )}
 
                 <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.1em] text-bark">
-                  Or step-by-step
+                  Or step by step
                 </p>
                 <ol className="mt-2 flex flex-col gap-2.5">
                   {p.steps.map((s, i) => (

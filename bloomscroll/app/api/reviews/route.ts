@@ -1,9 +1,14 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { hasSubmittedReview, submitReview } from "@/lib/reviews";
+import { bodyLimitResponse, readJsonBody } from "@/lib/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Reviews are 1-5 stars plus a comment truncated to 2000 chars server-side.
+// 8 KB leaves room for the full comment even after UTF-8 expansion.
+const REVIEW_MAX_BYTES = 8 * 1024;
 
 /** Whether the currently-signed-in user has already submitted a review. */
 export async function GET() {
@@ -26,13 +31,17 @@ export async function POST(request: Request) {
   let stars = 0;
   let comment = "";
   try {
-    const body = (await request.json()) as {
-      stars?: unknown;
-      comment?: unknown;
-    };
+    const body = await readJsonBody<{ stars?: unknown; comment?: unknown }>(request, {
+      maxBytes: REVIEW_MAX_BYTES,
+      maxStringLen: 4_000,
+      maxDepth: 2,
+      maxArrayItems: 8,
+    });
     if (typeof body.stars === "number") stars = body.stars;
     if (typeof body.comment === "string") comment = body.comment;
-  } catch {
+  } catch (err) {
+    const limited = bodyLimitResponse(err);
+    if (limited) return limited;
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
 

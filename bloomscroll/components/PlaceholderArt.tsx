@@ -703,7 +703,7 @@ export function StepInputArt() {
         <g transform="translate(0 210)">
           <circle cx="6" cy="8" r="4" fill={SPROUT} />
           <text x="18" y="12" fontFamily="-apple-system, Inter, sans-serif" fontSize="11" fill={BARK}>
-            we&apos;ll search Europe PMC — 45M+ peer-reviewed papers.
+            we&apos;ll search Europe PMC — 45M+ peer reviewed papers.
           </text>
         </g>
       </g>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * The hero phone. What it shows, in order, is exactly the real-world use
@@ -28,8 +28,10 @@ type VerdictKey = "supported" | "weak" | "mixed";
 interface Sample {
   handle: string;
   caption: string;
-  /** Which stylized background to render for this "video" */
-  scene: "sunscreen" | "mewing" | "cold";
+  /** Which stylized background to render for this "video". A matching real
+   *  photo/video dropped into /public/hero/reel-{scene}.{mp4|webp|jpg|png}
+   *  wins over the SVG fallback below. */
+  scene: "sunscreen" | "mewing" | "cold" | "preworkout" | "melatonin";
   claim: string;
   verdict: VerdictKey;
   verdictLabel: string;
@@ -58,48 +60,91 @@ const SAMPLES: Sample[] = [
     handle: "@holistic.md",
     caption: "your dermatologist won't say this but daily spf > every serum 🌞",
     scene: "sunscreen",
-    claim: "Daily sunscreen use reduces long-term skin cancer risk.",
+    claim: "Daily sunscreen use reduces skin cancer risk over time.",
     verdict: "supported",
     verdictLabel: "SUPPORTED",
     meaning: "Multiple decent studies point the same way.",
     summary:
-      "Randomized trials and large cohorts show daily broad-spectrum sunscreen lowers melanoma and squamous-cell risk.",
+      "Randomized trials and large cohorts show daily broad-spectrum sunscreen lowers melanoma and squamous cell risk.",
     citations: [
       { title: "Reduced melanoma after regular sunscreen use", meta: "J Clin Oncol · 5000+ citations" },
-      { title: "Prolonged prevention of squamous cell carcinoma", meta: "Cancer Epidemiol · long follow-up" },
+      { title: "Prolonged prevention of squamous cell carcinoma", meta: "Cancer Epidemiol · long follow up" },
+      { title: "Sunscreen and prevention of skin aging: randomized trial", meta: "Ann Intern Med · 903 adults, 4-year RCT" },
+      { title: "Population sunscreen use and melanoma incidence trends", meta: "JAMA Dermatol · cohort review" },
     ],
-    evidence: { bars: [1, 0.85, 0.55, 0.35, 0.15], papersFound: 43, checkSeconds: 8 },
+    evidence: { bars: [1, 0.85, 0.55, 0.35, 0.15], papersFound: 48, checkSeconds: 8 },
   },
   {
-    handle: "@jaw.doc",
-    caption: "day 47 of mewing — real doctors dont want you to know this 💪",
+    handle: "@gua.sha.glow",
+    caption: "mewing + gua sha every morning — bone remodeling is REAL girlies ✨",
     scene: "mewing",
-    claim: "Mewing reshapes the adult jawline.",
+    claim: "Daily mewing plus gua sha reshapes the adult face.",
     verdict: "weak",
     verdictLabel: "WEAK EVIDENCE",
     meaning: "Something exists, but it's thin.",
     summary:
-      "Only small observational papers. No controlled trials in adults measured lasting jaw-shape change.",
+      "A handful of small studies on tongue posture and facial acupressure. Gua sha causes short-term skin flushing and mild inflammation reduction — no controlled trials show a lasting change in bone or jaw shape in adults.",
     citations: [
       { title: "Tongue posture and craniofacial morphology", meta: "Angle Orthod · 42 subjects" },
+      { title: "Gua sha therapy: effects on microcirculation and inflammation", meta: "J Altern Complement Med · 12-arm crossover" },
+      { title: "Orofacial myofunctional therapy in adults: systematic review", meta: "Sleep Breath · 12 studies pooled" },
+      { title: "Facial acupressure and lymphatic drainage: pilot RCT", meta: "Complement Ther Med · n=28" },
     ],
-    evidence: { bars: [0.2, 0.35, 0.65, 0.85, 0.5], papersFound: 6, checkSeconds: 5 },
+    evidence: { bars: [0.2, 0.4, 0.7, 0.85, 0.5], papersFound: 18, checkSeconds: 6 },
+  },
+  {
+    handle: "@bulk.szn",
+    caption: "3 scoops of pre-workout = the pump of your life, coffee is for BEGINNERS ⚡",
+    scene: "preworkout",
+    claim: "High-dose pre-workout supplements dramatically boost muscle gains.",
+    verdict: "mixed",
+    verdictLabel: "MIXED EVIDENCE",
+    meaning: "Real studies exist, and they disagree.",
+    summary:
+      "Caffeine and citrulline show modest short-term performance boosts at studied doses. Most consumer scoops far exceed those doses, safety data thins out fast, and no trial convincingly shows dose escalation produces proportional gains.",
+    citations: [
+      { title: "Caffeine on resistance exercise performance: meta-analysis", meta: "Br J Sports Med · 21 RCTs pooled" },
+      { title: "Citrulline malate and high-intensity performance", meta: "J Strength Cond Res · 25 trained adults" },
+      { title: "Multi-ingredient pre-workout supplements: systematic review", meta: "J Int Soc Sports Nutr · 34 studies" },
+      { title: "Adverse events from high-caffeine pre-workout products", meta: "Ann Intern Med · case series" },
+    ],
+    evidence: { bars: [0.55, 0.7, 0.65, 0.5, 0.35], papersFound: 29, checkSeconds: 6 },
   },
   {
     handle: "@wellness.rn",
-    caption: "3-min ice bath is basically a fat burner, no gym needed 🥶",
+    caption: "3 min ice bath is basically a fat burner, no gym needed 🥶",
     scene: "cold",
     claim: "Cold plunges accelerate fat loss.",
     verdict: "mixed",
     verdictLabel: "MIXED EVIDENCE",
     meaning: "Real studies exist, and they disagree.",
     summary:
-      "Cold exposure boosts brown-fat activity modestly. Total-fat outcomes are inconsistent across trials.",
+      "Cold exposure boosts brown fat activity modestly. Total fat outcomes are inconsistent across trials.",
     citations: [
       { title: "Cold exposure and brown adipose activation", meta: "J Clin Endocrinol Metab" },
-      { title: "Cold-water immersion and body composition", meta: "Sports Med · systematic review" },
+      { title: "Cold water immersion and body composition", meta: "Sports Med · systematic review" },
+      { title: "Post-exercise cold water immersion and muscle adaptation", meta: "J Physiol · resistance-trained males" },
+      { title: "Cold thermogenesis and adiposity: meta-analysis", meta: "Int J Obes · 11 trials pooled" },
     ],
-    evidence: { bars: [0.55, 0.75, 0.7, 0.55, 0.4], papersFound: 22, checkSeconds: 7 },
+    evidence: { bars: [0.55, 0.75, 0.7, 0.55, 0.4], papersFound: 31, checkSeconds: 7 },
+  },
+  {
+    handle: "@night.gummies",
+    caption: "10mg melatonin gummies every night = perfect sleep hack 🌙",
+    scene: "melatonin",
+    claim: "High-dose melatonin gummies fix sleep problems long-term.",
+    verdict: "mixed",
+    verdictLabel: "MIXED EVIDENCE",
+    meaning: "Real studies exist, and they disagree.",
+    summary:
+      "Small doses (0.3-1mg) help with jet lag and shift-work transitions. Most OTC gummies are 10-100x higher than what's actually effective, and there's no solid evidence for long-term insomnia benefit.",
+    citations: [
+      { title: "Melatonin for jet lag: systematic review", meta: "Cochrane Database Syst Rev · 10 RCTs" },
+      { title: "Dose-response of melatonin on sleep onset", meta: "Sleep Med Rev · pooled analysis" },
+      { title: "Melatonin content variability in commercial gummies", meta: "JAMA · lab analysis, 30 products" },
+      { title: "Long-term melatonin use in adults: safety review", meta: "J Clin Sleep Med · position statement" },
+    ],
+    evidence: { bars: [0.55, 0.7, 0.65, 0.55, 0.4], papersFound: 42, checkSeconds: 7 },
   },
 ];
 
@@ -130,20 +175,36 @@ const VERDICT_TONE: Record<
   },
 };
 
-// Meaningfully slower — each state gets time to actually be read.
+// Per-phase durations (ms). "post" is generous so the viewer can actually
+// read the caption + register the scene before Bloomscroll takes over —
+// that's the setup that makes the verdict card land. "share" stays quick
+// so the viewer isn't waiting on the share sheet, and the verdict card
+// gets the longest hold since it's the payoff. Full loop =
+// 2400 + 1200 + 2600 + 5500 + 2800 = 14500ms per sample.
 const TIMING: Record<Phase, number> = {
-  post: 3200,
-  share: 2200,
+  post: 2400,
+  share: 1200,
   checking: 2600,
   verdict: 5500,
   hold: 2800,
 };
+
+/** Duration of the TikTok-style swipe transition between samples. Kept in
+ *  sync with the `hp-post-enter` / `hp-post-exit` keyframes in globals.css.
+ *  The outgoing post is unmounted this many ms after the sample changes. */
+const SWIPE_MS = 520;
 const PHASE_ORDER: Phase[] = ["post", "share", "checking", "verdict", "hold"];
 
 export default function HeroPhoneAnimation() {
   const [reduced, setReduced] = useState(false);
   const [sampleIndex, setSampleIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("post");
+  /** The sample we're SWIPING AWAY FROM, only set for SWIPE_MS during the
+   *  transition. Rendering both the outgoing and incoming posts side-by-side
+   *  (each with its own animation direction) is what turns a plain remount
+   *  into a real vertical swipe: old slides up-and-out, new slides up-in. */
+  const [outgoingIndex, setOutgoingIndex] = useState<number | null>(null);
+  const prevSampleIndexRef = useRef(sampleIndex);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -153,6 +214,18 @@ export default function HeroPhoneAnimation() {
     mq.addEventListener?.("change", onChange);
     return () => mq.removeEventListener?.("change", onChange);
   }, []);
+
+  // Whenever sampleIndex advances, briefly hold the previous sample in the
+  // DOM so it can play its exit animation alongside the incoming one.
+  useEffect(() => {
+    if (reduced) return;
+    const prev = prevSampleIndexRef.current;
+    if (prev === sampleIndex) return;
+    setOutgoingIndex(prev);
+    prevSampleIndexRef.current = sampleIndex;
+    const t = window.setTimeout(() => setOutgoingIndex(null), SWIPE_MS);
+    return () => window.clearTimeout(t);
+  }, [sampleIndex, reduced]);
 
   useEffect(() => {
     if (reduced) {
@@ -205,47 +278,19 @@ export default function HeroPhoneAnimation() {
             </span>
           </div>
 
-          {/* Video-post scene (background) */}
-          <div className="hp-post">
-            <VideoBackground scene={sample.scene} />
-            {/* progress bars up top like a story/reel */}
-            <div className="hp-story-progress">
-              <span />
-              <span />
-              <span className="is-current" />
+          {/* Video-post scene. Two panels stack here during a sample change:
+              the OUTGOING post (previous sample) plays hp-post-exit — slides
+              up and out of the top of the phone; the INCOMING post plays
+              hp-post-enter — slides up from below into place. Same duration,
+              same easing, so the pair reads as one continuous vertical swipe
+              — the way TikTok's between-post transition actually feels. */}
+          {outgoingIndex !== null && outgoingIndex !== sampleIndex && (
+            <div className="hp-post hp-post-exit" key={`out-${outgoingIndex}`}>
+              <PostBody sample={SAMPLES[outgoingIndex]} showTapOnShare={false} />
             </div>
-            {/* right-side action rail (generic silhouettes, non-branded) */}
-            <div className="hp-actions">
-              <ActionIcon kind="heart" label="12.4k" />
-              <ActionIcon kind="comment" label="892" />
-              <ActionIcon
-                kind="share"
-                label="share"
-                highlight={showTapOnShare}
-              >
-                {showTapOnShare && <span className="hp-tap-dot" />}
-              </ActionIcon>
-              <ActionIcon kind="save" label="save" />
-            </div>
-            {/* Caption + author. Small audio-bars next to the handle
-                signal "they're talking right now" — the third visual cue
-                (with REC + progress bar) that this is a live video. */}
-            <div className="hp-caption">
-              <div className="hp-caption-head">
-                <span className="hp-avatar">{sample.handle[1]?.toUpperCase() ?? "•"}</span>
-                <span className="hp-handle">{sample.handle}</span>
-                <span className="hp-audio" aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <span className="hp-follow">Follow</span>
-              </div>
-              <p key={`cap-${sampleIndex}`} className="hp-caption-text hp-fade">
-                {sample.caption}
-              </p>
-            </div>
+          )}
+          <div className="hp-post hp-post-enter" key={`in-${sampleIndex}`}>
+            <PostBody sample={sample} showTapOnShare={showTapOnShare} />
           </div>
 
           {/* Share sheet (slides up during 'share' phase) */}
@@ -376,6 +421,51 @@ export default function HeroPhoneAnimation() {
 
 /* ------------------------------------------------------------------ */
 /* Sub-components — the video background and the icon silhouettes.    */
+
+/**
+ * The contents of a single "post" — the video/photo background, the right-
+ * side action rail, and the caption block. Extracted so we can render two
+ * of them at once during a sample swap (outgoing + incoming) to make the
+ * transition read as a real vertical swipe rather than a hard cut.
+ */
+function PostBody({
+  sample,
+  showTapOnShare,
+}: {
+  sample: Sample;
+  showTapOnShare: boolean;
+}) {
+  return (
+    <>
+      <VideoBackground scene={sample.scene} />
+      {/* right-side action rail (generic silhouettes, non-branded) */}
+      <div className="hp-actions">
+        <ActionIcon kind="heart" label="12.4k" />
+        <ActionIcon kind="comment" label="892" />
+        <ActionIcon kind="share" label="share" highlight={showTapOnShare}>
+          {showTapOnShare && <span className="hp-tap-dot" />}
+        </ActionIcon>
+        <ActionIcon kind="save" label="save" />
+      </div>
+      {/* Caption + author. Small audio-bars next to the handle signal
+          "they're talking right now" — a visual cue that this is a live video. */}
+      <div className="hp-caption">
+        <div className="hp-caption-head">
+          <span className="hp-avatar">{sample.handle[1]?.toUpperCase() ?? "•"}</span>
+          <span className="hp-handle">{sample.handle}</span>
+          <span className="hp-audio" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="hp-follow">Follow</span>
+        </div>
+        <p className="hp-caption-text">{sample.caption}</p>
+      </div>
+    </>
+  );
+}
 
 /**
  * Renders the "video" behind the phone content. Priority order:
@@ -563,6 +653,9 @@ function SvgScene({ scene }: { scene: Sample["scene"] }) {
       </svg>
     );
   }
+  if (scene === "preworkout") return <PreWorkoutScene />;
+  if (scene === "melatonin") return <MelatoninScene />;
+  // "cold" (and any unknown fallback) — the ice-plunge scene.
   return (
     <svg viewBox="0 0 400 720" className="hp-video-bg" preserveAspectRatio="xMidYMid slice">
       <defs>
@@ -609,6 +702,86 @@ function SvgScene({ scene }: { scene: Sample["scene"] }) {
       <rect x="290" y="466" width="14" height="10" rx="2" fill="#F1F7FA" opacity="0.8" />
       <rect x="230" y="472" width="12" height="8" rx="2" fill="#F1F7FA" opacity="0.7" />
       <rect width="400" height="720" fill="url(#hv-vignette-3)" />
+    </svg>
+  );
+}
+
+function PreWorkoutScene() {
+  // Gym-supplement fallback for the pre-workout sample. Warm gradient
+  // with a hint of an electric/energy glow and a soft shaker-bottle
+  // silhouette — reads as "gym-supp" without competing with a real
+  // photo once one is dropped in.
+  return (
+    <svg viewBox="0 0 400 720" className="hp-video-bg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="hv-pre-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3F2E1F" />
+          <stop offset="55%" stopColor="#20140C" />
+          <stop offset="100%" stopColor="#0C0805" />
+        </linearGradient>
+        <radialGradient id="hv-pre-glow" cx="0.5" cy="0.3" r="0.55">
+          <stop offset="0%" stopColor="#FFB067" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#FFB067" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="hv-pre-vignette" cx="0.5" cy="0.5" r="0.75">
+          <stop offset="55%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.6" />
+        </radialGradient>
+        <filter id="hv-pre-blur"><feGaussianBlur stdDeviation="14" /></filter>
+      </defs>
+      <rect width="400" height="720" fill="url(#hv-pre-bg)" />
+      <rect width="400" height="720" fill="url(#hv-pre-glow)" />
+      {/* soft shaker-bottle silhouette centered in frame */}
+      <g filter="url(#hv-pre-blur)" opacity="0.55">
+        <rect x="145" y="330" width="110" height="240" rx="18" fill="#0A0705" />
+      </g>
+      <rect x="155" y="340" width="90" height="220" rx="14" fill="#241610" stroke="#5B4028" strokeWidth="2" opacity="0.8" />
+      {/* shaker cap band */}
+      <rect x="155" y="340" width="90" height="34" rx="10" fill="#3E2A1A" opacity="0.95" />
+      {/* liquid-level line inside the bottle */}
+      <rect x="163" y="440" width="74" height="112" rx="6" fill="#7B4A26" opacity="0.5" />
+      {/* rim highlight along the left edge */}
+      <path d="M164 360 L 164 550" stroke="#F5C89A" strokeWidth="2" fill="none" opacity="0.35" strokeLinecap="round" />
+      <rect width="400" height="720" fill="url(#hv-pre-vignette)" />
+    </svg>
+  );
+}
+
+function MelatoninScene() {
+  // Night-sleep fallback for the melatonin sample. Deep blue gradient
+  // with a soft moon glow — reads as "night" instantly, no subject.
+  return (
+    <svg viewBox="0 0 400 720" className="hp-video-bg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="hv-tape-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#243453" />
+          <stop offset="55%" stopColor="#0F1A32" />
+          <stop offset="100%" stopColor="#040814" />
+        </linearGradient>
+        <radialGradient id="hv-tape-moon" cx="0.78" cy="0.2" r="0.28">
+          <stop offset="0%" stopColor="#F1E9CE" stopOpacity="0.95" />
+          <stop offset="70%" stopColor="#F1E9CE" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#F1E9CE" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="hv-tape-vignette" cx="0.5" cy="0.5" r="0.75">
+          <stop offset="55%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.6" />
+        </radialGradient>
+        <filter id="hv-tape-blur"><feGaussianBlur stdDeviation="6" /></filter>
+      </defs>
+      <rect width="400" height="720" fill="url(#hv-tape-bg)" />
+      {/* moon */}
+      <circle cx="312" cy="144" r="36" fill="#F1E9CE" opacity="0.92" />
+      <rect width="400" height="720" fill="url(#hv-tape-moon)" />
+      {/* soft cloud smudges */}
+      <g filter="url(#hv-tape-blur)" opacity="0.35">
+        <ellipse cx="90" cy="220" rx="80" ry="18" fill="#D5DCEA" />
+        <ellipse cx="230" cy="300" rx="110" ry="20" fill="#D5DCEA" />
+      </g>
+      {/* faint pillow + sleeping-figure silhouette on the horizon */}
+      <path d="M0 560 Q 130 520 260 560 Q 330 580 400 560 L400 720 L0 720 Z" fill="#0A1122" opacity="0.85" />
+      <ellipse cx="200" cy="560" rx="120" ry="18" fill="#0F1A32" opacity="0.6" />
+      <rect width="400" height="720" fill="url(#hv-tape-vignette)" />
     </svg>
   );
 }

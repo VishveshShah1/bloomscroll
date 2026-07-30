@@ -4,7 +4,7 @@ import Wordmark from "@/components/Wordmark";
 export const metadata = {
   title: "Terms of Service — bloomscroll",
   description:
-    "The plain-language terms that govern using Bloomscroll — what's allowed, what's not, and how subscriptions work.",
+    "The plain language terms that govern using Bloomscroll — what's allowed, what's not, and how subscriptions work.",
 };
 
 // Plain-language terms of service. Not a substitute for legal counsel; this
@@ -21,13 +21,13 @@ const SECTIONS = [
     heading: "What Bloomscroll does",
     items: [
       "Bloomscroll reads a claim you paste or link to, extracts the checkable parts, searches biomedical literature (via Europe PMC and similar public indexes), and returns a graded verdict with real, retrievable citations.",
-      "The verdict is a summary of what the retrieved research says, on a five-tier evidence scale. It is not a personal recommendation and not a medical opinion.",
+      "The verdict is a summary of what the retrieved research says, on a five tier evidence scale. It is not a personal recommendation and not a medical opinion.",
     ],
   },
   {
     heading: "Acceptable use",
     items: [
-      "Use Bloomscroll to fact-check claims you or other people are making, for personal or educational reasons.",
+      "Use Bloomscroll to check claims you or other people are making, for personal or educational reasons.",
       "Don't use it to spam, scrape at industrial scale, resell the output as your own service, or train a competing model on the results.",
       "Don't try to break the rate limits, poke the pipeline for exploits, or attempt to extract paid features without paying.",
       "Don't submit claims you know are illegal to check where you live (for instance content that would be a crime to view or reproduce in your jurisdiction).",
@@ -37,7 +37,7 @@ const SECTIONS = [
     heading: "This is not medical advice",
     items: [
       "Bloomscroll explains what the published evidence says about a claim. That is education, not medicine.",
-      "It does not diagnose you, does not treat you, and does not replace an actual clinician. Nothing on this site is a doctor-patient relationship.",
+      "It does not diagnose you, does not treat you, and does not replace an actual clinician. Nothing on this site is a clinical relationship.",
       "For any decision about your health, medication, or treatment, talk to a licensed professional who knows your history.",
     ],
   },
@@ -55,20 +55,20 @@ const SECTIONS = [
       "Paid tiers (Sprout, Canopy) are billed monthly through Stripe. The price shown at checkout is the price you pay in your local currency plus any applicable tax.",
       "Subscriptions renew automatically each month until you cancel. Cancel from the dashboard or Stripe portal and access continues until the end of the paid period.",
       "Refunds for the current month are granted at our discretion, usually if the service was materially broken for you. Older months are not refunded.",
-      "Free-tier usage limits are set at Bloomscroll's discretion and may change. We'll surface any change in the product before it affects you.",
+      "Free tier usage limits are set at Bloomscroll's discretion and may change. We'll surface any change in the product before it affects you.",
     ],
   },
   {
     heading: "Content and citations",
     items: [
-      "The papers Bloomscroll cites come from open-access indexes (primarily Europe PMC). Their content belongs to their authors and publishers, not to Bloomscroll.",
+      "The papers Bloomscroll cites come from open access indexes (primarily Europe PMC). Their content belongs to their authors and publishers, not to Bloomscroll.",
       "The verdict text, the grader's summary, and the surrounding UI are Bloomscroll's. Don't republish them wholesale without permission. Sharing a verdict card with a link back is fine.",
     ],
   },
   {
     heading: "Availability and warranty",
     items: [
-      "Bloomscroll is provided as-is. We try hard to keep it correct and up, but we can't guarantee zero downtime or zero mistakes.",
+      "Bloomscroll is provided as is. We try hard to keep it correct and up, but we can't guarantee zero downtime or zero mistakes.",
       "If a check returns a verdict that turns out to be wrong, that's a bug we want to hear about — not grounds for legal action.",
       "To the fullest extent allowed by law, we're not liable for indirect or consequential damages that follow from using or being unable to use the service.",
     ],

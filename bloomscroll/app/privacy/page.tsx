@@ -16,14 +16,14 @@ const SECTIONS = [
       "Your Google account email, when you sign in. Used to sign you in and to keep count of your free checks.",
       "The number of checks you've run this month, tied to your account.",
       "Your plan status (free, Sprout, or Canopy), synced from Stripe when you subscribe.",
-      "Rough aggregate spend data on our end (token usage per day), for the daily circuit breaker. Not per-user.",
+      "Rough aggregate spend data on our end (token usage per month), for the monthly circuit breaker. Not per user.",
     ],
   },
   {
     heading: "What we don't collect",
     items: [
       "We don't track which pages you browse, on our site or anywhere else.",
-      "We don't read the pages open in your browser. The extension only sees content you actively right-click or paste into a check.",
+      "We don't read the pages open in your browser. The extension only sees content you actively right click or paste into a check.",
       "We don't sell data. There are no third-party ad pixels, analytics fingerprinting, or resale to data brokers.",
       "We don't store the actual text of your checks after they've been served. Results are cached in memory only, keyed by a hash, and evicted quickly.",
     ],
@@ -31,7 +31,7 @@ const SECTIONS = [
   {
     heading: "What the Chrome extension does",
     items: [
-      "It adds a \"Check with Bloomscroll\" item to your right-click menu. Clicking it opens a new bloomscroll.com tab with the highlighted text or the page URL.",
+      "It adds a \"Check with Bloomscroll\" item to your context menu. Clicking it opens a new bloomscroll.com tab with the highlighted text or the page URL.",
       "It has a toolbar popup where you can paste something or click \"Check current tab.\"",
       "It only reads a page's URL or text when you explicitly trigger a check. It doesn't watch what you're browsing in the background.",
       "It stores a single preference locally (your Bloomscroll origin URL, in case you're running a dev copy). Nothing else.",
@@ -40,8 +40,8 @@ const SECTIONS = [
   {
     heading: "Where the data lives",
     items: [
-      "Sign-in sessions are JWTs held in an HTTP-only cookie in your browser. We can't read them from any other site.",
-      "Usage counts and plan flags live in a hosted key-value store (Upstash Redis).",
+      "Session cookies are JWTs held in an HttpOnly cookie in your browser. We can't read them from any other site.",
+      "Usage counts and plan flags live in a hosted key value store (Upstash Redis).",
       "Payments are handled entirely by Stripe. We never see or store card details.",
       "The scientific paper searches happen through Europe PMC's free public API, using only the search terms extracted from your claim.",
     ],

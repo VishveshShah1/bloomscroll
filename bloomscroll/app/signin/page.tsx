@@ -8,12 +8,12 @@ import Wordmark from "@/components/Wordmark";
 import { STRINGS, useLang } from "@/lib/i18n";
 
 const ERRORS: Record<string, string> = {
-  OAuthSignin: "Couldn't reach Google. Check the sign-in provider setup and try again.",
-  OAuthCallback: "Sign-in was cancelled or interrupted. Try again.",
-  OAuthAccountNotLinked: "That email is already linked to another sign-in method.",
-  AccessDenied: "Google denied the sign-in request.",
-  Configuration: "Sign-in isn't configured on the server yet.",
-  Verification: "The sign-in link expired. Try again.",
+  OAuthSignin: "Couldn't reach Google. Check the sign in provider setup and try again.",
+  OAuthCallback: "Sign in was cancelled or interrupted. Try again.",
+  OAuthAccountNotLinked: "That email is already linked to another sign in method.",
+  AccessDenied: "Google denied the sign in request.",
+  Configuration: "Sign in isn't configured on the server yet.",
+  Verification: "The sign in link expired. Try again.",
 };
 
 function SignInInner() {
@@ -30,7 +30,7 @@ function SignInInner() {
   const [emailOptIn, setEmailOptIn] = useState(false);
   const callbackUrl = params.get("callbackUrl") || "/check";
   const errorCode = params.get("error");
-  const errorMessage = errorCode ? (ERRORS[errorCode] ?? "Sign-in failed. Try again.") : null;
+  const errorMessage = errorCode ? (ERRORS[errorCode] ?? "Sign in failed. Try again.") : null;
 
   // If we're already signed in when the page loads, jump straight to the checker.
   useEffect(() => {
@@ -141,7 +141,7 @@ function SignInInner() {
                 className="focus-ring mt-0.5 h-4 w-4 shrink-0 accent-forest"
               />
               <span>
-                Send me occasional product updates and new-feature notes.
+                Send me occasional product updates and notes about new features.
                 <span className="text-bark">
                   {" "}
                   Optional, off by default. You can turn this off any time in the

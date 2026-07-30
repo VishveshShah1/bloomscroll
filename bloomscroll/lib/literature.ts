@@ -50,6 +50,17 @@ async function runQuery(query: string, pageSize: number): Promise<EuropePmcResul
   }
 }
 
+/** How many results Europe PMC returns per query variant. Bumped so the
+ *  grader has a broader pool to weigh — plenty of claims have dozens of
+ *  relevant papers, and pulling only 8 per variant was leaving strong
+ *  supporting evidence on the table. */
+const PAGE_SIZE_PER_VARIANT = 20;
+
+/** Hard cap on papers we hand to the grader per claim. Big enough for a
+ *  proper multi-source verdict, small enough that the grader prompt stays
+ *  under a reasonable token budget per call. */
+const MAX_PAPERS_PER_CLAIM = 20;
+
 export async function searchLiterature(searchTerms: string[]): Promise<Paper[]> {
   const terms = searchTerms.map((t) => t.trim()).filter(Boolean).slice(0, 4);
   if (terms.length === 0) return [];
@@ -58,7 +69,10 @@ export async function searchLiterature(searchTerms: string[]): Promise<Paper[]> 
   const precise = `(${terms.map(quoted).join(" AND ")}) AND HAS_ABSTRACT:Y`;
   const broad = `(${terms.map(quoted).join(" OR ")}) AND HAS_ABSTRACT:Y`;
 
-  const settled = await Promise.allSettled([runQuery(precise, 8), runQuery(broad, 8)]);
+  const settled = await Promise.allSettled([
+    runQuery(precise, PAGE_SIZE_PER_VARIANT),
+    runQuery(broad, PAGE_SIZE_PER_VARIANT),
+  ]);
   const fulfilled = settled.filter(
     (s): s is PromiseFulfilledResult<EuropePmcResult[]> => s.status === "fulfilled",
   );
@@ -91,7 +105,7 @@ export async function searchLiterature(searchTerms: string[]): Promise<Paper[]> 
             : `https://europepmc.org/search?query=${encodeURIComponent(String(id))}`,
       pubType: result.pubTypeList?.pubType?.join(", "),
     });
-    if (papers.length >= 10) break;
+    if (papers.length >= MAX_PAPERS_PER_CLAIM) break;
   }
   return papers;
 }

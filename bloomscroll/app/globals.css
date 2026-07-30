@@ -610,6 +610,34 @@ summary:focus-visible {
   inset: 0;
   overflow: hidden;
   border-radius: 4.5em;
+  will-change: transform;
+}
+/* TikTok-style vertical swipe. Two panels stack during a sample change:
+   the outgoing post plays hp-post-exit (slides up and out of view via the
+   top), the incoming post plays hp-post-enter (slides up from below into
+   place). Same duration + easing keeps the pair reading as one continuous
+   swipe rather than a hard cut. Duration matches SWIPE_MS in the component. */
+.hp-post-enter {
+  animation: hp-post-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 2;
+}
+.hp-post-exit {
+  animation: hp-post-exit 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 3;
+  pointer-events: none;
+}
+@keyframes hp-post-enter {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes hp-post-exit {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-post-enter,
+  .hp-post-exit { animation: none !important; }
+  .hp-post-exit { display: none !important; }
 }
 .hp-video-bg {
   position: absolute;
@@ -617,6 +645,12 @@ summary:focus-visible {
   width: 100%;
   height: 100%;
   display: block;
+  /* Preserve aspect ratio. Without object-fit, both <img> and <video>
+     stretch to fill both dimensions, which reads as "squeezed" whenever
+     the source isn't exactly 9:16. `cover` fills the phone frame with a
+     centered crop instead — no distortion. */
+  object-fit: cover;
+  object-position: center;
   animation: hp-bg-drift 14s ease-in-out infinite alternate;
 }
 @keyframes hp-bg-drift {
@@ -649,44 +683,6 @@ summary:focus-visible {
 @keyframes hp-audio-bar {
   0%, 100% { transform: scaleY(0.5); opacity: 0.65; }
   50%      { transform: scaleY(1);   opacity: 1; }
-}
-
-/* Story-style progress bars at the very top, safely below the status bar. */
-.hp-story-progress {
-  position: absolute;
-  top: 2.9em;
-  left: 1em;
-  right: 1em;
-  display: flex;
-  gap: 0.3em;
-  z-index: 3;
-}
-.hp-story-progress span {
-  flex: 1;
-  height: 0.18em;
-  background: rgba(246, 243, 234, 0.35);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.hp-story-progress span.is-current {
-  background: rgba(246, 243, 234, 0.25);
-  position: relative;
-}
-.hp-story-progress span.is-current::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: #f6f3ea;
-  transform-origin: left;
-  transform: scaleX(0);
-  /* Duration = full phase-loop length in HeroPhoneAnimation
-     (3200 + 2200 + 2600 + 5500 + 2800 ms). Kept in sync so the top
-     progress bar and the on-phone sample never drift apart. */
-  animation: hp-story-fill 16.3s linear infinite;
-}
-@keyframes hp-story-fill {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
 }
 
 /* Right-side action rail ------------------------------------------------ */
@@ -757,7 +753,10 @@ summary:focus-visible {
   position: absolute;
   left: 1.2em;
   right: 5.2em;
-  bottom: 5.5em;
+  /* Lifted well clear of the home indicator so the whole caption block
+     (handle row + text) sits comfortably in view, above the action rail's
+     bottom edge, and doesn't feel jammed against the phone's bottom curve. */
+  bottom: 7.5em;
   z-index: 3;
   color: #f6f3ea;
 }
@@ -811,11 +810,16 @@ summary:focus-visible {
   inset: 0;
   background: rgba(0, 0, 0, 0);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  /* Longer, matched-curve fade so the scrim never snaps in/out under the
+     rising verdict card. */
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 4;
+  will-change: opacity;
 }
-.hp-sheet-scrim.on { background: rgba(0, 0, 0, 0.35); opacity: 1; }
+.hp-sheet-scrim.on { background: rgba(0, 0, 0, 0.42); opacity: 1; }
 .hp-sheet {
   position: absolute;
   left: 0;
@@ -826,11 +830,19 @@ summary:focus-visible {
   padding: 0.9em 1.2em 1.5em;
   border-radius: 1.6em 1.6em 0 0;
   transform: translateY(110%);
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  /* Slightly longer + easier out-curve so the sheet doesn't snap when the
+     verdict card takes over. Opacity fade layered on top of the slide so
+     the handoff to the verdict card reads as one continuous motion rather
+     than "sheet exits, card arrives". */
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 4;
   box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.25);
+  will-change: transform, opacity;
 }
-.hp-sheet.on { transform: translateY(0); }
+.hp-sheet.on { transform: translateY(0); opacity: 1; }
 .hp-sheet-handle {
   width: 3em;
   height: 0.3em;
@@ -839,42 +851,47 @@ summary:focus-visible {
   margin: 0 auto 0.9em;
 }
 .hp-sheet-title {
-  margin: 0 0 0.7em;
-  font-size: 0.9em;
+  margin: 0 0 0.85em;
+  font-size: 0.98em;
   font-weight: 700;
-  color: rgba(18, 32, 26, 0.65);
+  color: rgba(18, 32, 26, 0.7);
   text-align: left;
+  letter-spacing: -0.005em;
 }
 .hp-sheet-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.7em;
+  gap: 0.8em;
 }
 .hp-sheet-icon {
   aspect-ratio: 1;
-  border-radius: 0.9em;
+  border-radius: 1em;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* Matched-curve transitions so hover/active states feel of a piece with
+     the rest of the phone-hero motion. */
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.hp-sheet-icon svg { width: 100%; height: 100%; display: block; border-radius: 0.9em; }
+.hp-sheet-icon svg { width: 100%; height: 100%; display: block; border-radius: 1em; }
 .hp-sheet-icon.is-active {
-  transform: translateY(-0.25em) scale(1.06);
-  box-shadow: 0 8px 20px rgba(30, 77, 43, 0.35);
-  outline: 0.18em solid #1e4d2b;
-  outline-offset: 0.15em;
+  transform: translateY(-0.3em) scale(1.08);
+  box-shadow: 0 10px 24px rgba(30, 77, 43, 0.38);
+  outline: 0.2em solid #1e4d2b;
+  outline-offset: 0.18em;
   animation: hp-highlight-pulse 1.4s ease-in-out infinite;
 }
 .hp-sheet-labels {
-  margin-top: 0.55em;
+  margin-top: 0.7em;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.7em;
-  font-size: 0.72em;
+  gap: 0.8em;
+  font-size: 0.8em;
   font-weight: 500;
-  color: rgba(18, 32, 26, 0.65);
+  color: rgba(18, 32, 26, 0.7);
   text-align: center;
 }
 .hp-sheet-labels .is-active {
@@ -888,19 +905,24 @@ summary:focus-visible {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 68%;
+  /* Taller so the bigger verdict content breathes without a dead footer
+     gap on short citation lists. */
+  height: 74%;
   background: #f6f3ea;
   color: #12201a;
   border-radius: 1.6em 1.6em 0 0;
-  padding: 1em 1.1em 1.4em;
+  padding: 1.15em 1.2em 1.5em;
   transform: translateY(105%);
   opacity: 0;
+  /* Matched curve + slightly longer duration so the rise hands off from
+     the share sheet as one continuous motion rather than a stacked jump. */
   transition:
-    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.5s ease;
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 5;
   overflow: hidden;
   box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.28);
+  will-change: transform, opacity;
 }
 .hp-verdict-layer.in {
   transform: translateY(0);
@@ -940,15 +962,15 @@ summary:focus-visible {
 }
 @keyframes hp-spin { to { transform: rotate(360deg); } }
 .hp-checking-title {
-  font-size: 0.98em;
+  font-size: 1.08em;
   font-weight: 600;
   color: #12201a;
 }
 .hp-checking-rows {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-  font-size: 0.85em;
+  gap: 0.6em;
+  font-size: 0.95em;
   color: #5b6b5e;
 }
 .hp-checking-rows span {
@@ -978,47 +1000,47 @@ summary:focus-visible {
 
 /* Verdict content --------------------------------------------------- */
 .hp-verdict {
-  padding-top: 1.1em;
+  padding-top: 1.15em;
   display: flex;
   flex-direction: column;
-  gap: 0.55em;
-  animation: hp-verdict-fade 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  gap: 0.7em;
+  animation: hp-verdict-fade 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes hp-verdict-fade {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
   to   { opacity: 1; transform: none; }
 }
 .hp-verdict-label,
 .hp-cited-label {
   margin: 0;
-  font-size: 0.72em;
+  font-size: 0.78em;
   font-weight: 700;
   letter-spacing: 0.14em;
   color: #5b6b5e;
 }
 .hp-verdict-claim {
-  margin: 0.15em 0 0;
-  font-size: 1.05em;
+  margin: 0.2em 0 0;
+  font-size: 1.2em;
   font-weight: 600;
   font-style: italic;
-  line-height: 1.25;
+  line-height: 1.28;
   color: #12201a;
 }
 .hp-verdict-row {
-  margin-top: 0.6em;
+  margin-top: 0.65em;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5em;
+  gap: 0.55em;
 }
 .hp-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35em;
-  padding: 0.32em 0.75em;
+  gap: 0.4em;
+  padding: 0.42em 0.9em;
   border: 1px solid;
   border-radius: 999px;
-  font-size: 0.78em;
+  font-size: 0.9em;
   font-weight: 700;
   letter-spacing: 0.05em;
   transition: box-shadow 0.4s ease;
@@ -1032,51 +1054,51 @@ summary:focus-visible {
   100% { box-shadow: 0 0 0 0 var(--verdict-glow); }
 }
 .hp-verdict-meaning {
-  font-size: 0.82em;
+  font-size: 0.92em;
   color: #5b6b5e;
 }
 .hp-verdict-summary {
-  margin: 0.35em 0 0;
-  font-size: 0.9em;
-  line-height: 1.45;
-  color: rgba(18, 32, 26, 0.85);
+  margin: 0.4em 0 0;
+  font-size: 1em;
+  line-height: 1.5;
+  color: rgba(18, 32, 26, 0.9);
 }
-.hp-cited-label { margin-top: 0.9em; }
+.hp-cited-label { margin-top: 0.95em; }
 .hp-cited-list {
   list-style: none;
   padding: 0;
-  margin: 0.4em 0 0;
+  margin: 0.5em 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
+  gap: 0.55em;
 }
 .hp-cited-item {
   display: flex;
-  gap: 0.55em;
-  padding: 0.55em 0.7em;
+  gap: 0.6em;
+  padding: 0.7em 0.85em;
   background: rgba(232, 237, 222, 0.6);
   border: 1px solid rgba(30, 77, 43, 0.28);
-  border-radius: 0.7em;
+  border-radius: 0.75em;
 }
 .hp-cited-num {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5em;
-  height: 1.5em;
+  width: 1.7em;
+  height: 1.7em;
   background: #1e4d2b;
   color: #f6f3ea;
-  border-radius: 0.35em;
-  font-size: 0.78em;
+  border-radius: 0.4em;
+  font-size: 0.85em;
   font-weight: 700;
   flex-shrink: 0;
 }
 .hp-cited-body { display: flex; flex-direction: column; min-width: 0; }
 .hp-cited-title {
-  font-size: 0.82em;
+  font-size: 0.94em;
   font-weight: 600;
   color: #12201a;
-  line-height: 1.25;
+  line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -1084,17 +1106,17 @@ summary:focus-visible {
   -webkit-box-orient: vertical;
 }
 .hp-cited-meta {
-  font-size: 0.72em;
+  font-size: 0.8em;
   color: #5b6b5e;
-  margin-top: 0.15em;
+  margin-top: 0.2em;
 }
 
 /* Evidence-strength mini chart — 5 bars showing the pool's break-down
    from supporting → refuting. Sits between the summary and the
    citation list so a short list doesn't leave the card empty. */
 .hp-evidence-label {
-  margin: 0.9em 0 0.3em;
-  font-size: 0.72em;
+  margin: 0.95em 0 0.35em;
+  font-size: 0.78em;
   font-weight: 700;
   letter-spacing: 0.14em;
   color: #5b6b5e;
@@ -1102,18 +1124,18 @@ summary:focus-visible {
 .hp-evidence-row {
   display: flex;
   align-items: flex-end;
-  gap: 0.6em;
+  gap: 0.7em;
 }
 .hp-bars {
   display: inline-flex;
   align-items: flex-end;
-  gap: 0.25em;
-  height: 1.8em;
+  gap: 0.3em;
+  height: 2.1em;
   padding-bottom: 0.05em;
 }
 .hp-bars i {
   display: inline-block;
-  width: 0.32em;
+  width: 0.38em;
   border-radius: 0.08em 0.08em 0 0;
   transform-origin: bottom;
   transform: scaleY(0);
@@ -1128,7 +1150,7 @@ summary:focus-visible {
   to { transform: scaleY(1); }
 }
 .hp-evidence-copy {
-  font-size: 0.78em;
+  font-size: 0.88em;
   font-weight: 600;
   color: #12201a;
 }
@@ -1138,7 +1160,7 @@ summary:focus-visible {
    citation list is short. */
 .hp-verdict-footer {
   margin-top: auto;
-  padding-top: 0.9em;
+  padding-top: 1em;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1153,17 +1175,17 @@ summary:focus-visible {
 .hp-verdict-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
-  font-size: 0.78em;
+  gap: 0.35em;
+  font-size: 0.88em;
   font-weight: 600;
   color: #1e4d2b;
 }
 .hp-verdict-brand svg {
-  width: 0.9em;
-  height: 0.9em;
+  width: 1em;
+  height: 1em;
 }
 .hp-verdict-meta-strip {
-  font-size: 0.7em;
+  font-size: 0.78em;
   color: #5b6b5e;
   letter-spacing: 0.02em;
 }
@@ -1180,7 +1202,6 @@ summary:focus-visible {
 /* Reduced motion: freeze everything, show only the verdict card. */
 @media (prefers-reduced-motion: reduce) {
   .hp-video-bg,
-  .hp-story-progress span.is-current::after,
   .hp-tap-dot,
   .hp-badge.is-resolving,
   .hp-fade,

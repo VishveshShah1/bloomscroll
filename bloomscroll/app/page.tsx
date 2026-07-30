@@ -109,40 +109,46 @@ function VerdictChip({ verdict, label }: { verdict: Verdict; label: string }) {
 }
 
 function PlatformIcon({ kind, size = 22 }: { kind: "android" | "iphone" | "desktop"; size?: number }) {
-  const common = {
-    width: size,
-    height: size,
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "1.7",
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  };
-  if (kind === "android") {
+  if (kind === "iphone") {
+    // Classic Apple logo, filled with currentColor so it inherits button text tone.
     return (
-      <svg viewBox="0 0 24 24" {...common}>
-        <rect x="6" y="9" width="12" height="10" rx="2" />
-        <path d="M9 9 L8 6" />
-        <path d="M15 9 L16 6" />
-        <path d="M3 12 L3 16" />
-        <path d="M21 12 L21 16" />
-        <path d="M9 19 L9 22" />
-        <path d="M15 19 L15 22" />
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
       </svg>
     );
   }
-  if (kind === "iphone") {
+  if (kind === "android") {
+    // Android robot head — the classic mascot with two eyes and two antennae.
     return (
-      <svg viewBox="0 0 24 24" {...common}>
-        <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
-        <path d="M10 5 L14 5" />
-        <circle cx="12" cy="18.5" r="0.7" fill="currentColor" />
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2C4.5 5.65 4.41 6 4.56 6.29L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" />
       </svg>
     );
   }
   return (
-    <svg viewBox="0 0 24 24" {...common}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <rect x="3" y="4" width="18" height="12" rx="2" />
       <path d="M8 20 L16 20" />
       <path d="M12 16 L12 20" />
@@ -378,9 +384,9 @@ const ScreenSlot = ScreenFrame;
 
 // A canned sample verdict used by the TryDemo panel. Written once here so
 // the panel doesn't need any i18n plumbing or backend call.
-const DEMO_CLAIM = "Daily sunscreen use reduces long-term skin cancer risk.";
+const DEMO_CLAIM = "Daily sunscreen use reduces skin cancer risk over time.";
 const DEMO_SUMMARY =
-  "Multiple randomized trials and large cohorts show daily broad-spectrum sunscreen lowers melanoma and squamous-cell risk. Effect size is modest per year and adds up over decades.";
+  "Multiple randomized trials and large cohorts show daily broad-spectrum sunscreen lowers melanoma and squamous cell risk. Effect size is modest per year and adds up over decades.";
 // Real papers backing the sample claim. URLs point at each paper's
 // public index page so clicks land on something real, not a dead demo.
 const DEMO_CITATIONS = [
@@ -441,10 +447,10 @@ function TryDemo() {
             try it now
           </p>
           <h2 className="mt-3 text-[30px] font-semibold leading-[1.05] tracking-display text-ink sm:text-[42px]">
-            See a graded verdict — no sign-up.
+            See a graded verdict — no signup.
           </h2>
           <p className="mt-4 max-w-[54ch] text-[16px] leading-relaxed text-bark sm:text-[17px]">
-            One click on a real, pre-filled sample claim. The output below is what
+            One click on a real, prefilled sample claim. The output below is what
             you get when you run your own.
           </p>
         </div>
@@ -604,7 +610,7 @@ export default function LandingPage() {
         >
           <BMark className="h-[560px] w-auto text-forest" strokeWidth={2.4} />
         </div>
-        <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-4 pb-14 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[1.05fr_0.85fr] lg:gap-14 lg:pb-20 lg:pt-16">
+        <div className="relative mx-auto grid w-full max-w-7xl gap-6 px-4 pb-12 pt-4 sm:px-8 sm:pt-6 lg:grid-cols-[1.05fr_0.85fr] lg:items-start lg:gap-14 lg:pb-16 lg:pt-6">
           <div className="flex flex-col justify-start">
             <p data-reveal className="reveal text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               {t.hero.tagline}
@@ -671,7 +677,7 @@ export default function LandingPage() {
 
           {/* Animated phone hero — passive vignette that loops through
               claim → checking → verdict without touching the real API. */}
-          <div className="mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[360px]">
+          <div className="mx-auto w-full max-w-[280px] sm:max-w-[340px] lg:-mt-4 lg:max-w-[380px]">
             <ScreenSlot
               src="/screenshots/hero.png"
               alt="Bloomscroll checker with a graded verdict card"
@@ -1021,6 +1027,10 @@ export default function LandingPage() {
               const canSubscribe = isPaid && STRIPE_ENABLED && paidPlan !== null;
               const isLoading = checkoutPlan === paidPlan && checkoutPlan !== null;
               const isFeatured = slug === "sprout";
+              // Canopy is the only tier with truly unlimited checks — that's
+              // the reason to move up from Sprout, so the card carries a
+              // distinct "unlimited" chip and emphasizes its first feature.
+              const isUnlimited = slug === "canopy";
               const displayPrice =
                 billingInterval === "annual" && isPaid
                   ? p.priceAnnual ?? p.price
@@ -1038,12 +1048,20 @@ export default function LandingPage() {
                   className={`reveal card-lift relative flex h-full flex-col rounded-[24px] p-8 ${
                     isFeatured
                       ? "border-2 border-forest bg-canvas shadow-[0_20px_50px_rgba(30,77,43,0.16)] ring-4 ring-forest/10"
-                      : "surface"
+                      : isUnlimited
+                        ? "border border-forest/40 bg-canvas shadow-[0_14px_36px_rgba(30,77,43,0.10)]"
+                        : "surface"
                   }`}
                 >
                   {isFeatured && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-forest px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-canvas shadow-[0_6px_18px_rgba(30,77,43,0.28)]">
                       {t.pricing.mostPopular}
+                    </span>
+                  )}
+                  {isUnlimited && (
+                    <span className="absolute -top-3 right-6 inline-flex items-center gap-1 rounded-full border border-forest/45 bg-canvas px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-forest shadow-[0_4px_12px_rgba(30,77,43,0.14)]">
+                      <span aria-hidden="true">∞</span>
+                      {t.pricing.unlimited}
                     </span>
                   )}
                   <div className="flex items-baseline justify-between gap-4">
@@ -1067,19 +1085,30 @@ export default function LandingPage() {
                     {p.tagline}
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
-                    {p.features.map((f) => (
-                      <li
-                        key={f}
-                        className="flex gap-3 text-[15px] leading-relaxed text-bark"
-                      >
-                        <span
-                          className={`font-bold ${isFeatured ? "text-forest" : "text-forest/70"}`}
+                    {p.features.map((f, fi) => {
+                      // Canopy's first feature is the "unlimited" line — give
+                      // it heavier weight and forest color so the eye lands on
+                      // the actual differentiator, not the "everything in
+                      // Sprout" carry-over row below it.
+                      const emphasize = isUnlimited && fi === 0;
+                      return (
+                        <li
+                          key={f}
+                          className={`flex gap-3 text-[15px] leading-relaxed ${
+                            emphasize ? "font-semibold text-ink" : "text-bark"
+                          }`}
                         >
-                          ✓
-                        </span>
-                        {f}
-                      </li>
-                    ))}
+                          <span
+                            className={`font-bold ${
+                              isFeatured || emphasize ? "text-forest" : "text-forest/70"
+                            }`}
+                          >
+                            {emphasize ? "∞" : "✓"}
+                          </span>
+                          {f}
+                        </li>
+                      );
+                    })}
                   </ul>
                   <div className="mt-auto pt-8">
                     {!isPaid && (

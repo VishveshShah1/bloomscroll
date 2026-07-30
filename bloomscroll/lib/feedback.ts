@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { kv, dayKey, secondsUntilMonthEnd } from "./kv";
 
 /**
@@ -37,8 +38,12 @@ function counterKey(day: string, value: FeedbackValue): string {
 }
 
 function newId(): string {
-  const rand = Math.random().toString(36).slice(2, 8);
-  return `${Date.now().toString(36)}-${rand}`;
+  // crypto.randomUUID is unguessable (128 bits) and available on every Node
+  // runtime this app supports. Prior implementation combined Date.now() with
+  // Math.random(), which is a non-cryptographic PRNG — record IDs are echoed
+  // back to the client and used as KV keys, so making them unpredictable
+  // avoids anyone brute-forcing sibling feedback records.
+  return randomUUID();
 }
 
 export async function submitFeedback(

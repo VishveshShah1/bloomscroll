@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "bloomscroll · keep scrolling, start growing",
     description:
-      "Check the health claims in your feed against millions of peer-reviewed papers. Evidence, graded.",
+      "Check the health claims in your feed against millions of peer reviewed papers. Evidence, graded.",
     siteName: "bloomscroll",
     type: "website",
     images: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "bloomscroll · keep scrolling, start growing",
-    description: "Check the health claims in your feed against millions of peer-reviewed papers.",
+    description: "Check the health claims in your feed against millions of peer reviewed papers.",
     images: ["/brand/og.png"],
   },
   icons: {

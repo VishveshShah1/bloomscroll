@@ -4,7 +4,7 @@ import { searchLiterature } from "./literature";
 import { gradeClaim } from "./grade";
 import { checkSafety } from "./safety";
 import { cacheKey, getCached, setCached } from "./cache";
-import { SpendCapExceededError } from "./spend";
+import { SpendCapExceededError, type SpendContext } from "./spend";
 import type { Lang } from "./i18n";
 import type { CheckResponse, ClaimResult } from "./types";
 
@@ -59,6 +59,7 @@ const MOCK_CLAIMS: Omit<ClaimResult, "safety" | "papers">[] = [
 export async function* runPipeline(
   input: string,
   lang: Lang,
+  spendCtx: SpendContext,
 ): AsyncGenerator<PipelineEvent> {
   const key = cacheKey(input, lang);
   const cached = getCached(key);
@@ -95,12 +96,16 @@ export async function* runPipeline(
 
   let extracted;
   try {
-    extracted = await extractClaims(resolved.text);
+    extracted = await extractClaims(resolved.text, spendCtx);
   } catch (err) {
-    // Missing key → labeled sample. Any other Anthropic failure (out of credit,
-    // rate limit, network) also drops to sample rather than nuking the UI —
-    // console.error preserves the real stack for debugging.
-    if (!(err instanceof MissingKeyError)) {
+    // Missing key → labeled sample. Free-tier monthly cap → labeled sample
+    // (paid users never take this path — ensureCanSpend won't throw for them).
+    // Any other Anthropic failure (out of credit, rate limit, network) also
+    // drops to sample rather than nuking the UI — console.error preserves the
+    // real stack for debugging.
+    if (err instanceof SpendCapExceededError) {
+      console.warn("[pipeline] free-tier spend cap tripped during extract, falling back to sample");
+    } else if (!(err instanceof MissingKeyError)) {
       console.error("[pipeline] extractClaims failed, falling back to sample:", err);
     }
     const claims: ClaimResult[] = MOCK_CLAIMS.map((c) => ({
@@ -129,14 +134,16 @@ export async function* runPipeline(
   let graded;
   try {
     graded = await Promise.all(
-      extracted.map((c, i) => gradeClaim(c.claim, paperSets[i])),
+      extracted.map((c, i) => gradeClaim(c.claim, paperSets[i], spendCtx)),
     );
   } catch (err) {
-    // Same graceful-degradation contract as extract: if the daily spend cap
-    // trips mid-run (or any other Anthropic failure hits), serve labeled
-    // sample data instead of exploding the response.
+    // Same graceful-degradation contract as extract: if the free-tier monthly
+    // spend cap trips mid-run (or any other Anthropic failure hits), serve
+    // labeled sample data instead of exploding the response. Paid callers
+    // will never see SpendCapExceededError here — ensureCanSpend only throws
+    // for the free bucket.
     if (err instanceof SpendCapExceededError) {
-      console.warn("[pipeline] spend cap tripped during grading, falling back to sample");
+      console.warn("[pipeline] free-tier spend cap tripped during grading, falling back to sample");
     } else {
       console.error("[pipeline] gradeClaim failed, falling back to sample:", err);
     }

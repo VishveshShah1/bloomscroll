@@ -1,6 +1,14 @@
+// Server-only: this module reads ANTHROPIC_API_KEY and imports the Anthropic
+// SDK. It must never be bundled for the browser. The key has no NEXT_PUBLIC_
+// prefix so Next.js won't inline it, but this guard trips loudly if the graph
+// ever accidentally reaches a client component.
+if (typeof window !== "undefined") {
+  throw new Error("lib/extract.ts is server-only and must not run in the browser");
+}
+
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedClaim } from "./types";
-import { chargeSpend, ensureCanSpend } from "./spend";
+import { chargeSpend, ensureCanSpend, type SpendContext } from "./spend";
 
 // Phase 2: claim extraction via the Anthropic API. Written and ready — the
 // route activates it once ANTHROPIC_API_KEY exists in the environment.
@@ -55,7 +63,10 @@ function parseClaimsJson(raw: string): ExtractedClaim[] | null {
   }
 }
 
-export async function extractClaims(text: string): Promise<ExtractedClaim[]> {
+export async function extractClaims(
+  text: string,
+  spendCtx: SpendContext,
+): Promise<ExtractedClaim[]> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new MissingKeyError("ANTHROPIC_API_KEY is not configured");
   }
@@ -77,14 +88,14 @@ export async function extractClaims(text: string): Promise<ExtractedClaim[]> {
             },
           ];
 
-    await ensureCanSpend();
+    await ensureCanSpend(spendCtx);
     const res = await client.messages.create({
       model: MODEL,
       max_tokens: 2048,
       system: SYSTEM,
       messages,
     });
-    await chargeSpend(res.usage, MODEL);
+    await chargeSpend(res.usage, MODEL, spendCtx);
 
     lastRaw = res.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")

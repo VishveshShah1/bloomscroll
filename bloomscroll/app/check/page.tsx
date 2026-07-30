@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Wordmark from "@/components/Wordmark";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
+import ReportMistake from "@/components/ReportMistake";
 import { STRINGS, useLang, type Lang, type Strings } from "@/lib/i18n";
 import type { CheckResponse, Verdict } from "@/lib/types";
 import { VERDICT_COLORS } from "@/lib/verdicts";
@@ -89,9 +90,9 @@ function AfterResultUpgrade() {
         want more of this?
       </p>
       <p className="mt-2 text-[14px] leading-relaxed text-ink">
-        Sprout ($4.99/mo) removes the monthly cap and saves every check to
-        your history. Canopy adds faster processing and deeper citation
-        detail.
+        Sprout ($4.99/mo) gives you 150 checks a month and saves your history.
+        Canopy ($19.99/mo) is the one that removes the cap entirely, plus
+        faster processing and deeper citation detail.
       </p>
       <Link
         href="/#pricing"
@@ -234,6 +235,7 @@ export default function CheckPage() {
   const [data, setData] = useState<CheckResponse | null>(null);
   const [usage, setUsage] = useState<UsageSnapshot | null>(null);
   const [limitErr, setLimitErr] = useState<LimitError | null>(null);
+  const [rateErr, setRateErr] = useState<string | null>(null);
   const langRef = useRef(lang);
   langRef.current = lang;
   const runningRef = useRef(false);
@@ -272,6 +274,7 @@ export default function CheckPage() {
     setStage(null);
     setData(null);
     setLimitErr(null);
+    setRateErr(null);
     try {
       const res = await fetch("/api/check", {
         method: "POST",
@@ -284,8 +287,32 @@ export default function CheckPage() {
         return;
       }
       if (res.status === 429) {
-        const body = (await res.json()) as LimitError;
-        setLimitErr(body);
+        // Two flavors: monthly cap (offer upgrade) or hourly safety cap
+        // (transient — just tell them to slow down; Canopy is capped too).
+        const body = (await res.json()) as {
+          error?: string;
+          used?: number;
+          limit?: number;
+          resetAt?: string;
+          message?: string;
+          retryAfterSeconds?: number;
+        };
+        if (body.error === "rate_limit") {
+          const mins = Math.max(
+            1,
+            Math.ceil((body.retryAfterSeconds ?? 3600) / 60),
+          );
+          setRateErr(
+            body.message ??
+              `Slow down — you've hit the hourly safety cap. Try again in about ${mins} min.`,
+          );
+        } else {
+          setLimitErr({
+            used: body.used ?? 0,
+            limit: body.limit ?? 0,
+            resetAt: body.resetAt ?? new Date().toISOString(),
+          });
+        }
         setStatus("idle");
         return;
       }
@@ -515,6 +542,16 @@ export default function CheckPage() {
             </div>
 
             <p className="mt-4 text-[13.5px] text-bark">{t.hero.disclaimer}</p>
+
+            {rateErr && (
+              <div
+                role="status"
+                className="mt-5 flex items-start gap-3 rounded-2xl border border-warn/40 bg-warn/10 p-4 text-[13.5px] leading-relaxed text-warn"
+              >
+                <span aria-hidden="true" className="mt-0.5 text-[15px]">⏱</span>
+                <p>{rateErr}</p>
+              </div>
+            )}
           </>
         )}
 
@@ -708,6 +745,12 @@ export default function CheckPage() {
                             {t.results.poolEmpty}
                           </p>
                         )}
+                      {/* TODO(share-result): per-card "copy shareable summary"
+                          + result permalink are deferred. Revisit once we hit
+                          $100 in revenue — the product's core value is
+                          spreading calm evidence, so a share affordance here
+                          is high-signal, but it's not blocking for launch. */}
+                      <ReportMistake claim={c.claim} verdict={c.verdict} />
                     </article>
                   );
                 })}

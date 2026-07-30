@@ -19,7 +19,7 @@ const EN = {
     tagline: "the anti-doomscroll",
     line1: "Keep scrolling.",
     line2: "Start growing.",
-    sub: "Fact-check the health claims in your feed against real peer-reviewed research.",
+    sub: "Check the health claims in your feed against real peer reviewed research.",
     primaryCta: "Get started",
     secondaryCta: "See how it works",
     placeholder: "Paste a link, or paste the claim itself",
@@ -28,7 +28,7 @@ const EN = {
     disclaimer: "Bloomscroll explains evidence. It doesn't diagnose or give medical advice.",
     demoTag: "what results look like",
     demoNote:
-      "Small observational studies on tongue posture exist. None measured lasting jaw-shape change in adults.",
+      "Small observational studies on tongue posture exist. None measured a lasting change in jaw shape in adults.",
     demoCite: "⧉ real, clickable citations land here",
   },
   bloom: {
@@ -64,9 +64,9 @@ const EN = {
   verdictDetails: {
     supported: {
       evidence:
-        "Several independent studies agree. Ideally trials or large reviews, and higher-quality work hasn't overturned them.",
+        "Several independent studies agree. Ideally trials or large reviews, and better quality work hasn't overturned them.",
       example:
-        "Sunscreen lowering skin-cancer risk. Decades of trials and large cohorts line up.",
+        "Sunscreen lowering skin cancer risk. Decades of trials and large cohorts line up.",
     },
     mixed: {
       evidence:
@@ -173,18 +173,18 @@ const EN = {
       {
         title: "It finds the real claims",
         body:
-          "Bloomscroll pulls out what's actually checkable and searches Europe PMC, a free index of over 45 million peer-reviewed biomedical papers.",
+          "Bloomscroll pulls out what's actually checkable and searches Europe PMC, a free index of over 45 million peer reviewed biomedical papers.",
       },
       {
         title: "Evidence, graded",
         body:
-          "Each claim gets a verdict on a five-step scale, a plain-language answer, and real citations you can click. Never a bare true or false.",
+          "Each claim gets a verdict on a five step scale, a plain language answer, and real citations you can click. Never a bare true or false.",
       },
     ],
   },
   verdictsTitle: "What the verdicts mean",
   stats: [
-    { value: "45M+", label: "peer-reviewed papers searchable via Europe PMC" },
+    { value: "45M+", label: "peer reviewed papers searchable via Europe PMC" },
     { value: "5", label: "evidence grades. Never a bare true or false" },
     { value: "0", label: "fabricated citations. Blocked by design" },
     { value: "3+", label: "platforms readable, plus any article" },
@@ -192,7 +192,7 @@ const EN = {
   pricing: {
     title: "Stay clear-headed while you scroll.",
     sub:
-      "Free covers a few checks a month. Sprout unlocks unlimited so you can call out every questionable claim in your feed without running out.",
+      "Free covers a few checks a month. Sprout gives you 150 for daily use. Canopy is the one that removes the cap entirely.",
     soon: "coming soon",
     freeBeta: "free forever",
     get: "Get",
@@ -204,6 +204,7 @@ const EN = {
     annual: "Annual",
     saveHint: "save ~50%",
     mostPopular: "most popular",
+    unlimited: "Unlimited",
     plans: [
       {
         name: "Seed",
@@ -223,7 +224,7 @@ const EN = {
         priceAnnual: "$29.99",
         tagline: "For the daily scroller",
         features: [
-          "Unlimited checks",
+          "150 checks a month",
           "Saved check history",
           "Shareable verdict cards",
           "Priority pipeline",
@@ -236,6 +237,7 @@ const EN = {
         priceAnnual: "$119.99",
         tagline: "For the completionist",
         features: [
+          "Unlimited checks — no monthly cap",
           "Everything in Sprout",
           "Faster processing",
           "Deeper citation detail and export",
@@ -363,7 +365,7 @@ const EN = {
     unlimited: "Unlimited",
     resetsOn: "resets {date}",
     limitTitle: "You've used your free checks for this month",
-    limitBody: "Upgrade to Sprout or Canopy for unlimited checks, or wait until {date}.",
+    limitBody: "Upgrade to Sprout for 150 checks a month, or Canopy for no cap at all. Or wait until {date}.",
     upgradeCta: "See plans",
   },
 };
@@ -556,7 +558,7 @@ const FR: Strings = {
   pricing: {
     title: "Reste lucide en scrollant.",
     sub:
-      "Le forfait gratuit couvre quelques vérifications par mois. Sprout débloque des vérifications illimitées pour repérer chaque affirmation douteuse dans ton feed.",
+      "Le forfait gratuit couvre quelques vérifications par mois. Sprout t'en donne 150 pour un usage quotidien. Canopy est celui qui supprime complètement la limite.",
     soon: "bientôt disponible",
     freeBeta: "gratuit à vie",
     get: "Prendre",
@@ -568,6 +570,7 @@ const FR: Strings = {
     annual: "Annuel",
     saveHint: "économise ~50 %",
     mostPopular: "le plus populaire",
+    unlimited: "Illimité",
     plans: [
       {
         name: "Seed",
@@ -587,7 +590,7 @@ const FR: Strings = {
         priceAnnual: "29,99 $",
         tagline: "Pour scroller au quotidien",
         features: [
-          "Vérifications illimitées",
+          "150 vérifications par mois",
           "Historique des vérifications",
           "Cartes de verdict à partager",
           "Pipeline prioritaire",
@@ -600,6 +603,7 @@ const FR: Strings = {
         priceAnnual: "119,99 $",
         tagline: "Pour les complétistes",
         features: [
+          "Vérifications illimitées — sans plafond mensuel",
           "Tout Sprout",
           "Traitement plus rapide",
           "Détails de citation approfondis et export",
@@ -721,7 +725,7 @@ const FR: Strings = {
     unlimited: "Illimité",
     resetsOn: "réinitialise le {date}",
     limitTitle: "Tu as utilisé tes vérifications gratuites du mois",
-    limitBody: "Passe à Sprout ou Canopy pour des vérifications illimitées, ou attends jusqu'au {date}.",
+    limitBody: "Passe à Sprout pour 150 vérifications par mois, ou à Canopy pour aucune limite. Ou attends jusqu'au {date}.",
     upgradeCta: "Voir les forfaits",
   },
 };

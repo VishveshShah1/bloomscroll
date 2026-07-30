@@ -3,7 +3,7 @@
   "name": "Bloomscroll — check the claim",
   "short_name": "Bloomscroll",
   "version": "0.1.0",
-  "description": "Right-click any claim, video, or article to check it against real scientific literature on Bloomscroll.",
+  "description": "Right click any claim, video, or article to check it against real scientific literature on Bloomscroll.",
   "action": {
     "default_title": "Check with Bloomscroll",
     "default_popup": "popup.html",

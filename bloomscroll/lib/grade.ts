@@ -1,6 +1,12 @@
+// Server-only: this module reads ANTHROPIC_API_KEY and imports the Anthropic
+// SDK. Same rationale as lib/extract.ts — trip loudly if bundled for browser.
+if (typeof window !== "undefined") {
+  throw new Error("lib/grade.ts is server-only and must not run in the browser");
+}
+
 import Anthropic from "@anthropic-ai/sdk";
 import { MissingKeyError } from "./extract";
-import { chargeSpend, ensureCanSpend } from "./spend";
+import { chargeSpend, ensureCanSpend, type SpendContext } from "./spend";
 import type { Citation, Paper, Verdict } from "./types";
 
 // Phase 4: evidence grading + the anti-hallucination citation gate.
@@ -69,9 +75,9 @@ verdict is exactly one of:
 - "no_evidence": the papers don't actually address the claim, or the list is empty.
 - "not_empirical": the claim is an opinion/aesthetic judgment, not testable.
 
-summary: 3-5 sentences that read as a clear, thorough answer to the claim. Name the ACTUAL evidence type — "one small study in mice suggests..." not "studies show...". Note sample sizes, whether trials existed, and any conflicts. Be honest about limitations. Write for a curious teenager, not a journal.
+summary: 2-3 SHORT sentences. Just enough to prove the point — no filler, no hedging paragraphs. Name the ACTUAL evidence type in one phrase ("randomized trials", "small observational studies", "one mouse study") and, if it's short, note the biggest limitation. Aim for ~50 words total. Write for a curious teenager, not a journal.
 
-citation_ids: ONLY integers from the numbered list above. You may NEVER invent a title, author, journal, or ID that is not in the provided list. If a claim is not_empirical or no_evidence, use an empty array. Cite up to 6 of the most relevant papers.`;
+citation_ids: ONLY integers from the numbered list above. You may NEVER invent a title, author, journal, or ID that is not in the provided list. If the pool is empty or the papers don't actually address the claim, use []. Otherwise cite 4-8 of the most relevant papers so the reader sees a real body of evidence — not just one or two.`;
 }
 
 function papersBlock(papers: Paper[]): string {
@@ -104,7 +110,11 @@ function parseGraderJson(raw: string): GraderOutput | null {
   }
 }
 
-export async function gradeClaim(claim: string, papers: Paper[]): Promise<GradedClaim> {
+export async function gradeClaim(
+  claim: string,
+  papers: Paper[],
+  spendCtx: SpendContext,
+): Promise<GradedClaim> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new MissingKeyError("ANTHROPIC_API_KEY is not configured");
   }
@@ -123,14 +133,14 @@ export async function gradeClaim(claim: string, papers: Paper[]): Promise<Graded
   let output: GraderOutput | null = null;
 
   for (let attempt = 0; attempt < 2 && !output; attempt++) {
-    await ensureCanSpend();
+    await ensureCanSpend(spendCtx);
     const res = await client.messages.create({
       model: MODEL,
       max_tokens: 1024,
       system: buildSystem(),
       messages: [{ role: "user", content: userContent }],
     });
-    await chargeSpend(res.usage, MODEL);
+    await chargeSpend(res.usage, MODEL, spendCtx);
     const raw = res.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
       .map((b) => b.text)

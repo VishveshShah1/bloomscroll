@@ -5,9 +5,13 @@ import {
   type BillingInterval,
   type PlanSlug,
 } from "@/lib/stripe";
+import { bodyLimitResponse, readJsonBody } from "@/lib/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Body is two short enum strings ({plan, interval}). 1 KB is plenty.
+const CHECKOUT_MAX_BYTES = 1024;
 
 // Creates a Stripe Checkout Session and returns its URL. The client redirects
 // window.location to that URL. Success/cancel routes live at /success and
@@ -27,18 +31,22 @@ export async function POST(request: Request) {
   let plan: PlanSlug | null = null;
   let interval: BillingInterval = "monthly";
   try {
-    const body = (await request.json()) as {
-      plan?: unknown;
-      interval?: unknown;
-    };
+    const body = await readJsonBody<{ plan?: unknown; interval?: unknown }>(request, {
+      maxBytes: CHECKOUT_MAX_BYTES,
+      maxStringLen: 32,
+      maxDepth: 2,
+      maxArrayItems: 4,
+    });
     if (body.plan === "sprout" || body.plan === "canopy") {
       plan = body.plan;
     }
     if (body.interval === "annual" || body.interval === "monthly") {
       interval = body.interval;
     }
-  } catch {
-    // fall through to the invalid-plan branch below
+  } catch (err) {
+    const limited = bodyLimitResponse(err);
+    if (limited) return limited;
+    // any other parse failure falls through to the invalid-plan branch below
   }
   if (!plan) {
     return Response.json({ error: "Unknown plan." }, { status: 400 });

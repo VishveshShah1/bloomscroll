@@ -1,9 +1,13 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { getConsent, setConsent, setEmailOptIn } from "@/lib/consent";
+import { bodyLimitResponse, readJsonBody } from "@/lib/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Body is 2-3 boolean flags at most; 1 KB is comfortably above any real call.
+const CONSENT_MAX_BYTES = 1024;
 
 /** Read the current user's consent record. */
 export async function GET() {
@@ -33,8 +37,15 @@ export async function POST(request: Request) {
     emailOptIn?: unknown;
   };
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request, {
+      maxBytes: CONSENT_MAX_BYTES,
+      maxStringLen: 128,
+      maxDepth: 2,
+      maxArrayItems: 8,
+    });
+  } catch (err) {
+    const limited = bodyLimitResponse(err);
+    if (limited) return limited;
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
   try {
