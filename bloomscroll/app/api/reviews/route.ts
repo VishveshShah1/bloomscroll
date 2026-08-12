@@ -45,7 +45,16 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const result = await submitReview({ email, stars, comment });
+  // Name and picture come from the verified session, never from the request
+  // body — otherwise a caller could attach any name or avatar URL they liked
+  // to their review.
+  const result = await submitReview({
+    email,
+    name: session.user?.name,
+    image: session.user?.image,
+    stars,
+    comment,
+  });
   if (!result.ok) {
     return Response.json({ error: result.reason }, { status: 400 });
   }

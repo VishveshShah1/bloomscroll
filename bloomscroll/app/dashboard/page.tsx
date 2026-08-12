@@ -242,24 +242,6 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Review widget. One per account, private, grants +3 checks on first
-            successful submit; triggers a usage refresh so the new limit shows
-            up without a page reload.
-
-            Sits directly under the checker, ahead of the account cards. It
-            used to live at the very bottom, which measured 2.6 viewports down
-            once a result had rendered — two full screens of scrolling, so
-            most people would never have seen it. Here it lands at the end of
-            the result the user just read, which is both the highest-traffic
-            spot on the page and the moment they actually have an opinion
-            worth writing down. */}
-        <div className="relative mt-6">
-          <ReviewForm
-            signedIn={Boolean(activeSession?.user?.email) || isPreview}
-            onBonusGranted={() => void refreshUsage()}
-          />
-        </div>
-
         <div className="relative mt-12 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
           {/* Usage card */}
           <div className="surface-lg rounded-[24px] p-8">
@@ -342,6 +324,15 @@ export default function DashboardPage() {
               >
                 Install on my device
               </Link>
+              {/* Jumps to the review form at the bottom. Keeps the form
+                  discoverable from the first screen without the form itself
+                  displacing the usage numbers. */}
+              <a
+                href="#review"
+                className="focus-ring inline-flex items-center gap-2 rounded-full border border-forest/30 bg-moss/60 px-5 py-3 text-[14px] font-semibold text-forest transition hover:-translate-y-0.5 hover:bg-moss"
+              >
+                Leave a review → +3 checks
+              </a>
             </div>
           </div>
 
@@ -414,11 +405,23 @@ export default function DashboardPage() {
               </p>
               <p className="mt-2 text-[14px] leading-relaxed text-bark">
                 A dedicated support inbox is coming soon. Until then, use the
-                review form above or the feedback prompt on a check result —
+                review form below or the feedback prompt on a check result —
                 both land in the same place.
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Review widget lives back down here so it doesn't push the usage
+            and plan numbers off the first screen — those are the details
+            people actually come to the dashboard to read. Discoverability
+            is handled by the "+3 checks" button up in the usage card, which
+            jumps straight here. */}
+        <div className="relative mt-12 scroll-mt-24" id="review">
+          <ReviewForm
+            signedIn={Boolean(activeSession?.user?.email) || isPreview}
+            onBonusGranted={() => void refreshUsage()}
+          />
         </div>
 
         <p className="mt-10 text-[12px] text-bark">

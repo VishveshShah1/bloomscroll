@@ -15,10 +15,28 @@ export const REVIEW_BONUS_CHECKS = 3;
 
 export interface ReviewPayload {
   email: string;
+  /** Display name from the Google session at submit time, if it had one. */
+  name?: string;
+  /** Google profile picture URL from the session at submit time. */
+  image?: string;
   stars: 1 | 2 | 3 | 4 | 5;
   comment: string;
   timestamp: string;
   bonusGranted: number;
+  /**
+   * Whether this reviewer has agreed to be shown publicly.
+   *
+   * ALWAYS false on write — there is deliberately no code path that sets
+   * this to true. It is flipped by hand, in the data store, only after we
+   * have asked that specific person and they said yes. Reviews remain
+   * private by default; capturing name and picture just means we won't
+   * have to go back and ask for them later.
+   *
+   * If a public reviews section is ever built, it must filter on this
+   * flag — and the flag alone is not consent, it is a record that consent
+   * was obtained.
+   */
+  approvedForPublicDisplay: boolean;
 }
 
 function reviewKey(email: string): string {
@@ -62,6 +80,9 @@ export type SubmitResult =
 
 export async function submitReview(input: {
   email: string;
+  /** From the session, not the request body — a client can't spoof these. */
+  name?: string | null;
+  image?: string | null;
   stars: number;
   comment: string;
 }): Promise<SubmitResult> {
@@ -84,10 +105,17 @@ export async function submitReview(input: {
   }
   const payload: ReviewPayload = {
     email: input.email.toLowerCase(),
+    // Only stored when the provider actually gave us one — an absent name
+    // or picture stays absent rather than becoming an empty string.
+    ...(input.name ? { name: input.name.slice(0, 120) } : {}),
+    ...(input.image ? { image: input.image.slice(0, 500) } : {}),
     stars: stars as 1 | 2 | 3 | 4 | 5,
     comment: comment.slice(0, 2000),
     timestamp: new Date().toISOString(),
     bonusGranted: REVIEW_BONUS_CHECKS,
+    // Hard-coded false. Do not add a parameter for this — approval is a
+    // manual step taken only after asking the reviewer directly.
+    approvedForPublicDisplay: false,
   };
   const store = kv();
   await store.set(reviewKey(input.email), JSON.stringify(payload));
@@ -106,7 +134,12 @@ export async function listReviews(): Promise<ReviewPayload[]> {
     const raw = await store.get(reviewKey(email));
     if (!raw) continue;
     try {
-      out.push(JSON.parse(raw) as ReviewPayload);
+      const rec = JSON.parse(raw) as ReviewPayload;
+      // Records written before the flag existed have no value for it.
+      // Coerce to a real boolean so a missing field can never read as
+      // anything but "not approved".
+      rec.approvedForPublicDisplay = rec.approvedForPublicDisplay === true;
+      out.push(rec);
     } catch {
       // skip corrupted record
     }

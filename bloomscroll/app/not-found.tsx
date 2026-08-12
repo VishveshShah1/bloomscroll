@@ -39,7 +39,7 @@ export default function NotFound() {
         {/* One sage panel on cream — the site's card treatment, giving the
             message a shape to sit in without adding clutter. */}
         <div className="w-full rounded-[24px] border border-forest/15 bg-moss/40 p-8 sm:p-10">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-forest">
+          <p className="text-[19px] font-extrabold uppercase tracking-[0.12em] text-forest sm:text-[23px]">
             404 · page not found
           </p>
           <h1 className="mt-4 text-[32px] font-semibold leading-[1.1] tracking-display text-ink sm:text-[40px]">
@@ -47,7 +47,7 @@ export default function NotFound() {
           </h1>
           <p className="mx-auto mt-4 max-w-[46ch] text-[15.5px] leading-relaxed text-bark">
             No sources, no citations, nothing in the literature. Either the link
-            is wrong or the page never existed — and we&apos;d rather say so than
+            is wrong or the page never existed. We&apos;d rather say so than
             guess.
           </p>
           <Link href="/" className="btn-primary focus-ring mt-8">
