@@ -28,7 +28,10 @@ function SignInInner() {
   const [tosAccepted, setTosAccepted] = useState(false);
   // Optional: opt-in (never opt-out). Unchecked by default.
   const [emailOptIn, setEmailOptIn] = useState(false);
-  const callbackUrl = params.get("callbackUrl") || "/check";
+  // The dashboard is the main page — checker, usage, plan, and account all
+  // live there — so that's where a fresh sign-in lands unless the caller
+  // asked for somewhere specific via ?callbackUrl=.
+  const callbackUrl = params.get("callbackUrl") || "/dashboard";
   const errorCode = params.get("error");
   const errorMessage = errorCode ? (ERRORS[errorCode] ?? "Sign in failed. Try again.") : null;
 

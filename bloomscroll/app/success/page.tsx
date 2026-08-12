@@ -39,7 +39,7 @@ export default function SuccessPage() {
             we&apos;ll fix it fast.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/check" className="btn-primary focus-ring">
+            <Link href="/dashboard" className="btn-primary focus-ring">
               check a claim →
             </Link>
             <Link href="/access" className="btn-ghost focus-ring">

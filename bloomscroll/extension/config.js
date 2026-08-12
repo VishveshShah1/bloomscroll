@@ -12,6 +12,10 @@ export async function getSite() {
   }
 }
 
+// Targets /dashboard, which is where the checker lives and where a ?q=
+// payload is picked up and auto-run. This used to point at the bare origin,
+// but the homepage never had a ?q= handler — the query was silently dropped
+// and the user just landed on the marketing page.
 export function buildCheckUrl(origin, query) {
-  return `${origin.replace(/\/+$/, "")}/?q=${encodeURIComponent(query)}`;
+  return `${origin.replace(/\/+$/, "")}/dashboard?q=${encodeURIComponent(query)}`;
 }

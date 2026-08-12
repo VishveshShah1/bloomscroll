@@ -67,3 +67,22 @@ export interface CheckResponse {
   resolveError?: ResolveError;
   inputWarning?: SafetyNote;
 }
+
+export type Plan = "seed" | "sprout" | "canopy";
+
+/**
+ * Shape returned by /api/usage and by the `usage` SSE event on /api/check.
+ * Shared so the dashboard and the checker can pass one snapshot between
+ * them instead of each fetching their own and drifting out of sync.
+ */
+export interface UsageSnapshot {
+  signedIn: boolean;
+  plan: Plan;
+  used: number;
+  /** null = unlimited (Canopy) */
+  limit: number | null;
+  /** Bonus checks granted by leaving a review — already folded into `limit`. */
+  bonus?: number;
+  resetAt: string | null;
+  email?: string;
+}

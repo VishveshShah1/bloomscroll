@@ -1,0 +1,10 @@
+.vercel
+
+# Secrets — never commit. The root .env.local holds a live ANTHROPIC_API_KEY;
+# bloomscroll/.gitignore already covers the app-level one.
+.env
+.env.local
+.env*.local
+
+# macOS junk
+.DS_Store

@@ -6,19 +6,8 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Wordmark from "@/components/Wordmark";
 import ReviewForm from "@/components/ReviewForm";
-
-type Plan = "seed" | "sprout" | "canopy";
-type UsageSnapshot = {
-  signedIn: boolean;
-  plan: Plan;
-  used: number;
-  /** null = unlimited (paid tier) */
-  limit: number | null;
-  /** Bonus checks granted by leaving a review — already folded into `limit`. */
-  bonus: number;
-  resetAt: string | null;
-  email?: string;
-};
+import Checker from "@/components/Checker";
+import type { Plan, UsageSnapshot } from "@/lib/types";
 
 const PLAN_LABEL: Record<Plan, string> = {
   seed: "Seed",
@@ -52,10 +41,22 @@ export default function DashboardPage() {
   const [snap, setSnap] = useState<UsageSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  // Mirrors the checker's in-flight state so the nav wordmark can animate
+  // while a check streams, same as the old /check page did.
+  const [checking, setChecking] = useState(false);
 
   // TEMP: ?preview=1 lets us view the dashboard UI without a real session,
   // for design review. Delete when the sign-in flow is stable.
+  //
+  // Gated behind `mounted` because reading window.location during render
+  // makes the server (no window → false) and the client's first render
+  // (preview → true) disagree, which React reports as a hydration failure
+  // and then throws away the server HTML. Deferring to after mount keeps
+  // both first renders identical.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const isPreview =
+    mounted &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("preview") === "1";
 
@@ -77,12 +78,19 @@ export default function DashboardPage() {
     : null;
 
   // Kick anonymous visitors to sign-in with a callback back to /dashboard.
+  // Waits for `mounted` so a preview load isn't bounced to /signin in the
+  // one render before isPreview can be resolved.
   useEffect(() => {
-    if (isPreview) return;
+    if (!mounted || isPreview) return;
     if (status === "unauthenticated") {
-      router.replace("/signin?callbackUrl=/dashboard");
+      // Carry the query string through sign-in. The extension, bookmarklet,
+      // and share target all arrive as /dashboard?q=…, and a signed-out user
+      // is the common first-use case — dropping the param here would land
+      // them on an empty checker with no idea what they'd clicked.
+      const target = `/dashboard${window.location.search}`;
+      router.replace(`/signin?callbackUrl=${encodeURIComponent(target)}`);
     }
-  }, [status, router, isPreview]);
+  }, [status, router, isPreview, mounted]);
 
   // Fetch usage — extracted so ReviewForm can trigger a refresh after
   // the bonus is granted so the new limit shows up immediately.
@@ -114,7 +122,7 @@ export default function DashboardPage() {
     void refreshUsage();
   }, [status, isPreview, refreshUsage]);
 
-  if (!isPreview && (status === "loading" || status === "unauthenticated")) {
+  if (!mounted || (!isPreview && (status === "loading" || status === "unauthenticated"))) {
     return (
       <div className="flex min-h-screen items-center justify-center text-bark">
         <p className="text-[14px]">Loading…</p>
@@ -139,7 +147,7 @@ export default function DashboardPage() {
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
           <div className="flex items-center gap-4">
             <Link href="/" className="focus-ring rounded-md">
-              <Wordmark className="text-[22px]" />
+              <Wordmark busy={checking} className="text-[22px]" />
             </Link>
             <Link
               href="/"
@@ -164,12 +172,9 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/check"
-              className="focus-ring rounded-full bg-forest px-4 py-2 text-[13px] font-semibold text-canvas shadow-[0_6px_18px_rgba(30,77,43,0.2)] transition hover:-translate-y-0.5 hover:bg-[#16391f]"
-            >
-              Open the checker →
-            </Link>
+            {/* No "open the checker" link any more — the checker lives on
+                this page now, so pointing elsewhere would be a round trip
+                back to where you already are. */}
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
@@ -225,6 +230,36 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* The checker itself — the main thing you come here to do, so it
+            sits directly under the greeting and above the account cards.
+            It shares the parent's usage snapshot, so a check that spends a
+            credit moves the usage card below without a refetch. */}
+        <div className="relative mt-10" id="checker">
+          <Checker
+            usage={activeSnap}
+            onUsageChange={setSnap}
+            onBusyChange={setChecking}
+          />
+        </div>
+
+        {/* Review widget. One per account, private, grants +3 checks on first
+            successful submit; triggers a usage refresh so the new limit shows
+            up without a page reload.
+
+            Sits directly under the checker, ahead of the account cards. It
+            used to live at the very bottom, which measured 2.6 viewports down
+            once a result had rendered — two full screens of scrolling, so
+            most people would never have seen it. Here it lands at the end of
+            the result the user just read, which is both the highest-traffic
+            spot on the page and the moment they actually have an opinion
+            worth writing down. */}
+        <div className="relative mt-6">
+          <ReviewForm
+            signedIn={Boolean(activeSession?.user?.email) || isPreview}
+            onBonusGranted={() => void refreshUsage()}
+          />
+        </div>
+
         <div className="relative mt-12 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
           {/* Usage card */}
           <div className="surface-lg rounded-[24px] p-8">
@@ -240,7 +275,7 @@ export default function DashboardPage() {
                     / {limit === null ? "unlimited" : limit}
                   </span>
                 </p>
-                {activeSnap && activeSnap.bonus > 0 && (
+                {activeSnap && (activeSnap.bonus ?? 0) > 0 && (
                   <p className="mt-2 inline-flex items-center gap-1 rounded-full border border-forest/30 bg-moss/60 px-2.5 py-0.5 text-[11px] font-semibold text-forest">
                     +{activeSnap.bonus} review bonus applied
                   </p>
@@ -293,12 +328,14 @@ export default function DashboardPage() {
             )}
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/check"
+              {/* Same-page jump now that the checker is above, rather than a
+                  navigation to a route that no longer renders it. */}
+              <a
+                href="#checker"
                 className="focus-ring inline-flex items-center gap-2 rounded-full bg-forest px-5 py-3 text-[14px] font-semibold text-canvas shadow-[0_8px_22px_rgba(30,77,43,0.2)] transition hover:-translate-y-0.5 hover:bg-[#16391f]"
               >
-                Run a check →
-              </Link>
+                Run a check ↑
+              </a>
               <Link
                 href="/access"
                 className="focus-ring inline-flex items-center gap-2 rounded-full border border-ink/12 px-5 py-3 text-[14px] font-semibold text-ink transition hover:border-ink/25 hover:bg-white/60"
@@ -368,7 +405,7 @@ export default function DashboardPage() {
             )}
 
             {/* Tiny help card. A real support inbox is on the way; for
-                now, the review flow below is the fastest way to send
+                now, the review flow above is the fastest way to send
                 anything through. TODO: swap to support@bloomscroll.app
                 once the mailbox exists. */}
             <div className="surface rounded-[24px] p-6">
@@ -377,21 +414,11 @@ export default function DashboardPage() {
               </p>
               <p className="mt-2 text-[14px] leading-relaxed text-bark">
                 A dedicated support inbox is coming soon. Until then, use the
-                review below or the feedback prompt on a check result — both
-                land in the same place.
+                review form above or the feedback prompt on a check result —
+                both land in the same place.
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Review widget. One per account, private, grants +3 checks
-            on first successful submit. Triggers a usage refresh so the
-            new limit shows up in the card above without a page reload. */}
-        <div className="relative mt-6">
-          <ReviewForm
-            signedIn={Boolean(activeSession?.user?.email) || isPreview}
-            onBonusGranted={() => void refreshUsage()}
-          />
         </div>
 
         <p className="mt-10 text-[12px] text-bark">

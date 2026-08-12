@@ -11,6 +11,7 @@ import {
   UsageLimitExceededError,
 } from "@/lib/usage";
 import type { Lang } from "@/lib/i18n";
+import { isExampleClaim } from "@/lib/examples";
 import { bodyLimitResponse, readJsonBody } from "@/lib/http";
 import type { SpendContext } from "@/lib/spend";
 
@@ -71,6 +72,12 @@ export async function POST(request: Request) {
       headers: { "content-type": "application/json" },
     });
   }
+
+  // Free-run flag for the built-in example claims. Computed from the input
+  // itself so it can't be spoofed by the caller. The hourly rate limit and
+  // the global spend cap still apply — "free" here means "doesn't decrement
+  // the monthly counter", not "unmetered".
+  const isExample = isExampleClaim(input);
 
   // Hourly rate gate — applies to every tier, atomic incr-then-check. Runs
   // FIRST because it's a single KV op and stops hammering earliest.
@@ -139,8 +146,14 @@ export async function POST(request: Request) {
           if (ev.stage === "done") {
             // Only charge the user's quota on a real "done" (resolveError
             // means we never touched the AI pipeline; skip in that case).
+            //
+            // Built-in example claims are also free: they exist to show a
+            // new user what the product does, so spending one of their five
+            // monthly checks on a demo is a bad first impression. Decided
+            // here, server-side, against the canonical list — the client
+            // never gets to declare its own request free.
             const isResolveError = Boolean(ev.payload.resolveError);
-            if (!isResolveError) {
+            if (!isResolveError && !isExample) {
               try {
                 await incrementMonthlyUsage(userId);
                 const snap = await readQuota(userId, session?.user?.email ?? null);

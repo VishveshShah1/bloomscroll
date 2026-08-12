@@ -21,7 +21,7 @@ Works in Chrome, Edge, Brave, Arc, and any other Chromium-based browser.
 - **Right-click a highlighted phrase** → "Check '\"…\"' with Bloomscroll" — opens the check in a new tab.
 - **Right-click a page, link, or video** → "Check this page with Bloomscroll".
 
-Every action opens `bloomscroll.…/?q=<what-you-picked>` in a new tab. The site auto-runs the check on load.
+Every action opens `bloomscroll.…/dashboard?q=<what-you-picked>` in a new tab. The dashboard auto-runs the check on load (you'll be sent through sign-in first if you aren't signed in).
 
 ## Point it at a different origin
 

@@ -11,7 +11,7 @@ function ShareInner() {
 
   useEffect(() => {
     const q = params.get("url") || params.get("text") || params.get("title") || "";
-    router.replace(q ? `/check?q=${encodeURIComponent(q)}` : "/check");
+    router.replace(q ? `/dashboard?q=${encodeURIComponent(q)}` : "/dashboard");
   }, [params, router]);
 
   return (

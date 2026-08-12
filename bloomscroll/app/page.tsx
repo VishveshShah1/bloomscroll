@@ -625,7 +625,7 @@ export default function LandingPage() {
             </p>
             <div data-reveal data-d="3" className="reveal mt-7">
               <Link
-                href={signedIn ? "/check" : "/signin"}
+                href={signedIn ? "/dashboard" : "/signin"}
                 className="btn-primary focus-ring text-[17px]"
               >
                 {signedIn ? t.nav.check : t.hero.primaryCta} →
@@ -1166,7 +1166,7 @@ export default function LandingPage() {
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href={signedIn ? "/check" : "/signin"}
+                href={signedIn ? "/dashboard" : "/signin"}
                 className="focus-ring inline-flex items-center gap-2 rounded-full bg-canvas px-8 py-4 text-[16px] font-semibold text-forest shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5 hover:bg-white"
               >
                 {signedIn ? t.nav.check : t.cta.button} →
@@ -1260,7 +1260,7 @@ export default function LandingPage() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => signIn("google", { callbackUrl: "/check" })}
+                    onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
                     className="focus-ring w-fit text-left text-[14px] font-semibold text-canvas/85 transition hover:text-canvas"
                   >
                     {t.nav.signIn}
