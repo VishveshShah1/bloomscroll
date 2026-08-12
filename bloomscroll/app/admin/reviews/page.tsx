@@ -15,7 +15,8 @@ interface Review {
 
 /**
  * Admin-only view of submitted reviews. Gated at the API level by the
- * ADMIN_EMAIL env var — this page will just render "forbidden" for
+ * ADMIN_EMAIL env var (a single address, or several comma-separated) —
+ * this page will just render "forbidden" for
  * anyone else. Reviews are never surfaced on the public site; this is
  * a private tool for the operator to eyeball submissions and pick
  * quotes to feature manually with the reviewer's permission.
@@ -67,7 +68,7 @@ export default function AdminReviewsPage() {
             Not for this account.
           </h1>
           <p className="mt-2 text-[14px] text-bark">
-            This view is limited to the operator email set in
+            This view is limited to the operator emails listed in
             ADMIN_EMAIL. Signed in as{" "}
             {session?.user?.email ?? "no one"}.
           </p>

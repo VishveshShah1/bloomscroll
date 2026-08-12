@@ -148,9 +148,30 @@ export async function listReviews(): Promise<ReviewPayload[]> {
   return out.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
 }
 
-/** Admin gate — matches session email against ADMIN_EMAIL env, case-insensitive. */
+/**
+ * Admin gate — matches the signed-in email against ADMIN_EMAIL,
+ * case-insensitive.
+ *
+ * ADMIN_EMAIL accepts either a single address or a comma-separated list:
+ *
+ *   ADMIN_EMAIL=me@gmail.com
+ *   ADMIN_EMAIL=me@gmail.com, you@gmail.com
+ *
+ * A single value behaves exactly as it did before — a one-entry list is
+ * just the general case. Entries are trimmed, so spaces after commas are
+ * fine, and empty segments (a trailing comma, a stray ", ,") are dropped
+ * rather than becoming an empty-string entry that anything could match.
+ */
+export function parseAdminEmails(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function isAdmin(email: string | null | undefined): boolean {
-  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (!adminEmail) return false;
-  return Boolean(email && email.toLowerCase() === adminEmail);
+  if (!email) return false;
+  const admins = parseAdminEmails(process.env.ADMIN_EMAIL);
+  if (admins.length === 0) return false;
+  return admins.includes(email.trim().toLowerCase());
 }
