@@ -120,13 +120,13 @@ export default function TermsPage() {
           className="pointer-events-none absolute -top-20 -left-24 h-[380px] w-[380px] rounded-full opacity-40 blur-3xl"
           style={{ background: "radial-gradient(circle, #DDE7DA 0%, transparent 70%)" }}
         />
-        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em] text-adaptive-soft">
           terms of service
         </p>
-        <h1 className="relative mt-3 text-[42px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[60px]">
+        <h1 className="relative mt-3 text-[42px] font-semibold leading-[1.02] tracking-display text-adaptive sm:text-[60px]">
           The plain rules for using Bloomscroll.
         </h1>
-        <p className="relative mt-5 max-w-[62ch] text-[17px] leading-relaxed text-bark">
+        <p className="relative mt-5 max-w-[62ch] text-[17px] leading-relaxed text-adaptive-soft">
           Short version: use it to check claims, don&apos;t abuse it, don&apos;t treat
           a verdict as medical advice. Long version below.
         </p>
@@ -134,11 +134,11 @@ export default function TermsPage() {
         <div className="mt-12 flex flex-col gap-10">
           {SECTIONS.map((s) => (
             <section key={s.heading}>
-              <h2 className="text-[22px] font-semibold text-ink">{s.heading}</h2>
+              <h2 className="text-[22px] font-semibold text-adaptive">{s.heading}</h2>
               <ul className="mt-4 flex flex-col gap-2.5">
                 {s.items.map((i) => (
-                  <li key={i} className="flex gap-3 text-[15.5px] leading-relaxed text-bark">
-                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-forest" />
+                  <li key={i} className="flex gap-3 text-[15.5px] leading-relaxed text-adaptive-soft">
+                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
                     <span>{i}</span>
                   </li>
                 ))}
@@ -160,8 +160,8 @@ export default function TermsPage() {
           </p>
         </div>
 
-        <p className="mt-8 text-[12.5px] text-bark">Last updated: 2026-07-25.</p>
-        <p className="mt-2 text-[12px] text-bark">
+        <p className="mt-8 text-[12.5px] text-adaptive-soft">Last updated: 2026-07-25.</p>
+        <p className="mt-2 text-[12px] text-adaptive-soft">
           © 2026 Bloomscroll. All rights reserved.
         </p>
       </main>

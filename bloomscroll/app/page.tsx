@@ -231,7 +231,7 @@ function Nav({
                 href="/signin"
                 className="focus-ring hidden rounded-full border border-ink/12 px-4 py-2 text-[13.5px] font-semibold text-ink transition hover:border-ink/25 hover:bg-white/60 sm:inline-block"
               >
-                log in
+                Log in
               </Link>
               <Link
                 href="/signin"
@@ -280,7 +280,7 @@ function Nav({
                   onClick={() => setOpen(false)}
                   className="focus-ring text-[16px] font-semibold text-ink"
                 >
-                  log in
+                  Log in
                 </Link>
                 <Link
                   href="/signin"
@@ -435,10 +435,10 @@ function TryDemo() {
 
   return (
     <section aria-label="Try a live demo" className="relative overflow-hidden py-14 sm:py-20">
-      <div className="brand-watermark -bottom-10 -left-16 hidden sm:block">
+      <div className="brand-watermark bottom-6 left-4 hidden sm:block">
         <BMark className="h-[280px] w-auto" strokeWidth={2.4} />
       </div>
-      <div className="brand-watermark top-6 right-[-3%] hidden md:block">
+      <div className="brand-watermark top-6 right-4 hidden md:block">
         <BMark className="h-[200px] w-auto" strokeWidth={2.4} />
       </div>
       <div className="relative mx-auto w-full max-w-5xl px-4 sm:px-8">
@@ -590,25 +590,25 @@ export default function LandingPage() {
       />
 
       {/* Hero -------------------------------------------------------------- */}
-      <section className="relative overflow-hidden">
-        {/* soft decorative blobs so the sides never look empty on wide screens */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-32 -left-40 h-[520px] w-[520px] rounded-full opacity-40 blur-3xl"
-          style={{ background: "radial-gradient(circle, #E8EDDE 0%, transparent 70%)" }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-16 -right-40 h-[480px] w-[480px] rounded-full opacity-40 blur-3xl"
-          style={{ background: "radial-gradient(circle, #DDE7DA 0%, transparent 70%)" }}
-        />
-        {/* huge b-mark watermark, right side of hero, low opacity — brand
-            presence without being loud. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-8 right-[-6%] hidden opacity-[0.045] lg:block"
-        >
-          <BMark className="h-[560px] w-auto text-forest" strokeWidth={2.4} />
+      {/* NOTE: overflow-hidden lives on the decoration layer below, not on the
+          section. The section itself must NOT clip, or the hero phone's drop
+          shadow gets sliced off in a hard horizontal line at the section edge. */}
+      <section className="relative">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* soft decorative blobs so the sides never look empty on wide screens */}
+          <div
+            className="absolute -top-32 -left-40 h-[520px] w-[520px] rounded-full opacity-40 blur-3xl"
+            style={{ background: "radial-gradient(circle, #E8EDDE 0%, transparent 70%)" }}
+          />
+          <div
+            className="absolute -top-16 -right-40 h-[480px] w-[480px] rounded-full opacity-40 blur-3xl"
+            style={{ background: "radial-gradient(circle, #DDE7DA 0%, transparent 70%)" }}
+          />
+          {/* huge b-mark watermark, right side of hero, low opacity — brand
+              presence without being loud. */}
+          <div className="absolute top-6 right-4 hidden opacity-[0.045] lg:block">
+            <BMark className="h-[560px] w-auto text-forest" strokeWidth={2.4} />
+          </div>
         </div>
         <div className="relative mx-auto grid w-full max-w-7xl gap-6 px-4 pb-12 pt-4 sm:px-8 sm:pt-6 lg:grid-cols-[1.05fr_0.85fr] lg:items-start lg:gap-14 lg:pb-16 lg:pt-6">
           <div className="flex flex-col justify-start">
@@ -726,10 +726,10 @@ export default function LandingPage() {
         id="how"
         className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28"
       >
-        <div className="brand-watermark -top-10 right-[3%] hidden md:block">
+        <div className="brand-watermark top-6 right-[3%] hidden md:block">
           <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark -bottom-16 left-[6%] hidden lg:block">
+        <div className="brand-watermark bottom-6 left-[6%] hidden lg:block">
           <BMark className="h-[300px] w-auto" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
@@ -799,21 +799,24 @@ export default function LandingPage() {
       {/* Use cases — transparent so the shared ScrollBackground body tint
           shows through, matching every other section. */}
       <section className="relative overflow-hidden py-20 sm:py-28">
-        <div className="brand-watermark top-12 -left-16 hidden md:block">
+        <div className="brand-watermark top-12 left-4 hidden md:block">
           <BMark className="h-[260px] w-auto" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark -bottom-14 right-[8%] hidden lg:block">
+        <div className="brand-watermark bottom-6 right-[8%] hidden lg:block">
           <BMark className="h-[200px] w-auto" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div data-reveal className="reveal max-w-[54ch]">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
+            {/* This block sits on the deep-forest end of the scroll tint
+                (bg ≈ rgb(40,75,54) here), so it uses the cream palette like
+                the other dark sections. Ink-on-forest was ~1.7:1 — unreadable. */}
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-canvas/75">
               use cases
             </p>
-            <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[52px]">
+            <h2 className="mt-3 text-[34px] font-semibold leading-[1.02] tracking-display text-canvas sm:text-[52px]">
               {t.useCases.title}
             </h2>
-            <p className="mt-5 text-[17px] leading-relaxed text-bark sm:text-[18px]">{t.useCases.sub}</p>
+            <p className="mt-5 text-[17px] leading-relaxed text-canvas/80 sm:text-[18px]">{t.useCases.sub}</p>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {t.useCases.items.map((u, i) => {
@@ -859,10 +862,10 @@ export default function LandingPage() {
         id="verdicts"
         className="scroll-mt-20 relative overflow-hidden py-24 sm:py-32"
       >
-        <div className="brand-watermark-light -bottom-24 -right-10 sm:-right-24">
+        <div className="brand-watermark-light bottom-8 right-6 sm:right-10">
           <BMark className="h-[380px] w-auto sm:h-[560px]" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark-light -top-16 -left-10 sm:-left-20">
+        <div className="brand-watermark-light top-8 left-6 sm:left-10">
           <BMark className="h-[300px] w-auto sm:h-[420px]" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
@@ -909,10 +912,10 @@ export default function LandingPage() {
           the scroll where --bg-color is deep forest, so text + buttons
           adopt the on-dark cream palette. */}
       <section id="access" className="scroll-mt-20 relative overflow-hidden py-20 sm:py-28">
-        <div className="brand-watermark-light -top-10 -right-14 hidden md:block">
+        <div className="brand-watermark-light top-6 right-4 hidden md:block">
           <BMark className="h-[280px] w-auto" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark-light bottom-4 -left-12 hidden lg:block">
+        <div className="brand-watermark-light bottom-4 left-4 hidden lg:block">
           <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-5xl px-4 text-center sm:px-8">
@@ -962,7 +965,7 @@ export default function LandingPage() {
         <div className="brand-watermark-light top-8 right-[4%] hidden md:block">
           <BMark className="h-[260px] w-auto" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark-light -bottom-10 left-[8%] hidden lg:block">
+        <div className="brand-watermark-light bottom-6 left-[8%] hidden lg:block">
           <BMark className="h-[220px] w-auto" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-8">
@@ -1150,10 +1153,10 @@ export default function LandingPage() {
           forest endpoint. Buttons + text switch to cream so they contrast
           the dark backdrop; watermarks flip to the light variant. */}
       <section className="relative overflow-hidden py-20 sm:py-28">
-        <div className="brand-watermark-light -bottom-16 -right-14 sm:-right-24">
-          <BMark className="h-[340px] w-auto sm:h-[500px]" strokeWidth={2.4} />
+        <div className="brand-watermark-light bottom-6 right-4 sm:right-8">
+          <BMark className="h-[300px] w-auto sm:h-[440px]" strokeWidth={2.4} />
         </div>
-        <div className="brand-watermark-light -top-10 -left-12">
+        <div className="brand-watermark-light top-6 left-4">
           <BMark className="h-[240px] w-auto sm:h-[360px]" strokeWidth={2.4} />
         </div>
         <div className="relative mx-auto w-full max-w-4xl px-4 sm:px-8">
@@ -1176,7 +1179,7 @@ export default function LandingPage() {
                   href="/signin"
                   className="focus-ring inline-flex items-center gap-2 rounded-full border border-canvas/40 px-7 py-[15px] text-[15px] font-semibold text-canvas transition hover:border-canvas/70 hover:bg-canvas/10"
                 >
-                  log in
+                  Log in
                 </Link>
               )}
             </div>

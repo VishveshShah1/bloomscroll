@@ -5,15 +5,15 @@ export type Lang = "en" | "fr";
 
 const EN = {
   nav: {
-    how: "how it works",
-    verdicts: "verdicts",
-    pricing: "pricing",
-    getApp: "get the app",
-    check: "open the checker",
-    menu: "menu",
-    signIn: "sign in",
-    startFree: "start free",
-    faq: "faq",
+    how: "How it works",
+    verdicts: "Verdicts",
+    pricing: "Pricing",
+    getApp: "Get the app",
+    check: "Open the checker",
+    menu: "Menu",
+    signIn: "Sign in",
+    startFree: "Start free",
+    faq: "FAQ",
   },
   hero: {
     tagline: "the anti-doomscroll",

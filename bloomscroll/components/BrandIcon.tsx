@@ -12,54 +12,43 @@ export function BrandIcon({ kind, size = 36 }: { kind: BrandKind; size?: number 
   if (kind === "youtube") {
     return (
       <svg viewBox="0 0 32 32" width={s} height={s} aria-hidden="true">
-        <rect x="1" y="6" width="30" height="20" rx="6" fill="#FF0033" />
-        <polygon points="13,11.5 13,20.5 21,16" fill="#FFFFFF" />
+        {/* narrower body — closer to the real 16:11 play-button proportion */}
+        <rect x="4" y="7" width="24" height="18" rx="5.5" fill="#FF0033" />
+        <polygon points="13.5,11.8 13.5,20.2 20.5,16" fill="#FFFFFF" />
       </svg>
     );
   }
   if (kind === "tiktok") {
+    // Official app icon asset rather than a redraw — nominative use, and it
+    // avoids the uncanny-valley of an approximated logo.
+    // eslint-disable-next-line @next/next/no-img-element
     return (
-      <svg viewBox="0 0 32 32" width={s} height={s} aria-hidden="true">
-        <rect x="1" y="1" width="30" height="30" rx="7" fill="#111" />
-        {/* magenta ghost note */}
-        <path
-          d="M20 8.5 v9.5 a4.2 4.2 0 1 1 -4.2 -4.2 v3 a1.4 1.4 0 1 0 1.4 1.4 v-11 h2.8 z"
-          fill="#F41F63"
-          transform="translate(-1.2 1.2)"
-        />
-        {/* cyan ghost note */}
-        <path
-          d="M20 8.5 v9.5 a4.2 4.2 0 1 1 -4.2 -4.2 v3 a1.4 1.4 0 1 0 1.4 1.4 v-11 h2.8 z"
-          fill="#25F4EE"
-          transform="translate(1.2 -0.6)"
-        />
-        {/* white main note on top */}
-        <path
-          d="M20 8.5 v9.5 a4.2 4.2 0 1 1 -4.2 -4.2 v3 a1.4 1.4 0 1 0 1.4 1.4 v-11 h2.8 z"
-          fill="#FFFFFF"
-        />
-      </svg>
+      <img
+        src="/brand/tiktok.png"
+        alt=""
+        width={s}
+        height={s}
+        aria-hidden="true"
+        className="block rounded-[22%] object-cover"
+        style={{ width: s, height: s }}
+      />
     );
   }
   if (kind === "reddit") {
+    // Official app icon asset. The source JPEG has white corners outside the
+    // orange tile, so the radius here matches the tile's own corner radius
+    // and clips them away.
+    // eslint-disable-next-line @next/next/no-img-element
     return (
-      <svg viewBox="0 0 32 32" width={s} height={s} aria-hidden="true">
-        <circle cx="16" cy="16" r="15" fill="#FF4500" />
-        {/* head */}
-        <ellipse cx="16" cy="18" rx="9.5" ry="7.5" fill="#FFFFFF" />
-        {/* antenna dot */}
-        <circle cx="22" cy="9" r="2.4" fill="#FFFFFF" />
-        <circle cx="22" cy="9" r="1.2" fill="#FF4500" />
-        <line x1="22" y1="10.4" x2="18.5" y2="14" stroke="#FFFFFF" strokeWidth="1.4" strokeLinecap="round" />
-        {/* eyes */}
-        <circle cx="12" cy="17" r="1.6" fill="#FF4500" />
-        <circle cx="20" cy="17" r="1.6" fill="#FF4500" />
-        {/* mouth */}
-        <path d="M12 21 q4 2 8 0" fill="none" stroke="#111" strokeWidth="1.2" strokeLinecap="round" />
-        {/* ears */}
-        <circle cx="7" cy="17" r="1.6" fill="#FFFFFF" />
-        <circle cx="25" cy="17" r="1.6" fill="#FFFFFF" />
-      </svg>
+      <img
+        src="/brand/reddit.jpg"
+        alt=""
+        width={s}
+        height={s}
+        aria-hidden="true"
+        className="block rounded-[22%] object-cover"
+        style={{ width: s, height: s }}
+      />
     );
   }
   if (kind === "articles") {
@@ -77,13 +66,28 @@ export function BrandIcon({ kind, size = 36 }: { kind: BrandKind; size?: number 
   if (kind === "diet") {
     return (
       <svg viewBox="0 0 32 32" width={s} height={s} aria-hidden="true">
-        <circle cx="16" cy="16" r="14" fill="#4A8B5A" />
-        <circle cx="16" cy="16" r="8.5" fill="#F6F3EA" />
-        {/* fork/knife glyph */}
-        <path d="M10 10 v6 a2 2 0 0 0 2 2 v4" stroke="#1E4D2B" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-        <path d="M12 10 v4 M14 10 v4" stroke="#1E4D2B" strokeWidth="1.4" strokeLinecap="round" />
-        <path d="M20 10 v12" stroke="#1E4D2B" strokeWidth="1.6" strokeLinecap="round" />
-        <path d="M20 10 h2 v6 h-2 z" fill="#1E4D2B" />
+        {/* No plate — just cutlery, drawn large so it reads at 36px.
+            Fork: 4 pointed tines → shoulder → handle.
+            Spoon: oval bowl → same handle. */}
+        <g fill="#1E4D2B">
+          {/* fork tines — three, each tapering to a sharp point at the top */}
+          {[8.8, 11.2, 13.6].map((x) => (
+            <path key={x} d={`M${x} 3.2 L${x + 1.05} 3.2 L${x + 1.05} 10.6 L${x} 10.6 Z`} />
+          ))}
+          {[8.8, 11.2, 13.6].map((x) => (
+            <path key={`tip${x}`} d={`M${x} 3.6 L${x + 0.52} 2 L${x + 1.05} 3.6 Z`} />
+          ))}
+          {/* shoulder the tines merge into */}
+          <path d="M8.8 10.4 h5.85 v1.9 a2.93 2.93 0 0 1 -2.92 2.93 a2.93 2.93 0 0 1 -2.93 -2.93 z" />
+          {/* handle */}
+          <rect x="10.92" y="14.8" width="1.6" height="14.8" rx="0.8" />
+        </g>
+        <g fill="#1E4D2B">
+          {/* spoon bowl */}
+          <ellipse cx="21.6" cy="7.4" rx="3.75" ry="5.4" />
+          {/* handle — same width + radius as the fork's */}
+          <rect x="20.8" y="12.2" width="1.6" height="17.4" rx="0.8" />
+        </g>
       </svg>
     );
   }

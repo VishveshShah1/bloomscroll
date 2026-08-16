@@ -57,6 +57,41 @@ body {
   opacity: calc(0.05 + var(--scroll-tint) * 0.045);
 }
 
+/* Scroll-adaptive text ---------------------------------------------------
+   Long text pages (terms, privacy) scroll far enough that the body tint
+   goes from cream to deep forest, so a fixed ink color ends up invisible.
+   These classes ride --scroll-tint and flip ink → cream.
+
+   The crossover is deliberately STEEP, not a linear fade. Measured contrast
+   against the page tint:
+       tint 0.0  ink 15.2:1   cream 1.0:1
+       tint 0.6  ink  4.3:1   cream 3.6:1   <- muddy band
+       tint 1.0  ink  1.4:1   cream 11.1:1
+   A linear fade would sit in that mid band (a grey on a mid-sage) for a
+   long stretch. Instead we hold ink until ~0.55, cross over within ~0.16,
+   and hold cream after — so the worst case on the whole ramp is ~4.2:1
+   and every other point is comfortably above AA. */
+.text-adaptive,
+.text-adaptive-soft {
+  --tint: var(--scroll-tint, 0);
+  /* Near-instant STEP, not a fade. A fade passes through mid-grey, and
+     mid-grey on the mid-sage background measured 1.49:1 — worse than
+     either endpoint. Stepping black → white at the luminance crossover
+     (tint ≈ 0.655) keeps the worst point on the entire ramp at ~4.6:1.
+     Pure #000/#fff rather than ink/cream: the extra headroom at the ends
+     is exactly what makes the crossover clear AA. */
+  --mix: clamp(0, calc((var(--tint) - 0.655) * 200), 1);
+  color: color-mix(in srgb, #ffffff calc(var(--mix) * 100%), #000000);
+}
+/* Fallback for engines without color-mix: stay ink (readable at the top,
+   which is where such a browser's user starts). */
+@supports not (color: color-mix(in srgb, #000 50%, #fff)) {
+  .text-adaptive,
+  .text-adaptive-soft {
+    color: #000000;
+  }
+}
+
 ::selection {
   background: #1e4d2b;
   color: #f6f3ea;
@@ -519,7 +554,16 @@ summary:focus-visible {
   background: #12201a;
   border-radius: 5.2em;
   padding: 0.7em;
-  box-shadow: 0 24px 60px rgba(18, 32, 26, 0.24);
+  /* Layered so the device reads as lifted off the page. The first two are
+     un-offset so the glow wraps the whole device (sides + top included)
+     rather than pooling only under it; the last two fall downward for
+     weight. Keep any ancestor from clipping these or the shadow shears
+     off in a hard line. */
+  box-shadow:
+    0 0 24px rgba(18, 32, 26, 0.10),
+    0 0 60px rgba(18, 32, 26, 0.12),
+    0 10px 30px rgba(18, 32, 26, 0.18),
+    0 30px 70px rgba(18, 32, 26, 0.22);
 }
 .hp-glass {
   position: relative;

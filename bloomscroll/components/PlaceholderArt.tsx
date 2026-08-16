@@ -102,30 +102,71 @@ export function UseCaseArt({ kind }: { kind: string }) {
   const commonProps = { viewBox: "0 0 300 210", className: "h-full w-full", "aria-hidden": true };
 
   if (kind === "TikTok") {
-    // Vertical video frame with generic side action rail.
+    // Short-form video post. Phone aspect is a true handset (~9:19.5), not a
+    // tablet, and the action rail sits INSIDE the screen along the right
+    // edge, which is where it actually lives.
+    // Screen spans x 111→189. Rail glyphs are ~8.8 wide, so railX 180 leaves
+    // a ~4.6 margin off the right edge — tight to the edge like the real UI.
+    const railX = 180;
     return (
       <svg {...commonProps}>
         <rect x="8" y="8" width="284" height="194" rx="14" fill={MOSS} />
-        {/* phone frame */}
-        <rect x="102" y="18" width="118" height="176" rx="16" fill="#0F1611" />
-        <rect x="106" y="24" width="110" height="164" rx="12" fill="#1A2A20" />
-        {/* video content */}
-        <circle cx="161" cy="106" r="22" fill="white" opacity="0.92" />
-        <polygon points="154,96 154,116 172,106" fill="#0F1611" />
-        {/* creator avatar + caption skeleton */}
-        <circle cx="118" cy="168" r="7" fill={SPROUT} />
-        <rect x="130" y="164" width="50" height="5" rx="2.5" fill="white" opacity="0.85" />
-        <rect x="130" y="174" width="34" height="4" rx="2" fill="white" opacity="0.55" />
-        {/* right rail action stack */}
-        <g fill="white" opacity="0.85">
-          <circle cx="234" cy="60" r="7" fill="none" stroke="white" strokeWidth="1.4" />
-          <path d="M231 58c1.8-1.6 4.2-1.6 6 0-.2 2.2-3 4.4-3 4.4s-2.8-2.2-3-4.4z" />
-          <circle cx="234" cy="90" r="7" fill="none" stroke="white" strokeWidth="1.4" />
-          <path d="M232 88h4v3l-2 2-2-2z" />
-          <circle cx="234" cy="120" r="7" fill="none" stroke="white" strokeWidth="1.4" />
-          <path d="M231 118l3 2 3-2M234 120v4" strokeWidth="1.4" stroke="white" fill="none" />
+        {/* phone body + screen — 84 wide x 182 tall ≈ 9:19.5 */}
+        <rect x="108" y="12" width="84" height="186" rx="15" fill="#0F1611" />
+        <rect x="111" y="15" width="78" height="180" rx="12.5" fill="#1A2A20" />
+        {/* notch */}
+        <rect x="138" y="19" width="24" height="5" rx="2.5" fill="#0F1611" />
+        {/* play affordance, centered in the screen */}
+        <circle cx="150" cy="96" r="15" fill="white" opacity="0.92" />
+        <polygon points="145,88 145,104 158,96" fill="#0F1611" />
+        {/* Action rail — inside the screen, right edge. Sized off the
+            reference UI: each glyph is ~11% of screen width (screen is 78
+            wide → ~8.6px) with ~17px vertical rhythm, so the rail reads as
+            a slim column rather than dominating the frame. */}
+        <g>
+          {/* avatar + follow plus */}
+          <circle cx={railX} cy="70" r="4.4" fill={SPROUT} stroke="white" strokeWidth="0.9" />
+          <circle cx={railX} cy="76.2" r="2.1" fill="#FE2C55" />
+          <path d={`M${railX - 1.1} 76.2 h2.2 M${railX} 75.1 v2.2`} stroke="white" strokeWidth="0.7" strokeLinecap="round" />
+          {/* heart */}
+          <path
+            d={`M${railX} 93.4 c-2.7 -1.8 -4.3 -3.1 -4.3 -4.8 a2.05 2.05 0 0 1 4.3 -1.3 a2.05 2.05 0 0 1 4.3 1.3 c0 1.7 -1.6 3 -4.3 4.8 z`}
+            fill="#FE2C55"
+          />
+          <rect x={railX - 3.4} y="95.4" width="6.8" height="1.5" rx="0.75" fill="white" opacity="0.5" />
+          {/* Comment — supplied asset (white on transparent). The source is
+              396x550 because it includes a "200" count beneath the bubble,
+              so it's drawn at full aspect (8.8 x 12.2) and clipped to the
+              top square, leaving just the bubble. */}
+          <clipPath id="ttCommentClip">
+            <rect x={railX - 4.4} y="103.4" width="8.8" height="8.8" />
+          </clipPath>
+          <image
+            href="/brand/tt-comment.webp"
+            x={railX - 4.4}
+            y="103.4"
+            width="8.8"
+            height="12.22"
+            preserveAspectRatio="xMidYMin meet"
+            clipPath="url(#ttCommentClip)"
+          />
+          <rect x={railX - 3.4} y="113.4" width="6.8" height="1.5" rx="0.75" fill="white" opacity="0.5" />
+          {/* bookmark / save */}
+          <path d={`M${railX - 3.1} 121.4 h6.2 v8.4 l-3.1 -2.5 l-3.1 2.5 z`} fill="#FFC300" />
+          <rect x={railX - 3.4} y="131.4" width="6.8" height="1.5" rx="0.75" fill="white" opacity="0.5" />
+          {/* share arrow */}
+          <path
+            d={`M${railX - 4.3} 147.6 c0.8 -3 2.9 -4.2 5.2 -4.2 v-2.1 l3.5 3.2 l-3.5 3.2 v-2.1 c-1.9 0 -3.7 0.7 -5.2 2 z`}
+            fill="white"
+          />
+          <rect x={railX - 3.4} y="149.6" width="6.8" height="1.5" rx="0.75" fill="white" opacity="0.5" />
         </g>
-        <VerdictBadge x={18} y={176} pulse />
+        {/* creator handle + caption, bottom-left inside the screen */}
+        <circle cx="120" cy="166" r="5" fill={SPROUT} />
+        <rect x="128" y="163" width="34" height="4" rx="2" fill="white" opacity="0.85" />
+        <rect x="118" y="176" width="46" height="3.4" rx="1.7" fill="white" opacity="0.55" />
+        <rect x="118" y="184" width="32" height="3.4" rx="1.7" fill="white" opacity="0.4" />
+        <VerdictBadge x={20} y={178} pulse />
       </svg>
     );
   }
@@ -146,7 +187,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
         <circle cx="34" cy="158" r="10" fill={SPROUT} />
         <rect x="50" y="150" width="150" height="8" rx="4" fill={INK} opacity="0.7" />
         <rect x="50" y="164" width="90" height="6" rx="3" fill={BARK} />
-        <VerdictBadge x={188} y={178} pulse />
+        <VerdictBadge x={20} y={178} pulse />
       </svg>
     );
   }
@@ -183,7 +224,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
         <rect x="60" y="98" width="200" height="6" rx="3" fill={BARK} />
         <rect x="60" y="110" width="180" height="6" rx="3" fill={BARK} />
         <rect x="60" y="122" width="140" height="6" rx="3" fill={BARK} />
-        <VerdictBadge x={20} y={180} pulse />
+        <VerdictBadge x={20} y={178} pulse />
       </svg>
     );
   }
@@ -233,7 +274,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
           <rect x="158" y="130" width="106" height="6" rx="3" fill={INK} opacity="0.55" />
           <rect x="158" y="142" width="72" height="6" rx="3" fill={INK} opacity="0.55" />
         </g>
-        <VerdictBadge x={188} y={178} pulse />
+        <VerdictBadge x={20} y={178} pulse />
       </svg>
     );
   }
@@ -285,7 +326,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
         </g>
         <rect x="36" y="138" width="220" height="6" rx="3" fill={INK} opacity="0.32" />
         <rect x="36" y="150" width="180" height="6" rx="3" fill={INK} opacity="0.32" />
-        <VerdictBadge x={188} y={178} pulse />
+        <VerdictBadge x={20} y={178} pulse />
       </svg>
     );
   }
@@ -294,14 +335,31 @@ export function UseCaseArt({ kind }: { kind: string }) {
     <svg {...commonProps}>
       <rect x="8" y="8" width="284" height="194" rx="14" fill={MOSS} />
       <rect x="22" y="22" width="120" height="152" rx="14" fill="white" stroke={INK} strokeOpacity="0.08" />
-      {/* bottle */}
-      <rect x="60" y="46" width="44" height="10" rx="4" fill={INK} opacity="0.55" />
-      <path d="M50 60 h64 v58 c0 12 -14 22 -32 22 s-32 -10 -32 -22 z" fill={SPROUT} opacity="0.35" />
-      <path d="M50 60 h64 v58 c0 12 -14 22 -32 22 s-32 -10 -32 -22 z" fill="none" stroke={FOREST} strokeOpacity="0.4" strokeWidth="1.4" />
-      <rect x="60" y="98" width="44" height="30" rx="4" fill="white" />
-      <rect x="66" y="106" width="32" height="4" rx="2" fill={INK} opacity="0.7" />
-      <rect x="66" y="115" width="26" height="3" rx="1.5" fill={BARK} />
-      <rect x="66" y="122" width="20" height="3" rx="1.5" fill={BARK} />
+      {/* Cosmetic pump bottle, drawn in the flat-outline style of a standard
+          packaging illustration and recolored to the brand: forest strokes,
+          sprout tint, cream ground. Reads clearly at card size. */}
+      <g fill="none" stroke={FOREST} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
+        {/* dispenser nozzle — out to the left, then angled down.
+            Stroke only: a fill here read as a stray pale-green blob. */}
+        <path d="M70 44 h-10 a4 4 0 0 0 -4 4 v4" fill="none" />
+        {/* actuator the user presses */}
+        <rect x="70" y="37" width="26" height="13" rx="3.5" fill={SPROUT} fillOpacity="0.35" />
+        {/* stem down to the collar */}
+        <rect x="77" y="50" width="12" height="8" fill={SPROUT} fillOpacity="0.2" />
+        {/* ribbed collar */}
+        <rect x="66" y="58" width="34" height="13" rx="2.5" fill={SPROUT} fillOpacity="0.35" />
+        {/* shoulder taper into the body */}
+        <path d="M66 71 c-4 3 -9 5 -9 11 v58 a8 8 0 0 0 8 8 h36 a8 8 0 0 0 8 -8 v-58 c0 -6 -5 -8 -9 -11 z" fill={SPROUT} fillOpacity="0.22" />
+      </g>
+      {/* collar ribs */}
+      <g stroke={FOREST} strokeOpacity="0.55" strokeWidth="1.4" strokeLinecap="round">
+        <path d="M73 61 v7 M80 61 v7 M87 61 v7 M94 61 v7" />
+      </g>
+      {/* product label */}
+      <rect x="63" y="96" width="38" height="30" rx="4" fill="white" stroke={FOREST} strokeOpacity="0.35" strokeWidth="1.2" />
+      <rect x="68" y="103" width="28" height="4.5" rx="2.25" fill={FOREST} opacity="0.8" />
+      <rect x="68" y="112" width="22" height="3" rx="1.5" fill={BARK} />
+      <rect x="68" y="119" width="16" height="3" rx="1.5" fill={BARK} />
       {/* ingredient list on the right */}
       <g fontFamily="-apple-system, Inter, sans-serif" fontSize="10.5">
         <text x="158" y="42" fontWeight="700" fill={INK}>Ingredients</text>
@@ -318,7 +376,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
           </g>
         ))}
       </g>
-      <VerdictBadge x={20} y={180} pulse />
+      <VerdictBadge x={20} y={178} pulse />
     </svg>
   );
 }
