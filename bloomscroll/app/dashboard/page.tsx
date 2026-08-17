@@ -395,18 +395,22 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Tiny help card. A real support inbox is on the way; for
-                now, the review flow above is the fastest way to send
-                anything through. TODO: swap to support@bloomscroll.app
-                once the mailbox exists. */}
+            {/* Tiny help card. Points at /support, which is also the URL
+                registered as the Chrome Web Store support contact. */}
             <div className="surface rounded-[24px] p-6">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-forest">
                 need something?
               </p>
               <p className="mt-2 text-[14px] leading-relaxed text-bark">
-                A dedicated support inbox is coming soon. Until then, use the
-                review form below or the feedback prompt on a check result —
-                both land in the same place.
+                Questions, bugs, or feedback go to{" "}
+                <Link
+                  href="/support"
+                  className="focus-ring font-semibold text-forest underline underline-offset-[3px]"
+                >
+                  support
+                </Link>
+                . For a specific verdict, the &ldquo;report a mistake&rdquo; link
+                on the result card carries the claim with it.
               </p>
             </div>
           </div>

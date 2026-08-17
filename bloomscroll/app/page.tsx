@@ -27,7 +27,9 @@ const STRIPE_ENABLED = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
 // TODO: swap to a real support inbox once the mailbox exists
 // (e.g. "support@bloomscroll.app"). Until then the footer shows a
 // "contact coming soon" note instead of exposing a personal address.
-const CONTACT_EMAIL: string | null = null;
+// Now live: this is the address published on /support and in the Chrome
+// Web Store listing, so it's already public.
+const CONTACT_EMAIL: string | null = "getbloomscroll@gmail.com";
 
 type PlatformKind = "iphone" | "android" | "desktop";
 
@@ -1243,6 +1245,9 @@ export default function LandingPage() {
                 </a>
                 <Link href="/access" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   install guides
+                </Link>
+                <Link href="/support" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
+                  support
                 </Link>
                 <Link href="/privacy" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   privacy
