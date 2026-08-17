@@ -9,14 +9,16 @@ if (typeof window !== "undefined") {
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedClaim } from "./types";
 import { chargeSpend, ensureCanSpend, type SpendContext } from "./spend";
+import { EXTRACT_MODEL } from "./models";
 
 // Phase 2: claim extraction via the Anthropic API. Written and ready — the
 // route activates it once ANTHROPIC_API_KEY exists in the environment.
-// Model: the spec's claude-sonnet-4-6, overridable via BLOOMSCROLL_MODEL.
+// Model routing (and why extraction is on the cheaper one) lives in
+// lib/models.ts.
 
 export class MissingKeyError extends Error {}
 
-const MODEL = process.env.BLOOMSCROLL_MODEL ?? "claude-sonnet-4-6";
+const MODEL = EXTRACT_MODEL;
 
 const SYSTEM = `You extract checkable factual claims from social media content so they can be verified against scientific literature.
 

@@ -7,6 +7,7 @@ if (typeof window !== "undefined") {
 import Anthropic from "@anthropic-ai/sdk";
 import { MissingKeyError } from "./extract";
 import { chargeSpend, ensureCanSpend, type SpendContext } from "./spend";
+import { GRADE_MODEL } from "./models";
 import type { Citation, Paper, Verdict } from "./types";
 
 // Phase 4: evidence grading + the anti-hallucination citation gate.
@@ -18,7 +19,8 @@ import type { Citation, Paper, Verdict } from "./types";
 // clicks a fake link ends the demo. The gate is a pure function so it can be
 // (and is) tested without any API key.
 
-const MODEL = process.env.BLOOMSCROLL_MODEL ?? "claude-sonnet-4-6";
+// Deliberately the stronger of the two pipeline models — see lib/models.ts.
+const MODEL = GRADE_MODEL;
 
 const VERDICTS: Verdict[] = ["supported", "mixed", "weak", "no_evidence", "not_empirical"];
 

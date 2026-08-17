@@ -62,11 +62,19 @@ export interface SpendContext {
   email?: string | null;
 }
 
-// Approximate per-model $ per 1M tokens. Update as pricing changes. Values in USD.
+// Per-model $ per 1M tokens. Update as pricing changes. Values in USD.
+//
+// Keep BOTH the bare alias and the dated snapshot for any model we actually
+// call: an unlisted id silently falls through to FALLBACK_PRICE, which would
+// have billed Haiku at Sonnet's rate and made the cheap half of the pipeline
+// look 3x more expensive than it is.
 const MODEL_PRICES: Record<string, { input: number; output: number }> = {
   "claude-sonnet-4-6": { input: 3, output: 15 },
   "claude-sonnet-4-6-20250219": { input: 3, output: 15 },
+  "claude-sonnet-5": { input: 3, output: 15 },
   "claude-opus-4-7": { input: 15, output: 75 },
+  "claude-opus-5": { input: 5, output: 25 },
+  "claude-haiku-4-5": { input: 1, output: 5 },
   "claude-haiku-4-5-20251001": { input: 1, output: 5 },
 };
 const FALLBACK_PRICE = { input: 3, output: 15 };
@@ -190,9 +198,19 @@ export async function chargeSpend(
 ): Promise<void> {
   if (!usage) return;
   const p = priceFor(model);
-  const cost =
-    ((usage.input_tokens ?? 0) * p.input + (usage.output_tokens ?? 0) * p.output) /
-    1_000_000;
+  const inTok = usage.input_tokens ?? 0;
+  const outTok = usage.output_tokens ?? 0;
+  const cost = (inTok * p.input + outTok * p.output) / 1_000_000;
+
+  // Exact, unrounded per-call line. The KV counter below floors every call at
+  // 1¢, which is right for a budget guard but makes it useless for answering
+  // "what does one check actually cost" — a Haiku extraction is well under a
+  // cent and would read as 1¢. Grep BLOOMSCROLL_COST in the logs to total a
+  // real check from real token counts.
+  console.log(
+    `[spend] BLOOMSCROLL_COST model=${model} in=${inTok} out=${outTok} usd=${cost.toFixed(6)}`,
+  );
+
   const cents = Math.max(1, Math.round(cost * 100)); // floor at 1¢ so a burst of tiny calls still counts
 
   const store = kv();
