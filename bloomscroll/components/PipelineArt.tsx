@@ -116,12 +116,10 @@ function Flow({ x, y = 210, label }: { x: number; y?: number; label?: string }) 
 
 function Plate({
   children,
-  label,
   id,
   title,
 }: {
   children: React.ReactNode;
-  label: string;
   id: string;
   /** Supply when the plate contains real controls — it then stops being
    *  aria-hidden so the buttons inside are reachable, and this string
@@ -174,18 +172,9 @@ function Plate({
         stroke={INK}
         strokeOpacity="0.1"
       />
-      <text
-        x="34"
-        y="44"
-        fontFamily={FONT}
-        fontSize="11.5"
-        fontWeight="700"
-        letterSpacing="1.8"
-        fill={FOREST}
-        fillOpacity="1"
-      >
-        {label}
-      </text>
+      {/* No plate caption here on purpose: each diagram already sits directly
+          under its own "Step 0N — <title>" heading, so an in-SVG restatement
+          of the same thing was decoration, not information. */}
     </svg>
   );
 }
@@ -250,7 +239,7 @@ export function PipePasteArt() {
   }, [shown]);
 
   return (
-    <Plate id="paste" label="READING THE SOURCE">
+    <Plate id="paste">
       {/* ① the post */}
       <g transform="translate(72 82)">
         <rect width="236" height="292" rx="20" fill="white" />
@@ -373,7 +362,7 @@ export function PipeExtractArt() {
     { y: 244, x: 599, w: 246, label: "results in 6 months" },
   ];
   return (
-    <Plate id="extract" label="FINDING THE REAL CLAIMS">
+    <Plate id="extract">
       {/* ① the caption, verbatim */}
       <g transform="translate(72 82)">
         <rect width="356" height="292" rx="20" fill="white" />
@@ -490,7 +479,7 @@ export function PipeSearchArt() {
     return { k, d: `M${cx} ${cy} L${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2} Z`, o };
   });
   return (
-    <Plate id="search" label="SEARCHING THE LITERATURE">
+    <Plate id="search">
       {[96, 134, 176].map((r) => (
         <circle key={r} cx={cx} cy={cy} r={r} fill="none" stroke={FOREST} strokeOpacity="0.24" strokeWidth="1.5" strokeDasharray="3 9" />
       ))}
@@ -661,9 +650,14 @@ export function PipeGradeArt() {
   return (
     <Plate
       id="grade"
-      label="WEIGHING THE EVIDENCE"
       title="The five evidence tiers — select one to see what it means"
     >
+      {/* Affordance hint. The rows below are real buttons, but nothing about a
+          static scale says so — same problem the 404 badge had, same fix. */}
+      <text x="72" y="70" fontFamily={FONT} fontSize="11.5" fill={BARK}>
+        tap to change evidence
+      </text>
+
       {/* ① the five-tier scale — each row is a real control */}
       <g transform="translate(72 82)">
         {tiers.map((t, i) => {

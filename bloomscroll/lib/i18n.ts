@@ -162,7 +162,7 @@ const EN = {
   },
   how: {
     title: "How it works",
-    sub: "Three steps. About twelve seconds from claim to verdict.",
+    sub: "Four steps. About twelve seconds from claim to verdict.",
     steps: [
       {
         title: "Paste anything",
@@ -180,6 +180,15 @@ const EN = {
           "Each claim gets a verdict on a five step scale, a plain language answer, and real citations you can click. Never a bare true or false.",
       },
     ],
+  },
+  // Deliberately plain, literal prose — no slogans, no second person. This is
+  // the paragraph a search engine or a language model quotes when asked "what
+  // is Bloomscroll", so it has to define the product rather than sell it. Keep
+  // it factual and keep it in sync with public/llms.txt.
+  about: {
+    title: "What Bloomscroll is",
+    body:
+      "Bloomscroll is a web tool and browser extension that checks health and appearance claims against published biomedical research. You paste a claim, a link, or an article; Bloomscroll pulls out the parts that are actually testable, searches Europe PMC — an open index of over 45 million peer reviewed biomedical papers — and returns a verdict for each claim on a five tier scale, with citations you can open. It only cites papers it actually retrieved, and every citation is validated against that retrieved set before it renders, so a fabricated source cannot appear in a result. It explains what the research says and how strong it is. It does not diagnose, treat, or give medical advice.",
   },
   verdictsTitle: "What the verdicts mean",
   stats: [
@@ -295,7 +304,7 @@ const EN = {
     androidLede:
       "Two taps to add Bloomscroll to your home screen, then it shows up in every Share menu.",
     androidSteps: [
-      "Open bloomscroll.com in Chrome, tap the ⋮ menu, then \"Add to Home screen\".",
+      "Open getbloomscroll.com in Chrome, tap the ⋮ menu, then \"Add to Home screen\".",
       "Share anything from any app → pick Bloomscroll. The check runs automatically.",
     ],
     androidCta: "install as app",
@@ -307,7 +316,7 @@ const EN = {
       "In any app, use Share → Bloomscroll. The check runs automatically.",
     ],
     iphoneNote:
-      "Prefer to build it yourself? Open Shortcuts → +, add \"Open URLs\" set to bloomscroll.com/?q= plus the Shortcut Input variable, enable \"Show in Share Sheet\", name it Bloomscroll.",
+      "Prefer to build it yourself? Open Shortcuts → +, add \"Open URLs\" set to getbloomscroll.com/?q= plus the Shortcut Input variable, enable \"Show in Share Sheet\", name it Bloomscroll.",
     iphoneCta: "add to iPhone",
     desktopTitle: "Desktop",
     desktopLede:
@@ -529,7 +538,7 @@ const FR: Strings = {
   },
   how: {
     title: "Comment ça marche",
-    sub: "Trois étapes. Environ douze secondes de l'affirmation au verdict.",
+    sub: "Quatre étapes. Environ douze secondes de l'affirmation au verdict.",
     steps: [
       {
         title: "Colle n'importe quoi",
@@ -546,6 +555,11 @@ const FR: Strings = {
           "Chaque affirmation reçoit un verdict sur cinq niveaux, une réponse en langage clair et de vraies citations cliquables. Jamais un simple vrai ou faux.",
       },
     ],
+  },
+  about: {
+    title: "Ce qu'est Bloomscroll",
+    body:
+      "Bloomscroll est un outil web et une extension de navigateur qui confronte les affirmations sur la santé et l'apparence à la recherche biomédicale publiée. Tu colles une affirmation, un lien ou un article ; Bloomscroll en extrait les éléments réellement vérifiables, interroge Europe PMC — un index ouvert de plus de 45 millions d'articles biomédicaux à comité de lecture — et renvoie pour chaque affirmation un verdict sur une échelle de cinq niveaux, avec des citations consultables. Il ne cite que des articles qu'il a effectivement récupérés, et chaque citation est validée contre cet ensemble avant affichage : une source inventée ne peut donc pas apparaître dans un résultat. Il explique ce que dit la recherche et à quel point elle est solide. Il ne diagnostique pas, ne traite pas et ne donne pas d'avis médical.",
   },
   verdictsTitle: "Ce que veulent dire les verdicts",
   stats: [
@@ -661,7 +675,7 @@ const FR: Strings = {
     androidLede:
       "Deux touches pour ajouter Bloomscroll à ton écran d'accueil, puis il apparaît dans tous les menus Partager.",
     androidSteps: [
-      "Ouvre bloomscroll.com dans Chrome, touche le menu ⋮, puis « Ajouter à l'écran d'accueil ».",
+      "Ouvre getbloomscroll.com dans Chrome, touche le menu ⋮, puis « Ajouter à l'écran d'accueil ».",
       "Partage n'importe quoi depuis n'importe quelle appli → choisis Bloomscroll. La vérification se lance toute seule.",
     ],
     androidCta: "installer comme appli",
@@ -673,7 +687,7 @@ const FR: Strings = {
       "Dans n'importe quelle appli, Partager → Bloomscroll. La vérification se lance toute seule.",
     ],
     iphoneNote:
-      "Tu préfères le construire toi-même ? Ouvre Raccourcis → +, ajoute « Ouvrir les URL » vers bloomscroll.com/?q= suivi de la variable Entrée du raccourci, active « Afficher dans la feuille de partage », nomme-le Bloomscroll.",
+      "Tu préfères le construire toi-même ? Ouvre Raccourcis → +, ajoute « Ouvrir les URL » vers getbloomscroll.com/?q= suivi de la variable Entrée du raccourci, active « Afficher dans la feuille de partage », nomme-le Bloomscroll.",
     iphoneCta: "ajouter à l'iPhone",
     desktopTitle: "Desktop",
     desktopLede:

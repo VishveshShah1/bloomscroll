@@ -640,7 +640,7 @@ function BrowserChrome({ children }: { children: React.ReactNode }) {
         fontSize="10"
         fill={BARK}
       >
-        bloomscroll.com/check
+        getbloomscroll.com
       </text>
       {children}
     </svg>

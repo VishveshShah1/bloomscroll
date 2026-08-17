@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import Wordmark from "@/components/Wordmark";
+import { SITE_URL, SITE_HOST } from "@/lib/site";
 import { STRINGS, useLang } from "@/lib/i18n";
 
 // Three platform tiles get equal visual weight — Android, iPhone, Desktop.
@@ -13,7 +14,7 @@ export default function AccessPage() {
   const [lang] = useLang();
   const t = STRINGS[lang];
   const bookmarkletRef = useRef<HTMLAnchorElement>(null);
-  const [origin, setOrigin] = useState("https://bloomscroll-maharshi-n-vv.vercel.app");
+  const [origin, setOrigin] = useState(SITE_URL);
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -47,8 +48,8 @@ export default function AccessPage() {
       steps: t.access.androidSteps,
       note: null,
       // Android is just "add to home screen" — no external target needed.
-      primaryUrl: "https://bloomscroll.app",
-      primaryLabel: "Open bloomscroll.com",
+      primaryUrl: SITE_URL,
+      primaryLabel: `Open ${SITE_HOST}`,
       icon: (
         <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true">
           <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2C4.5 5.65 4.41 6 4.56 6.29L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" />

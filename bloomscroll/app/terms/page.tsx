@@ -162,7 +162,7 @@ export default function TermsPage() {
         </div>
 
         {/* TODO: wire the real support inbox here once the mailbox exists
-            (e.g. support@bloomscroll.app). Never expose a personal address. */}
+            Contact now lives on /support. Never expose a personal address. */}
         <div className="mt-14 rounded-[20px] border border-black/10 bg-[rgba(251,250,243,0.75)] p-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em]">
             Questions about these terms

@@ -1,7 +1,7 @@
 // Shared config for the popup + service worker. To point the extension at a
 // different origin (e.g. localhost:3000 for dev, or your own deploy), change
 // DEFAULT_SITE and reload the extension at chrome://extensions.
-export const DEFAULT_SITE = "https://bloomscroll-maharshi-n-vv.vercel.app";
+export const DEFAULT_SITE = "https://getbloomscroll.com";
 
 export async function getSite() {
   try {

@@ -1,0 +1,71 @@
+# Bloomscroll
+
+> Bloomscroll checks health and appearance claims against published biomedical
+> research and returns a graded verdict with real, retrievable citations.
+
+Site: https://getbloomscroll.com
+Contact: getbloomscroll@gmail.com
+
+## What it is
+
+Bloomscroll is a web tool and Chrome extension that fact-checks health and
+appearance claims — the kind that circulate in short-form social video and
+wellness content — against peer-reviewed biomedical literature.
+
+A user pastes a claim, a link, or an article, or shares a post to Bloomscroll
+from their phone or browser. Bloomscroll extracts the parts of that text that
+are actually testable, searches Europe PMC (an open index of over 45 million
+peer-reviewed biomedical papers), and returns a verdict for each claim with
+citations the user can open.
+
+## How the verdict works
+
+Every claim is graded on a five-tier scale rather than being marked true or
+false:
+
+- Supported — multiple decent studies point the same way
+- Mixed evidence — real studies exist and they disagree
+- Weak evidence — something exists, but it is thin
+- No evidence found — nothing in the retrieved literature addresses it
+- Not a testable claim — the statement is not empirical
+
+The scale exists because most claims of this kind are neither true nor false;
+they are under-researched, contested, or not empirical at all, and a binary
+verdict misrepresents that.
+
+## Citation integrity
+
+Bloomscroll only cites papers it actually retrieved from the literature search.
+Every citation is validated against that retrieved set before it renders, so a
+fabricated or hallucinated source cannot appear in a result. This is the
+specific difference from asking a general-purpose chatbot, which will invent
+plausible-looking references when it does not know an answer.
+
+## What it does not do
+
+Bloomscroll explains what published research says about a claim and how strong
+that research is. It does not diagnose, treat, or give medical advice, and it
+is not a substitute for a clinician.
+
+## Access
+
+- Web: https://getbloomscroll.com
+- Chrome extension: click the toolbar icon to check the current page, or
+  right-click selected text
+- iPhone and Android: added to the system share sheet, so any post can be sent
+  to Bloomscroll directly
+- Install guides: https://getbloomscroll.com/access
+
+## Pricing
+
+A free tier covers a small number of checks per month with no payment details
+required. Paid tiers raise or remove that cap. Built-in example claims do not
+count against any allowance.
+
+## Pages
+
+- https://getbloomscroll.com/ — what it is, how it works, the verdict scale
+- https://getbloomscroll.com/access — install guides for each platform
+- https://getbloomscroll.com/support — questions, bug reports, feedback
+- https://getbloomscroll.com/privacy — what is and is not stored
+- https://getbloomscroll.com/terms — terms of service

@@ -19,7 +19,7 @@ Whichever you use, it opens bloomscroll, where the actual checkable claims are p
 
 Made for anyone who scrolls past "mewing changed my jawline," "this supplement cured my acne," or "seed oils cause everything" and wants to know what the research actually says. Never a bare true or false — five evidence grades, so weak evidence reads as weak. Every citation is validated against the retrieved paper set before it renders, so a fabricated source can't reach your screen.
 
-The extension itself does nothing until you invoke it. No background page reading, no cross-site tracking, no analytics pixels. Full privacy details at bloomscroll.com/privacy.
+The extension itself does nothing until you invoke it. No background page reading, no cross-site tracking, no analytics pixels. Full privacy details at getbloomscroll.com/privacy.
 
 ## Permissions justification
 
@@ -32,7 +32,7 @@ Reviewers ask for a one-line reason per permission. Paste these directly.
 
 ## Privacy policy URL
 
-Required field. Point to: `https://bloomscroll-maharshi-n-vv.vercel.app/privacy` (swap for the production domain when ready).
+Required field. Point to: `https://getbloomscroll.com/privacy`.
 
 ## Assets to upload
 

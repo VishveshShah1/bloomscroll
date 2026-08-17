@@ -6,13 +6,10 @@ import ScrollBackground from "@/components/ScrollBackground";
 import ConsentSync from "@/components/ConsentSync";
 import "./globals.css";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXTAUTH_URL ||
-  "https://bloomscroll.app";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: "bloomscroll · keep scrolling, start growing",
   description:
     "Bloomscroll checks health and appearance claims from your feed against real scientific literature and shows how strong the evidence actually is.",
@@ -35,6 +32,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      // .ico first and declared explicitly: Google's crawler and a few older
+      // clients probe /favicon.ico directly, and until this file existed that
+      // request 404'd — leaving the search result with a blank icon even
+      // though the browser tab looked fine off the SVG.
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
       { url: "/icon.svg", type: "image/svg+xml" },

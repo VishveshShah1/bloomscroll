@@ -25,10 +25,8 @@ const PLAN_SLUGS = ["seed", "sprout", "canopy"] as const;
 const STRIPE_ENABLED = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
 
 // TODO: swap to a real support inbox once the mailbox exists
-// (e.g. "support@bloomscroll.app"). Until then the footer shows a
-// "contact coming soon" note instead of exposing a personal address.
-// Now live: this is the address published on /support and in the Chrome
-// Web Store listing, so it's already public.
+// Published on /support and in the Chrome Web Store listing, so it is
+// already public. Swap to a role address if one is ever set up.
 const CONTACT_EMAIL: string | null = "getbloomscroll@gmail.com";
 
 type PlatformKind = "iphone" | "android" | "desktop";
@@ -745,6 +743,24 @@ export default function LandingPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Plain-language definition. Deliberately unstyled prose in a single
+          paragraph under a real <h2>: this is the block a search engine or an
+          AI assistant lifts when someone asks "what is Bloomscroll", and the
+          rest of the page is written to persuade, not to define. Mirrors
+          public/llms.txt — change both together. */}
+      <section id="about" className="scroll-mt-20 py-10 sm:py-14">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
+          <div data-reveal className="reveal max-w-[68ch]">
+            <h2 className="text-[22px] font-semibold leading-tight tracking-display text-ink sm:text-[26px]">
+              {t.about.title}
+            </h2>
+            <p className="mt-4 text-[16px] leading-relaxed text-bark sm:text-[17px]">
+              {t.about.body}
+            </p>
           </div>
         </div>
       </section>

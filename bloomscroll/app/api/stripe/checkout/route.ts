@@ -6,6 +6,7 @@ import {
   type PlanSlug,
 } from "@/lib/stripe";
 import { bodyLimitResponse, readJsonBody } from "@/lib/http";
+import { SITE_URL } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,10 +61,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const origin =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    request.headers.get("origin") ??
-    new URL(request.url).origin;
+  // Always the canonical origin — never the request's own. Falling back to the
+  // Origin header meant a visitor who arrived on a *.vercel.app deployment URL
+  // got returned there by Stripe after paying, landing on a preview host with
+  // a live subscription. SITE_URL is the single source of truth.
+  const origin = SITE_URL;
 
   try {
     const session = await getStripe().checkout.sessions.create({

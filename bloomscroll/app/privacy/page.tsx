@@ -31,7 +31,7 @@ const SECTIONS = [
   {
     heading: "What the Chrome extension does",
     items: [
-      "It adds a \"Check with Bloomscroll\" item to your context menu. Clicking it opens a new bloomscroll.com tab with the highlighted text or the page URL.",
+      "It adds a \"Check with Bloomscroll\" item to your context menu. Clicking it opens a new getbloomscroll.com tab with the highlighted text or the page URL.",
       "It has a toolbar popup where you can paste something or click \"Check current tab.\"",
       "It only reads a page's URL or text when you explicitly trigger a check. It doesn't watch what you're browsing in the background.",
       "It stores a single preference locally (your Bloomscroll origin URL, in case you're running a dev copy). Nothing else.",
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
         </div>
 
         {/* TODO: wire the real support inbox here once the mailbox exists
-            (e.g. support@bloomscroll.app). Never expose a personal address. */}
+            Contact now lives on /support. Never expose a personal address. */}
         <div className="surface mt-14 p-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-forest">
             Questions or a deletion request
