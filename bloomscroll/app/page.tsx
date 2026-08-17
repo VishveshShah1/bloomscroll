@@ -918,12 +918,16 @@ export default function LandingPage() {
                   </span>
                   {t.verdictDetails[verdict].evidence}
                 </p>
-                {/* mt-auto pins the example to the card's bottom edge. Since
-                    every card shares one row height, the slack now falls in
-                    the gap above this rule instead of pooling as dead space
-                    under the last line of text. */}
-                <p className="mt-auto border-t border-ink/8 pt-4 text-[13px] italic leading-relaxed text-bark">
+                <p className="mt-3 text-[13px] italic leading-relaxed text-bark">
                   {t.verdictExtra.forExample}: {t.verdictDetails[verdict].example}
+                </p>
+                {/* Takeaway fills what used to be dead space at the bottom of
+                    the shorter cards — every card shares one row height, so
+                    rather than leaving a gap, the slack carries the one line
+                    a reader actually wants: what to do with this verdict.
+                    mt-auto keeps it flush to the bottom edge on all five. */}
+                <p className="mt-auto border-t border-ink/8 pt-4 text-[13px] font-semibold leading-snug text-forest">
+                  {t.verdictDetails[verdict].takeaway}
                 </p>
               </div>
             ))}

@@ -62,33 +62,44 @@ const EN = {
       "An opinion or a vibe, not a checkable fact. That's fine. It just isn't science.",
   } as Record<Verdict, string>,
   verdictDetails: {
-    // These lines used to restate the heading above them almost word for
-    // word, which padded every card and said nothing new. Each one now adds
-    // information the heading doesn't — and being shorter, the tallest card
-    // no longer forces a wall of empty space into the other four.
+    // Copy is deliberately the fuller version. The cards share one row height
+    // (auto-rows-fr), so the aim is for all five to carry a similar amount of
+    // text — that's what removes the dead space, rather than trimming the
+    // longest one and leaving the short ones hollow. Each entry runs roughly
+    // three lines of "why", plus an example, plus a takeaway.
     supported: {
-      evidence: "Ideally trials or large reviews, and better work hasn't overturned them.",
+      evidence:
+        "Several independent studies agree. Ideally trials or large reviews, and better quality work hasn't overturned them.",
       example:
         "Sunscreen lowering skin cancer risk. Decades of trials and large cohorts line up.",
+      takeaway: "Safe to act on, with the usual caveat that averages aren't you.",
     },
     mixed: {
-      evidence: "The honest answer is \"it depends\" — so we say so instead of picking a side.",
+      evidence:
+        "The research genuinely conflicts. Some studies find an effect, others find none, and neither side has clearly won.",
       example: "Diet and acne. Some studies link them, plenty don't.",
+      takeaway: "Treat confident claims either way as overstating it.",
     },
     weak: {
-      evidence: "Promising enough to notice, not solid enough to act on.",
+      evidence:
+        "The only evidence is thin. A few small studies, animal or lab work, or no control group to rule out coincidence.",
       example:
         "Mewing and the jawline. A handful of small observational papers, no controlled trials in adults.",
+      takeaway: "Worth noticing, not worth building a routine around.",
     },
     no_evidence: {
-      evidence: "Absence of evidence isn't proof it's false — only that no one has shown it.",
+      evidence:
+        "We searched the literature and found nothing that tests the claim. Absence of evidence isn't proof it's false, just that no one has shown it.",
       example: "Fringe looksmaxxing hacks that never made it into a study.",
+      takeaway: "Nobody has checked. Anyone claiming proof is inventing it.",
     },
     not_empirical: {
-      evidence: "No study could settle it either way, and that's fine.",
+      evidence:
+        "There's nothing to measure. It's an opinion, an aesthetic preference, or a definition. Science can't grade it, and that's fine.",
       example: "\"This jaw looks better\" is taste, not a testable fact.",
+      takeaway: "Disagree freely — no study can settle it for you.",
     },
-  } as Record<Verdict, { evidence: string; example: string }>,
+  } as Record<Verdict, { evidence: string; example: string; takeaway: string }>,
   verdictExtra: { looksLike: "Why it lands here", forExample: "For example" },
   stages: {
     reading: "reading the source…",
@@ -444,29 +455,34 @@ const FR: Strings = {
         "Plusieurs études indépendantes concordent, idéalement des essais ou de grandes revues, sans être renversées par des travaux de meilleure qualité.",
       example:
         "La crème solaire qui réduit le risque de cancer de la peau. Des décennies d'essais et de cohortes concordent.",
+      takeaway: "Utilisable, avec la réserve habituelle : une moyenne, ce n'est pas toi.",
     },
     mixed: {
       evidence:
         "La recherche se contredit vraiment. Certaines études trouvent un effet, d'autres non, sans camp clairement gagnant.",
       example: "Alimentation et acné. Certaines études les relient, beaucoup non.",
+      takeaway: "Méfie-toi de toute affirmation trop confiante, dans un sens comme dans l'autre.",
     },
     weak: {
       evidence:
         "Les seules preuves sont minces. Quelques petites études, des travaux sur l'animal ou en labo, ou aucun groupe témoin pour écarter le hasard.",
       example:
         "Le mewing et la mâchoire. Quelques petites études observationnelles, aucun essai contrôlé chez l'adulte.",
+      takeaway: "À noter, mais pas de quoi bâtir une routine.",
     },
     no_evidence: {
       evidence:
         "Nous avons fouillé la littérature sans rien trouver qui teste vraiment l'affirmation. L'absence de preuve n'est pas une preuve du contraire, juste que personne ne l'a démontré.",
       example: "Des astuces looksmaxxing marginales jamais passées par une étude.",
+      takeaway: "Personne n'a vérifié. Qui parle de preuve l'invente.",
     },
     not_empirical: {
       evidence:
         "Il n'y a rien à mesurer. C'est une opinion, une préférence esthétique ou une définition. La science ne peut pas la noter, et c'est très bien.",
       example: "« Cette mâchoire est plus belle », une question de goût, pas un fait testable.",
+      takeaway: "Libre à toi d'être en désaccord : aucune étude ne tranchera.",
     },
-  } as Record<Verdict, { evidence: string; example: string }>,
+  } as Record<Verdict, { evidence: string; example: string; takeaway: string }>,
   verdictExtra: { looksLike: "Pourquoi ce verdict", forExample: "Par exemple" },
   stages: {
     reading: "lecture de la source…",
