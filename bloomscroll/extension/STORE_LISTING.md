@@ -1,19 +1,23 @@
-# Bloomscroll — Chrome Web Store listing
+# bloomscroll — Chrome Web Store listing
 
 Copy these fields verbatim into the Chrome Web Store developer console when submitting.
 
 ## Basic
 
-- **Name**: Bloomscroll — keep scrolling, start growing
-- **Short description** (max 132 chars): Right-click any health or wellness claim to check it against real peer-reviewed research on Bloomscroll.
+- **Name**: bloomscroll
+- **Short description** (max 132 chars): Click the toolbar icon to check the page you're on against real peer-reviewed research, or right-click any selected text.
 - **Category**: Productivity (secondary: Accessibility)
 - **Language**: English (primary), French (secondary)
 
-## Detailed description (max 16,000 chars — we're using ~500)
+## Detailed description (max 16,000 chars — we're using ~700)
 
-Bloomscroll fact-checks the health and appearance claims in your feed against real scientific literature. Right-click any highlighted phrase, video, or article and pick "Check with Bloomscroll" to send it to bloomscroll.com, where the actual checkable claims are pulled out, searched against Europe PMC's 45 million peer-reviewed biomedical papers, and returned with a graded verdict and real, clickable citations.
+Click the bloomscroll icon in your toolbar to check the page you're on. Paste a claim straight into the popup, or hit "Check current tab" to run the article or video already open in front of you.
 
-Made for anyone who scrolls past "mewing changed my jawline," "this supplement cured my acne," or "seed oils cause everything" and wants to know what the research actually says. Never a bare true or false. Every citation is validated against the retrieved paper set before it renders, so a fabricated source can't reach your screen.
+Prefer the mouse? Right-click works too: highlight any phrase and pick "Check with bloomscroll", or right-click a page, link, or video to send the whole thing. Same result either way.
+
+Whichever you use, it opens bloomscroll, where the actual checkable claims are pulled out of what you sent, searched against Europe PMC's 45 million peer-reviewed biomedical papers, and returned with a graded verdict and real, clickable citations.
+
+Made for anyone who scrolls past "mewing changed my jawline," "this supplement cured my acne," or "seed oils cause everything" and wants to know what the research actually says. Never a bare true or false — five evidence grades, so weak evidence reads as weak. Every citation is validated against the retrieved paper set before it renders, so a fabricated source can't reach your screen.
 
 The extension itself does nothing until you invoke it. No background page reading, no cross-site tracking, no analytics pixels. Full privacy details at bloomscroll.com/privacy.
 

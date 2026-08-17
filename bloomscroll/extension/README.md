@@ -1,6 +1,6 @@
-# Bloomscroll — Chrome extension
+# bloomscroll — Chrome extension
 
-Right-click anything you scrolled past and check it against real biomedical literature. No account, no popup nagging, no data collection.
+Click the toolbar icon to check the page you're on against real biomedical literature — or right-click anything you scrolled past. No account, no popup nagging, no data collection.
 
 ## Install (developer / unpacked)
 

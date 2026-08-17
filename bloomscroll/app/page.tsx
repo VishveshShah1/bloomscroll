@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Wordmark, { BMark } from "@/components/Wordmark";
+import { UseCaseArt } from "@/components/PlaceholderArt";
 import {
-  StepInputArt,
-  StepScanArt,
-  StepGradedArt,
-  UseCaseArt,
-} from "@/components/PlaceholderArt";
+  PipePasteArt,
+  PipeExtractArt,
+  PipeSearchArt,
+  PipeGradeArt,
+} from "@/components/PipelineArt";
 import HeroPhoneAnimation from "@/components/HeroPhoneAnimation";
 import { BrandIcon, brandKindFor } from "@/components/BrandIcon";
 import { STRINGS, useLang, type Lang } from "@/lib/i18n";
@@ -197,7 +198,11 @@ function Nav({
             <a
               key={l.href}
               href={l.href}
-              className="nav-link focus-ring text-[14.5px] font-medium text-bark transition hover:text-ink"
+              // lowercase to match the wordmark, which is set lowercase.
+              // Applied as a class rather than by rewriting the i18n strings,
+              // so the French labels get the same treatment and the strings
+              // stay reusable anywhere sentence case is wanted.
+              className="nav-link focus-ring text-[14.5px] font-medium lowercase text-bark transition hover:text-ink"
             >
               {l.label}
             </a>
@@ -229,13 +234,13 @@ function Nav({
             <>
               <Link
                 href="/signin"
-                className="focus-ring hidden rounded-full border border-ink/12 px-4 py-2 text-[13.5px] font-semibold text-ink transition hover:border-ink/25 hover:bg-white/60 sm:inline-block"
+                className="focus-ring hidden rounded-full border border-ink/12 px-4 py-2 text-[13.5px] font-semibold lowercase text-ink transition hover:border-ink/25 hover:bg-white/60 sm:inline-block"
               >
                 Log in
               </Link>
               <Link
                 href="/signin"
-                className="focus-ring hidden rounded-full bg-forest px-5 py-2.5 text-[13.5px] font-semibold text-canvas shadow-[0_8px_22px_rgba(30,77,43,0.22)] ring-2 ring-forest/15 transition hover:-translate-y-0.5 hover:bg-[#16391f] sm:inline-block"
+                className="focus-ring hidden rounded-full bg-forest px-5 py-2.5 text-[13.5px] font-semibold lowercase text-canvas shadow-[0_8px_22px_rgba(30,77,43,0.22)] ring-2 ring-forest/15 transition hover:-translate-y-0.5 hover:bg-[#16391f] sm:inline-block"
               >
                 {t.nav.startFree}
               </Link>
@@ -260,7 +265,7 @@ function Nav({
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="focus-ring text-[16px] font-semibold text-ink"
+                className="focus-ring text-[16px] font-semibold lowercase text-ink"
               >
                 {l.label}
               </a>
@@ -278,14 +283,14 @@ function Nav({
                 <Link
                   href="/signin"
                   onClick={() => setOpen(false)}
-                  className="focus-ring text-[16px] font-semibold text-ink"
+                  className="focus-ring text-[16px] font-semibold lowercase text-ink"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/signin"
                   onClick={() => setOpen(false)}
-                  className="focus-ring text-[16px] font-semibold text-forest"
+                  className="focus-ring text-[16px] font-semibold lowercase text-forest"
                 >
                   {t.nav.startFree}
                 </Link>
@@ -580,6 +585,17 @@ export default function LandingPage() {
     ? `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.contact.subject)}`
     : null;
 
+  // The four stages the checker actually streams. lib/i18n.ts carries three
+  // step titles (it predates the split of "find claims" and "search"), so the
+  // third title is inline here and is English-only for now — worth folding
+  // into i18n before this ships to the French build.
+  const PIPELINE_STEPS = [
+    { title: t.how.steps[0].title, art: <PipePasteArt /> },
+    { title: t.how.steps[1].title, art: <PipeExtractArt /> },
+    { title: "It searches the literature", art: <PipeSearchArt /> },
+    { title: t.how.steps[2].title, art: <PipeGradeArt /> },
+  ];
+
   return (
     <div>
       <Nav
@@ -610,8 +626,10 @@ export default function LandingPage() {
             <BMark className="h-[560px] w-auto text-forest" strokeWidth={2.4} />
           </div>
         </div>
-        <div className="relative mx-auto grid w-full max-w-7xl gap-6 px-4 pb-12 pt-4 sm:px-8 sm:pt-6 lg:grid-cols-[1.05fr_0.85fr] lg:items-start lg:gap-14 lg:pb-16 lg:pt-6">
-          <div className="flex flex-col justify-start">
+        {/* Hero copy is centred above the device rather than sitting beside
+            it, so the phone gets the full column width to be presented in. */}
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-4 pb-12 pt-4 text-center sm:px-8 sm:pt-6 lg:pb-16 lg:pt-6">
+          <div className="flex w-full max-w-[820px] flex-col items-center">
             <p data-reveal className="reveal text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">
               {t.hero.tagline}
             </p>
@@ -620,7 +638,7 @@ export default function LandingPage() {
               <br />
               <span className="text-forest">{t.hero.line2}</span>
             </h1>
-            <p data-reveal data-d="2" className="reveal mt-5 max-w-[42ch] text-[18px] leading-relaxed text-bark sm:mt-6 sm:text-[19px]">
+            <p data-reveal data-d="2" className="reveal mt-5 max-w-[46ch] text-[18px] leading-relaxed text-bark sm:mt-6 sm:text-[19px]">
               {t.hero.sub}
             </p>
             <div data-reveal data-d="3" className="reveal mt-7">
@@ -632,14 +650,14 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Download row — one row of "Download for X" pills. Visitor's own
-                platform is solid forest with a "you" tag, the other two are
-                ghost. */}
+            {/* Download row — one row of "Download for X" pills, back inside
+                the centred copy column. The visitor's own platform is solid
+                forest with a "you" tag, the other two are ghost. */}
             <div data-reveal data-d="4" className="reveal mt-8">
               <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-bark">
                 download
               </p>
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
                 {(
                   [
                     { key: "iphone", label: "iPhone" },
@@ -676,15 +694,27 @@ export default function LandingPage() {
           </div>
 
           {/* Animated phone hero — passive vignette that loops through
-              claim → checking → verdict without touching the real API. */}
-          <div className="mx-auto w-full max-w-[280px] sm:max-w-[340px] lg:-mt-4 lg:max-w-[380px]">
-            <ScreenSlot
-              src="/screenshots/hero.png"
-              alt="Bloomscroll checker with a graded verdict card"
-              fallback={<HeroPhoneAnimation />}
-              phone
-              emphasis
-            />
+              claim → checking → verdict without touching the real API.
+              Sits centred below the copy at full size. Presented on a fixed
+              3D angle that eases flat on hover; the perspective lives on the
+              stage wrapper so the device has somewhere to project into, and
+              the ground shadow is a sibling so it doesn't inherit the
+              rotation and skew out of place. */}
+          <div
+            data-reveal
+            data-d="5"
+            className="reveal hero-tilt-stage relative mt-14 w-full max-w-[320px] sm:max-w-[360px] lg:mt-16 lg:max-w-[400px]"
+          >
+            <div className="hero-tilt-shadow" aria-hidden="true" />
+            <div className="hero-tilt">
+              <ScreenSlot
+                src="/screenshots/hero.png"
+                alt="Bloomscroll checker with a graded verdict card"
+                fallback={<HeroPhoneAnimation />}
+                phone
+                emphasis
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -742,52 +772,42 @@ export default function LandingPage() {
             </h2>
             <p className="mt-5 text-[17px] leading-relaxed text-ink/90 sm:text-[18px]">{t.how.sub}</p>
           </div>
-          <div className="mt-14 flex flex-col gap-16">
-            {t.how.steps.map((s, i) => {
-              const art =
-                i === 0 ? <StepInputArt /> : i === 1 ? <StepScanArt /> : <StepGradedArt />;
-              const flip = i % 2 === 1;
-              // Later steps sit deeper in the scroll where the body
-              // backdrop is already trending toward forest. Bump those
-              // paragraphs to near-cream so they stay legible.
-              const bodyTint =
-                i === 0
-                  ? "text-ink/90"
-                  : i === 1
-                    ? "text-canvas/95"
-                    : "text-canvas";
+          {/* Four illustrated stages, matching the four the checker actually
+              streams (reading → claims → searching → grading). Each diagram
+              runs the full column width and is annotated in-illustration, so
+              a short title carries the copy and no explanatory paragraph is
+              needed underneath. */}
+          <div className="mt-14 flex flex-col gap-14 sm:gap-20">
+            {PIPELINE_STEPS.map((s, i) => {
+              // The page sits on the shared scroll tint, which is already
+              // trending toward forest by the later steps — so the titles
+              // flip to the cream palette to stay legible, same rule the
+              // rest of the page follows.
+              const onDark = i >= 2;
               return (
-                <div
-                  key={s.title}
-                  className={`grid gap-10 lg:grid-cols-2 lg:items-center ${
-                    flip ? "lg:[&>div:first-child]:order-2" : ""
-                  }`}
-                >
-                  <div data-reveal className="reveal">
-                    <ScreenSlot
-                      src={`/screenshots/step-${i + 1}.png`}
-                      alt={s.title}
-                      fallback={art}
-                    />
-                  </div>
-                  <div data-reveal data-d="1" className="reveal">
+                <div key={s.title}>
+                  <div data-reveal className="reveal flex flex-wrap items-baseline gap-x-4 gap-y-1">
                     <p
                       className={`text-[12px] font-semibold uppercase tracking-[0.14em] ${
-                        i === 0 ? "text-forest" : "text-canvas/75"
+                        onDark ? "text-canvas/75" : "text-forest"
                       }`}
                     >
                       Step 0{i + 1}
                     </p>
                     <h3
-                      className={`mt-2 text-[26px] font-semibold leading-tight tracking-display sm:text-[34px] ${
-                        i === 0 ? "text-ink" : "text-canvas"
+                      className={`text-[26px] font-semibold leading-tight tracking-display sm:text-[34px] ${
+                        onDark ? "text-canvas" : "text-ink"
                       }`}
                     >
                       {s.title}
                     </h3>
-                    <p className={`mt-4 max-w-[42ch] text-[16.5px] leading-relaxed sm:text-[17px] ${bodyTint}`}>
-                      {s.body}
-                    </p>
+                  </div>
+                  <div
+                    data-reveal
+                    data-d="1"
+                    className="reveal mt-6 overflow-hidden rounded-[26px] bg-card ring-1 ring-ink/10 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_10px_22px_rgba(18,32,26,0.07),0_38px_70px_rgba(18,32,26,0.12)]"
+                  >
+                    {s.art}
                   </div>
                 </div>
               );
