@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Bloomscroll — check the claim",
-  "short_name": "Bloomscroll",
+  "name": "bloomscroll",
+  "short_name": "bloomscroll",
   "version": "0.1.0",
-  "description": "Right click any claim, video, or article to check it against real scientific literature on Bloomscroll.",
+  "description": "Click the toolbar icon to check the page you're on against real peer-reviewed research, or right-click any selected text.",
   "action": {
     "default_title": "Check with Bloomscroll",
     "default_popup": "popup.html",
