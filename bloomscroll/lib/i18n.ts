@@ -62,31 +62,30 @@ const EN = {
       "An opinion or a vibe, not a checkable fact. That's fine. It just isn't science.",
   } as Record<Verdict, string>,
   verdictDetails: {
+    // These lines used to restate the heading above them almost word for
+    // word, which padded every card and said nothing new. Each one now adds
+    // information the heading doesn't — and being shorter, the tallest card
+    // no longer forces a wall of empty space into the other four.
     supported: {
-      evidence:
-        "Several independent studies agree. Ideally trials or large reviews, and better quality work hasn't overturned them.",
+      evidence: "Ideally trials or large reviews, and better work hasn't overturned them.",
       example:
         "Sunscreen lowering skin cancer risk. Decades of trials and large cohorts line up.",
     },
     mixed: {
-      evidence:
-        "The research genuinely conflicts. Some studies find an effect, others find none, and neither side has clearly won.",
+      evidence: "The honest answer is \"it depends\" — so we say so instead of picking a side.",
       example: "Diet and acne. Some studies link them, plenty don't.",
     },
     weak: {
-      evidence:
-        "The only evidence is thin. A few small studies, animal or lab work, or no control group to rule out coincidence.",
+      evidence: "Promising enough to notice, not solid enough to act on.",
       example:
         "Mewing and the jawline. A handful of small observational papers, no controlled trials in adults.",
     },
     no_evidence: {
-      evidence:
-        "We searched the literature and found nothing that tests the claim. Absence of evidence isn't proof it's false, just that no one has shown it.",
+      evidence: "Absence of evidence isn't proof it's false — only that no one has shown it.",
       example: "Fringe looksmaxxing hacks that never made it into a study.",
     },
     not_empirical: {
-      evidence:
-        "There's nothing to measure. It's an opinion, an aesthetic preference, or a definition. Science can't grade it, and that's fine.",
+      evidence: "No study could settle it either way, and that's fine.",
       example: "\"This jaw looks better\" is taste, not a testable fact.",
     },
   } as Record<Verdict, { evidence: string; example: string }>,

@@ -25,6 +25,11 @@
  *     transform on a separate parent <g>.
  */
 
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { B_MARK_PATH } from "./Wordmark";
+
 const CANVAS = "#F6F3EA";
 const MOSS = "#E8EDDE";
 const FOREST = "#1E4D2B";
@@ -76,15 +81,21 @@ function Flow({ x, y = 210, label }: { x: number; y?: number; label?: string }) 
         strokeLinecap="round"
         strokeDasharray="5 7"
       />
-      <path
-        d="M62 -7 L74 0 L62 7"
-        fill="none"
-        stroke={FOREST}
-        strokeOpacity="0.75"
-        strokeWidth="2.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      {/* Arrowhead sits ON the curve's endpoint and is rotated to its exit
+          tangent, so the barbs are perpendicular to the line instead of the
+          old axis-aligned chevron floating past the end. For a cubic, the
+          end tangent is 3*(P3-P2) = 3*(24,14) → atan2(14,24) ≈ 30.26°. */}
+      <g transform="translate(68 0) rotate(30.26)">
+        <path
+          d="M-11 -7 L0 0 L-11 7"
+          fill="none"
+          stroke={FOREST}
+          strokeOpacity="0.75"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
       {label && (
         <text
           x="37"
@@ -107,16 +118,27 @@ function Plate({
   children,
   label,
   id,
+  title,
 }: {
   children: React.ReactNode;
   label: string;
   id: string;
+  /** Supply when the plate contains real controls — it then stops being
+   *  aria-hidden so the buttons inside are reachable, and this string
+   *  becomes the accessible name. Purely decorative plates omit it. */
+  title?: string;
 }) {
   return (
     // `h-auto` matters: these are no longer wrapped in ScreenFrame's
     // aspect-ratio box, so the SVG has to derive its own height from the
     // viewBox. With `h-full` and an auto-height parent it collapses to nothing.
-    <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" aria-hidden="true">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="block h-auto w-full"
+      aria-hidden={title ? undefined : "true"}
+      role={title ? "group" : undefined}
+      aria-label={title}
+    >
       <defs>
         <linearGradient id={`pa-sky-${id}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={MOSS} stopOpacity="1" />
@@ -168,9 +190,65 @@ function Plate({
   );
 }
 
+/**
+ * Real typewriter: types the string a character at a time, holds, then
+ * backspaces, forever. Returns the visible slice plus whether we're mid-
+ * keystroke, so the caret can be solid while typing/deleting and blink only
+ * during the idle hold.
+ *
+ * Driven by a chain of timeouts rather than one interval so each phase can
+ * have its own cadence, and so the hold is an honest pause instead of a
+ * long run of no-op ticks.
+ */
+function useTypewriter(
+  full: string,
+  { typeMs = 55, deleteMs = 28, holdMs = 4000, restMs = 700 } = {},
+) {
+  const [n, setN] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    // Reduced-motion users get the finished string, no animation.
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setN(full.length);
+      return;
+    }
+    let t: ReturnType<typeof setTimeout>;
+    if (!deleting && n < full.length) {
+      t = setTimeout(() => setN(n + 1), typeMs);
+    } else if (!deleting && n === full.length) {
+      t = setTimeout(() => setDeleting(true), holdMs);
+    } else if (deleting && n > 0) {
+      t = setTimeout(() => setN(n - 1), deleteMs);
+    } else {
+      t = setTimeout(() => setDeleting(false), restMs);
+    }
+    return () => clearTimeout(t);
+  }, [n, deleting, full, typeMs, deleteMs, holdMs, restMs]);
+
+  const idle = !deleting && n === full.length;
+  return { shown: full.slice(0, n), idle };
+}
+
 /** Stage 1 — reading the source: a post, a share, and the claim landing in
  *  the checker. */
 export function PipePasteArt() {
+  const CLAIM = "mewing reshapes your jawline";
+  const { shown, idle } = useTypewriter(CLAIM);
+  const textRef = useRef<SVGTextElement>(null);
+  const [caretX, setCaretX] = useState(40);
+
+  // Measure the rendered run so the caret sits exactly at the end of the
+  // text rather than at a guessed character width.
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+    setCaretX(40 + (el.getComputedTextLength?.() ?? 0));
+  }, [shown]);
+
   return (
     <Plate id="paste" label="READING THE SOURCE">
       {/* ① the post */}
@@ -202,13 +280,17 @@ export function PipePasteArt() {
         <g transform="translate(0 0)">
           <g className="pa-rise">
             <rect x="20" y="64" width="190" height="52" rx="16" fill={OK_BG} stroke={FOREST} strokeOpacity="0.4" />
-            <path
-              d="M44 78 L44 96 C44 104 54 106 56.5 100 C58 94.5 51 92.5 48.5 96"
-              fill="none"
-              stroke={FOREST}
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
+            {/* the real wordmark curl, not a freehand version of it */}
+            <g transform="translate(50 91) scale(1.12) translate(-19 -14)">
+              <path
+                d={B_MARK_PATH}
+                fill="none"
+                stroke={FOREST}
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
             <text x="70" y="96" fontFamily={FONT} fontSize="15" fontWeight="600" fill={FOREST}>
               bloomscroll
             </text>
@@ -218,9 +300,11 @@ export function PipePasteArt() {
         {[0, 1].map((i) => (
           <rect key={i} x="20" y={130 + i * 34} width="190" height="24" rx="12" fill={INK} fillOpacity="0.06" />
         ))}
-        {/* tap dot on the bloomscroll row */}
+        {/* Tap on the bloomscroll row. Both the ripple AND the fingertip dot
+            are keyed to the tap beat and fade out after — the dot used to be
+            a permanently visible translucent circle sitting on the label. */}
         <circle className="pa-tap" cx="115" cy="90" r="26" fill={FOREST} fillOpacity="0.16" />
-        <circle cx="115" cy="90" r="7" fill={FOREST} fillOpacity="0.5" />
+        <circle className="pa-tap-dot" cx="115" cy="90" r="7" fill={FOREST} fillOpacity="0.5" />
       </g>
 
       <Flow x={690} label="opens" />
@@ -233,15 +317,29 @@ export function PipePasteArt() {
           THE CLAIM
         </text>
         <rect x="24" y="56" width="282" height="62" rx="14" fill={CANVAS} stroke={INK} strokeOpacity="0.09" />
-        <g className="pa-slide">
-          <text x="40" y="82" fontFamily={FONT} fontSize="14" fill={INK} fillOpacity="0.85">
-            &ldquo;mewing reshapes your
-          </text>
-          <text x="40" y="103" fontFamily={FONT} fontSize="14" fill={INK} fillOpacity="0.85">
-            jawline&rdquo;
-          </text>
-        </g>
-        <rect className="pa-caret" x="150" y="88" width="2" height="18" rx="1" fill={FOREST} />
+        {/* Typed live, one character at a time, then backspaced. The caret
+            tracks the measured end of the text; it holds solid while keys
+            are "pressed" and only blinks during the idle hold. */}
+        <text
+          ref={textRef}
+          x="40"
+          y="93"
+          fontFamily={FONT}
+          fontSize="13.5"
+          fill={INK}
+          fillOpacity="0.85"
+        >
+          {shown}
+        </text>
+        <rect
+          className={idle ? "pa-caret" : undefined}
+          x={caretX + 2}
+          y="81"
+          width="2"
+          height="17"
+          rx="1"
+          fill={FOREST}
+        />
         <rect x="24" y="136" width="282" height="44" rx="22" fill={FOREST} />
         <text x="165" y="164" textAnchor="middle" fontFamily={FONT} fontSize="15" fontWeight="600" fill={CANVAS}>
           check
@@ -265,10 +363,14 @@ export function PipePasteArt() {
 /** Stage 2 — the checkable sentences lift out of the caption and reattach as
  *  leaves on a stem; the opinions are left behind. */
 export function PipeExtractArt() {
+  // x is solved from the stem curve at each chip's own height so the card's
+  // left edge lands ON the line (4px overlap so the stroke tucks under the
+  // rounded corner). Curve is M596 366 C596 268 616 178 664 118 — its x at
+  // the chip centres is 664 / 622.8 / 603.4.
   const chips = [
-    { y: 92, w: 300, label: "mewing reshapes the jawline" },
-    { y: 168, w: 268, label: "it works on adults too" },
-    { y: 244, w: 246, label: "results in 6 months" },
+    { y: 92, x: 660, w: 300, label: "mewing reshapes the jawline" },
+    { y: 168, x: 619, w: 268, label: "it works on adults too" },
+    { y: 244, x: 599, w: 246, label: "results in 6 months" },
   ];
   return (
     <Plate id="extract" label="FINDING THE REAL CLAIMS">
@@ -320,13 +422,8 @@ export function PipeExtractArt() {
 
       {/* ② the extracted claims, as leaves */}
       {chips.map((c, i) => (
-        <g key={c.label} transform={`translate(644 ${c.y})`}>
+        <g key={c.label} transform={`translate(${c.x} ${c.y})`}>
           <g className="pa-leaf" style={{ animationDelay: `${0.35 + i * 0.45}s` }}>
-            <path
-              d="M-18 26 C-34 12, -26 -8, -4 -5 C8 -3, 10 12, -2 21 Z"
-              fill={SPROUT}
-              fillOpacity="0.6"
-            />
             <rect width={c.w} height="50" rx="16" fill="white" />
             <rect width={c.w} height="50" rx="16" fill="none" stroke={FOREST} strokeOpacity="0.5" />
             <circle cx="27" cy="25" r="9" fill={FOREST} fillOpacity="0.28" />
@@ -338,7 +435,9 @@ export function PipeExtractArt() {
         </g>
       ))}
 
-      <g transform="translate(644 314)">
+      {/* Badge sits at the foot of the same stem — x tracks the curve at
+          y≈329 (597) so the whole stack reads as hanging off one line. */}
+      <g transform="translate(593 314)">
         <rect width="180" height="30" rx="15" fill={FOREST} />
         <text x="90" y="20" textAnchor="middle" fontFamily={FONT} fontSize="12.5" fontWeight="700" letterSpacing="0.6" fill={CANVAS}>
           3 CHECKABLE CLAIMS
@@ -353,15 +452,43 @@ export function PipeExtractArt() {
 
 /** Stage 3 — each claim gets its own search; only retrieved papers count. */
 export function PipeSearchArt() {
+  // Node 8 was at -142° with node 7 at 216° (≡ -144°) — two degrees apart,
+  // which is why two bubbles sat on top of each other. Moved to -160°/104
+  // so it clears both node 7 and node 6.
   const nodes = [
     { a: -74, r: 96 }, { a: -30, r: 132 }, { a: 12, r: 92 },
     { a: 54, r: 136 }, { a: 98, r: 104 }, { a: 142, r: 130 },
-    { a: 180, r: 96 }, { a: 216, r: 134 }, { a: -142, r: 122 },
+    { a: 180, r: 96 }, { a: 216, r: 134 }, { a: -160, r: 104 },
     { a: -106, r: 142 }, { a: 36, r: 176 }, { a: 156, r: 172 },
     { a: -52, r: 174 }, { a: 116, r: 170 },
   ];
   const cx = 290;
   const cy = 216;
+  const SWEEP_SECONDS = 6;
+  const R = 194;
+  const pt = (deg: number, rad = R) => [
+    cx + Math.cos((deg * Math.PI) / 180) * rad,
+    cy + Math.sin((deg * Math.PI) / 180) * rad,
+  ];
+  // Comet tail. A single linear-gradient wedge left a visible hard edge at
+  // the trailing side: a linear gradient varies along a straight axis, so
+  // opacity near the apex stayed non-zero and the wedge's radial edge showed
+  // as a line. A true angular fade needs opacity constant along each radius,
+  // which SVG gradients can't express — so this is many thin slices instead.
+  // At ~1.3° per slice the stepping is imperceptible, and the trailing slice
+  // genuinely reaches zero, so the tail dissolves into the background.
+  const TAIL_DEG = 63;
+  const SLICES = 48;
+  const tail = Array.from({ length: SLICES }, (_, k) => {
+    const a1 = -((k + 1) * TAIL_DEG) / SLICES;
+    const a2 = -(k * TAIL_DEG) / SLICES;
+    const [x1, y1] = pt(a1);
+    const [x2, y2] = pt(a2);
+    // ease the ramp so it's dense near the head and vanishes well before
+    // the trailing edge rather than cutting off
+    const o = 0.42 * Math.pow(1 - k / SLICES, 1.7);
+    return { k, d: `M${cx} ${cy} L${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2} Z`, o };
+  });
   return (
     <Plate id="search" label="SEARCHING THE LITERATURE">
       {[96, 134, 176].map((r) => (
@@ -369,8 +496,10 @@ export function PipeSearchArt() {
       ))}
 
       <g className="pa-sweep-arm" style={{ transformOrigin: `${cx}px ${cy}px` }}>
-        <path d={`M${cx} ${cy} L${cx + 182} ${cy - 66} A194 194 0 0 1 ${cx + 182} ${cy + 66} Z`} fill={SPROUT} fillOpacity="0.3" />
-        <line x1={cx} y1={cy} x2={cx + 194} y2={cy} stroke={FOREST} strokeOpacity="0.65" strokeWidth="2" />
+        {tail.map((t) => (
+          <path key={t.k} d={t.d} fill={SPROUT} fillOpacity={t.o} shapeRendering="crispEdges" />
+        ))}
+        <line x1={cx} y1={cy} x2={cx + R} y2={cy} stroke={FOREST} strokeOpacity="0.65" strokeWidth="2" />
       </g>
 
       {nodes.map((n, i) => {
@@ -378,8 +507,17 @@ export function PipeSearchArt() {
         const x = cx + Math.cos(rad) * n.r;
         const y = cy + Math.sin(rad) * n.r;
         const matched = i % 3 === 0;
+        // Phase each bubble to the moment the arm actually crosses it: the
+        // arm sweeps 0→360° over SWEEP_SECONDS, so a node at angle θ lights
+        // at (θ/360) of the way through. Previously these blinked on an
+        // arbitrary i%6 stagger with no relation to the arm's position.
+        const norm = ((n.a % 360) + 360) % 360;
         return (
-          <g key={i} className="pa-node" style={{ animationDelay: `${(i % 6) * 0.32}s` }}>
+          <g
+            key={i}
+            className="pa-node"
+            style={{ animationDelay: `${((norm / 360) * SWEEP_SECONDS).toFixed(2)}s` }}
+          >
             <rect
               x={x - 15}
               y={y - 10}
@@ -398,13 +536,19 @@ export function PipeSearchArt() {
 
       <circle cx={cx} cy={cy} r="46" fill="white" stroke={FOREST} strokeOpacity="0.3" />
       <circle className="pa-pulse" cx={cx} cy={cy} r="46" fill="none" stroke={FOREST} strokeOpacity="0.45" strokeWidth="2" />
-      <path
-        d={`M${cx - 9} ${cy - 18} L${cx - 9} ${cy + 7} C${cx - 9} ${cy + 19} ${cx + 7} ${cy + 21} ${cx + 10} ${cy + 12} C${cx + 12} ${cy + 4} ${cx + 3} ${cy + 1} ${cx} ${cy + 7}`}
-        fill="none"
-        stroke={FOREST}
-        strokeWidth="3.8"
-        strokeLinecap="round"
-      />
+      {/* The actual wordmark b-mark, not an approximation of it. Its viewBox
+          is "11.4 1 15.2 26", so the centre is (19, 14) — translate that to
+          the hub, scaled to sit inside the r=46 disc. */}
+      <g transform={`translate(${cx} ${cy}) scale(1.72) translate(-19 -14)`}>
+        <path
+          d={B_MARK_PATH}
+          fill="none"
+          stroke={FOREST}
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
 
       <Flow x={520} y={216} label="matches" />
 
@@ -449,40 +593,160 @@ export function PipeSearchArt() {
 /** Stage 4 — the verdict lands on one of five tiers, with the weight behind
  *  it and the citations that back it. */
 export function PipeGradeArt() {
+  // Each tier carries its own panels. `cites` is deliberately 0 for the two
+  // tiers that genuinely can't cite anything — that's the citation gate
+  // showing in the illustration, not a gap in the art.
   const tiers = [
-    { label: "SUPPORTED", fill: "#1E4D2B", text: "#F6F3EA" },
-    { label: "MIXED EVIDENCE", fill: "#B78628", text: "#FDF7E6" },
-    { label: "WEAK EVIDENCE", fill: "#B45A34", text: "#FBEDDE" },
-    { label: "NO EVIDENCE", fill: "#3F5049", text: "#EBEFEB" },
-    { label: "NOT TESTABLE", fill: "#615A82", text: "#EEEBF6" },
+    {
+      label: "SUPPORTED",
+      fill: "#1E4D2B",
+      text: "#F6F3EA",
+      lines: ["Several independent studies agree, and better", "quality work hasn't overturned them."],
+      weighed: "126 papers weighed",
+      bars: [0.92, 0.14, 0.26],
+      strength: "trials and large reviews, pointing one way",
+      cites: 3,
+      citeNote: "every one opens the real paper",
+    },
+    {
+      label: "MIXED EVIDENCE",
+      fill: "#B78628",
+      text: "#FDF7E6",
+      lines: ["Real studies exist and they disagree —", "neither side has clearly won."],
+      weighed: "74 papers weighed",
+      bars: [0.56, 0.52, 0.34],
+      strength: "solid studies on both sides of the question",
+      cites: 3,
+      citeNote: "sources for and against, both shown",
+    },
+    {
+      label: "WEAK EVIDENCE",
+      fill: "#B45A34",
+      text: "#FBEDDE",
+      lines: ["Thin evidence: small samples, animal or lab", "work, or no control group to rule out chance."],
+      weighed: "48 papers weighed",
+      bars: [0.22, 0.12, 0.42],
+      strength: "small samples, no controlled trials",
+      cites: 2,
+      citeNote: "the few that exist, with their limits",
+    },
+    {
+      label: "NO EVIDENCE",
+      fill: "#3F5049",
+      text: "#EBEFEB",
+      lines: ["Nothing in the literature tests this claim.", "Absence of evidence isn't proof it's false."],
+      weighed: "0 papers matched",
+      bars: [],
+      strength: "searched, nothing addresses the claim",
+      cites: 0,
+      citeNote: "nothing to cite — so nothing is shown",
+    },
+    {
+      label: "NOT TESTABLE",
+      fill: "#615A82",
+      text: "#EEEBF6",
+      lines: ["An opinion or aesthetic judgment — there", "is nothing here to measure."],
+      weighed: "not searched",
+      bars: [],
+      strength: "no measurable claim to search for",
+      cites: 0,
+      citeNote: "no search runs, so there are no sources",
+    },
   ];
+  // Which tier the marker rests on. Defaults to weak (the mewing claim), and
+  // stays wherever the visitor last clicked instead of replaying an entrance.
+  const [sel, setSel] = useState(2);
+  const ROW = 56;
+
   return (
-    <Plate id="grade" label="WEIGHING THE EVIDENCE">
-      {/* ① the five-tier scale */}
+    <Plate
+      id="grade"
+      label="WEIGHING THE EVIDENCE"
+      title="The five evidence tiers — select one to see what it means"
+    >
+      {/* ① the five-tier scale — each row is a real control */}
       <g transform="translate(72 82)">
-        {tiers.map((t, i) => (
-          <g key={t.label} transform={`translate(0 ${i * 56})`}>
-            <rect width="286" height="42" rx="21" fill={t.fill} fillOpacity={i === 2 ? 1 : 0.28} />
-            <text
-              x="22"
-              y="27"
-              fontFamily={FONT}
-              fontSize="12.5"
-              fontWeight="700"
-              letterSpacing="1.2"
-              fill={i === 2 ? t.text : INK}
-              fillOpacity={i === 2 ? 1 : 0.6}
+        {tiers.map((t, i) => {
+          const on = i === sel;
+          return (
+            <g
+              key={t.label}
+              transform={`translate(0 ${i * ROW})`}
+              role="button"
+              tabIndex={0}
+              aria-pressed={on}
+              aria-label={`${t.label}: ${t.lines.join(" ")}`}
+              onClick={() => setSel(i)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSel(i);
+                }
+              }}
+              className="pa-tier"
             >
-              {t.label}
+              <rect
+                width="286"
+                height="42"
+                rx="21"
+                fill={t.fill}
+                fillOpacity={on ? 1 : 0.28}
+                style={{ transition: "fill-opacity 0.25s ease" }}
+              />
+              <text
+                x="22"
+                y="27"
+                fontFamily={FONT}
+                fontSize="12.5"
+                fontWeight="700"
+                letterSpacing="1.2"
+                fill={on ? t.text : INK}
+                fillOpacity={on ? 1 : 0.6}
+              >
+                {t.label}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Marker. Positioned purely via a CSS transform (an SVG transform
+            attribute would be replaced by it, per the note up top) so it can
+            glide between rows. No looping entrance — it lands and stays put
+            until another tier is chosen. The glow is concentric with the
+            triangle: the triangle spans x 0–20 / y 10–32, so its centre is
+            (10, 21), which is where the circle sits. */}
+        <g
+          style={{
+            transform: `translate(300px, ${sel * ROW}px)`,
+            transition: "transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+          <circle cx="10" cy="21" r="22" fill={FOREST} fillOpacity="0.14" />
+          <path
+            d="M1 10 L21 21 L1 32 Z"
+            fill={FOREST}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            stroke={FOREST}
+            strokeWidth="2"
+          />
+        </g>
+
+        {/* tailored copy for the selected tier */}
+        <g transform="translate(0 300)">
+          {tiers[sel].lines.map((line, k) => (
+            <text
+              key={line}
+              x="2"
+              y={k * 22}
+              fontFamily={FONT}
+              fontSize="13.5"
+              fill={INK}
+              fillOpacity="0.72"
+            >
+              {line}
             </text>
-          </g>
-        ))}
-        {/* marker settling on the graded tier (weak, for the mewing claim) */}
-        <g transform="translate(300 112)">
-          <g className="pa-marker">
-            <circle className="pa-glow" cx="14" cy="21" r="24" fill={FOREST} fillOpacity="0.18" />
-            <path d="M0 10 L20 21 L0 32 Z" fill={FOREST} />
-          </g>
+          ))}
         </g>
       </g>
 
@@ -495,50 +759,76 @@ export function PipeGradeArt() {
         <text x="24" y="40" fontFamily={FONT} fontSize="11" fontWeight="700" letterSpacing="1.5" fill={BARK}>
           EVIDENCE STRENGTH
         </text>
-        <g transform="translate(24 70)">
-          {[52, 84, 64, 104, 38, 74].map((h, i) => (
-            <rect
-              key={i}
-              className="pa-bar"
-              style={{ animationDelay: `${i * 0.11}s`, transformOrigin: `${i * 40 + 10}px 116px` }}
-              x={i * 40}
-              y={116 - h}
-              width="20"
-              height={h}
-              rx="6"
-              fill={FOREST}
-              fillOpacity={0.5 + i * 0.09}
+        {/* The chart now measures ONE stated thing: how the retrieved papers
+            split between supporting the claim, conflicting with it, and being
+            inconclusive. That's the quantity that actually decides the tier,
+            which is why the shape differs per tier — tall-and-lopsided for
+            supported, near-even for mixed, all-short for weak, and absent for
+            the two tiers where no papers were retrieved at all. */}
+        <text x="24" y="58" fontFamily={FONT} fontSize="11.5" fill={BARK} fillOpacity="0.85">
+          how the retrieved papers split
+        </text>
+        <g transform="translate(24 74)">
+          {[0, 36, 72].map((y) => (
+            <line
+              key={y}
+              x1="0"
+              y1={y}
+              x2="238"
+              y2={y}
+              stroke={INK}
+              strokeOpacity="0.07"
+              strokeWidth="1"
+              strokeDasharray="3 5"
             />
           ))}
-          <line x1="0" y1="120" x2="238" y2="120" stroke={INK} strokeOpacity="0.14" strokeWidth="1.5" />
+          <line x1="0" y1="108" x2="238" y2="108" stroke={INK} strokeOpacity="0.16" strokeWidth="1.5" />
 
-          {/* climbing trend line over the bar tops */}
-          <path
-            className="pa-climb"
-            d="M10 64 L50 32 L90 52 L130 12 L170 78 L210 42"
-            fill="none"
-            stroke={SPROUT}
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <g className="pa-climb-head">
-            <circle cx="210" cy="42" r="7.5" fill={CANVAS} stroke={SPROUT} strokeWidth="3" />
-            <path
-              d="M222 30 L240 12 M240 12 L226 12 M240 12 L240 26"
-              fill="none"
-              stroke={SPROUT}
-              strokeWidth="3.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
+          {tiers[sel].bars.length === 0 ? (
+            <text x="119" y="62" textAnchor="middle" fontFamily={FONT} fontSize="12.5" fill={BARK} fillOpacity="0.75">
+              no papers to split
+            </text>
+          ) : (
+            tiers[sel].bars.map((v, k) => {
+              const barW = 46;
+              const gap = 38;
+              const x = 14 + k * (barW + gap);
+              const h = Math.max(3, v * 100);
+              const colors = [FOREST, "#B45A34", BARK];
+              const labels = ["supports", "conflicts", "unclear"];
+              return (
+                <g key={labels[k]}>
+                  <rect
+                    x={x}
+                    y={108 - h}
+                    width={barW}
+                    height={h}
+                    rx="7"
+                    fill={colors[k]}
+                    fillOpacity="0.85"
+                    style={{ transition: "y 0.4s ease, height 0.4s ease" }}
+                  />
+                  <text
+                    x={x + barW / 2}
+                    y="126"
+                    textAnchor="middle"
+                    fontFamily={FONT}
+                    fontSize="11"
+                    fontWeight="600"
+                    fill={BARK}
+                  >
+                    {labels[k]}
+                  </text>
+                </g>
+              );
+            })
+          )}
         </g>
         <text x="24" y="228" fontFamily={FONT} fontSize="14" fontWeight="600" fill={INK}>
-          48 papers weighed
+          {tiers[sel].weighed}
         </text>
-        <text x="24" y="248" fontFamily={FONT} fontSize="12.5" fill={BARK}>
-          mostly small, none in adults
+        <text x="24" y="248" fontFamily={FONT} fontSize="12" fill={BARK}>
+          {tiers[sel].strength}
         </text>
       </g>
 
@@ -549,9 +839,38 @@ export function PipeGradeArt() {
         <text x="24" y="40" fontFamily={FONT} fontSize="11" fontWeight="700" letterSpacing="1.5" fill={BARK}>
           CITED IN THE ANSWER
         </text>
-        {[0, 1, 2].map((i) => (
-          <g key={i} transform={`translate(24 ${56 + i * 62})`}>
-            <g className="pa-cite" style={{ animationDelay: `${0.6 + i * 0.26}s` }}>
+        {/* Tiers that can't cite anything show an explicit empty state rather
+            than a shorter list of the same rows — that IS the point of those
+            two verdicts. */}
+        {tiers[sel].cites === 0 && (
+          <g transform="translate(24 56)">
+            <rect
+              width="288"
+              height="112"
+              rx="14"
+              fill={INK}
+              fillOpacity="0.03"
+              stroke={INK}
+              strokeOpacity="0.12"
+              strokeDasharray="6 6"
+            />
+            <text x="144" y="52" textAnchor="middle" fontFamily={FONT} fontSize="13.5" fontWeight="600" fill={BARK}>
+              no citations
+            </text>
+            <text x="144" y="74" textAnchor="middle" fontFamily={FONT} fontSize="12" fill={BARK} fillOpacity="0.8">
+              nothing was retrieved to cite
+            </text>
+          </g>
+        )}
+        {Array.from({ length: tiers[sel].cites }, (_, i) => i).map((i) => (
+          // Key includes `sel` on purpose: changing tier remounts these rows,
+          // which restarts the one-shot roll-in. Without it React would reuse
+          // the nodes and the new tier's citations would just pop in.
+          <g key={`${sel}-${i}`} transform={`translate(24 ${56 + i * 62})`}>
+            {/* No animation-delay: with fill-mode omitted, a delay would show
+                the resting state first and then snap to the from-state, which
+                reads as a flicker. All rows roll in together instead. */}
+            <g className="pa-cite">
               <rect width="288" height="50" rx="14" fill={OK_BG} stroke={FOREST} strokeOpacity="0.45" />
               <rect x="12" y="13" width="24" height="24" rx="7" fill={FOREST} />
               <text x="24" y="30" textAnchor="middle" fontFamily={FONT} fontSize="12" fontWeight="700" fill={CANVAS}>
@@ -574,7 +893,7 @@ export function PipeGradeArt() {
           </g>
         ))}
         <text x="24" y="248" fontFamily={FONT} fontSize="12.5" fill={BARK}>
-          every one opens the real paper
+          {tiers[sel].citeNote}
         </text>
       </g>
 

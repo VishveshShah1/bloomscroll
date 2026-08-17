@@ -57,41 +57,6 @@ body {
   opacity: calc(0.05 + var(--scroll-tint) * 0.045);
 }
 
-/* Scroll-adaptive text ---------------------------------------------------
-   Long text pages (terms, privacy) scroll far enough that the body tint
-   goes from cream to deep forest, so a fixed ink color ends up invisible.
-   These classes ride --scroll-tint and flip ink → cream.
-
-   The crossover is deliberately STEEP, not a linear fade. Measured contrast
-   against the page tint:
-       tint 0.0  ink 15.2:1   cream 1.0:1
-       tint 0.6  ink  4.3:1   cream 3.6:1   <- muddy band
-       tint 1.0  ink  1.4:1   cream 11.1:1
-   A linear fade would sit in that mid band (a grey on a mid-sage) for a
-   long stretch. Instead we hold ink until ~0.55, cross over within ~0.16,
-   and hold cream after — so the worst case on the whole ramp is ~4.2:1
-   and every other point is comfortably above AA. */
-.text-adaptive,
-.text-adaptive-soft {
-  --tint: var(--scroll-tint, 0);
-  /* Near-instant STEP, not a fade. A fade passes through mid-grey, and
-     mid-grey on the mid-sage background measured 1.49:1 — worse than
-     either endpoint. Stepping black → white at the luminance crossover
-     (tint ≈ 0.655) keeps the worst point on the entire ramp at ~4.6:1.
-     Pure #000/#fff rather than ink/cream: the extra headroom at the ends
-     is exactly what makes the crossover clear AA. */
-  --mix: clamp(0, calc((var(--tint) - 0.655) * 200), 1);
-  color: color-mix(in srgb, #ffffff calc(var(--mix) * 100%), #000000);
-}
-/* Fallback for engines without color-mix: stay ink (readable at the top,
-   which is where such a browser's user starts). */
-@supports not (color: color-mix(in srgb, #000 50%, #fff)) {
-  .text-adaptive,
-  .text-adaptive-soft {
-    color: #000000;
-  }
-}
-
 ::selection {
   background: #1e4d2b;
   color: #f6f3ea;
@@ -1320,14 +1285,18 @@ summary:focus-visible {
    each composition reads correctly on frame one, so the reduced-motion block
    at the bottom simply freezes them rather than hiding anything. */
 
+/* Marching dashes — the offset travels exactly ONE dash period (5 + 7 = 12)
+   per cycle, linearly. Because the pattern repeats every 12 units, the end
+   state is pixel-identical to the start, so the loop is seamless: the dots
+   just flow left → right forever. (The old version ramped dashoffset 90 → 0
+   with an opacity fade, which visibly re-drew the line every 2.6s.) */
 @keyframes pa-draw {
-  0%   { stroke-dashoffset: 90; opacity: 0; }
-  30%  { opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 1; }
+  from { stroke-dashoffset: 12; }
+  to   { stroke-dashoffset: 0; }
 }
 .pa-draw {
   stroke-dasharray: 5 7;
-  animation: pa-draw 2.6s ease-out infinite;
+  animation: pa-draw 0.9s linear infinite;
 }
 
 @keyframes pa-rise {
@@ -1349,6 +1318,33 @@ summary:focus-visible {
   animation: pa-tap 4.2s ease-out infinite;
 }
 
+/* Clickable evidence tiers. The browser's default focus ring drew a black
+   box around the pill on mouse click, which looked like a bug. :focus-visible
+   only matches keyboard focus, so pointer users get no ring while keyboard
+   users keep a real, visible one. */
+.pa-tier {
+  cursor: pointer;
+  outline: none;
+}
+.pa-tier:focus {
+  outline: none;
+}
+.pa-tier:focus-visible {
+  outline: 2px solid #1e4d2b;
+  outline-offset: 3px;
+  border-radius: 21px;
+}
+
+/* Fingertip dot — visible only across the tap beat, then gone. Shares
+   pa-tap's 4.2s cycle so the two read as one gesture. */
+@keyframes pa-tap-dot {
+  0%, 32%  { opacity: 0; }
+  40%      { opacity: 1; }
+  60%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+.pa-tap-dot { animation: pa-tap-dot 4.2s ease-out infinite; }
+
 @keyframes pa-slide {
   0%, 20%  { transform: translateX(-10px); opacity: 0; }
   40%      { transform: translateX(0); opacity: 1; }
@@ -1359,11 +1355,16 @@ summary:focus-visible {
 @keyframes pa-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 .pa-caret { animation: pa-caret 1.1s step-end infinite; }
 
+/* Scanline over the caption. Travel is capped so the band stays INSIDE the
+   card: it starts at y=54, is 30 tall, and the card is 292 tall — so 214px
+   of travel put its bottom edge at 298, six pixels past the card. 200px
+   lands it at 284, just past the last text row (283) and clear of the
+   rounded bottom edge. */
 @keyframes pa-sweep {
   0%   { transform: translateY(0); opacity: 0; }
   10%  { opacity: 1; }
-  90%  { transform: translateY(214px); opacity: 1; }
-  100% { transform: translateY(214px); opacity: 0; }
+  90%  { transform: translateY(200px); opacity: 1; }
+  100% { transform: translateY(200px); opacity: 0; }
 }
 .pa-sweep { animation: pa-sweep 3.6s ease-in-out infinite; }
 
@@ -1377,13 +1378,21 @@ summary:focus-visible {
 @keyframes pa-sweep-arm { to { transform: rotate(360deg); } }
 .pa-sweep-arm { animation: pa-sweep-arm 6s linear infinite; }
 
+/* A bubble lights the instant the radar arm crosses it, then decays. Each
+   node carries an animation-delay equal to (its angle / 360) * 6s, so 0%
+   here IS the moment of contact — hence the spike at the start and the long
+   fade after, rather than a blink somewhere in the middle of the cycle. */
+/* A bubble is only visible while the beam is on it. It flashes at 0% (its
+   delay is set to the moment the arm crosses it), fades out completely, and
+   stays at zero until the next pass — so the field is dark between sweeps
+   rather than holding a permanent dim state. */
 @keyframes pa-node {
-  0%, 55% { opacity: 0.45; }
-  62%     { opacity: 1; }
-  78%     { opacity: 0.45; }
-  100%    { opacity: 0.45; }
+  0%   { opacity: 1; }
+  12%  { opacity: 1; }
+  46%  { opacity: 0; }
+  100% { opacity: 0; }
 }
-.pa-node { animation: pa-node 6s ease-in-out infinite; }
+.pa-node { animation: pa-node 6s ease-out infinite; }
 
 @keyframes pa-pulse {
   0%   { transform: scale(1); opacity: 0.5; }
@@ -1422,12 +1431,24 @@ summary:focus-visible {
 }
 .pa-bar { animation: pa-bar 4.4s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
 
+/* Citation rows roll in ONCE and stay. Previously this looped every 4.4s
+   with an invisible window at the top of each cycle, so the numbered chips
+   kept vanishing and coming back on their own.
+
+   The resting state is opacity 1 and the fill mode is deliberately NOT
+   `both`: with `both` the row holds the from-state (invisible) whenever the
+   animation can't advance — a background tab, a throttled renderer — and the
+   citations disappear entirely. Visible by default, animated as enhancement.
+   Re-keyed on tier change in PipelineArt so it replays exactly once per
+   selection. */
 @keyframes pa-cite {
-  0%, 14% { transform: translateY(10px); opacity: 0; }
-  34%     { transform: translateY(0); opacity: 1; }
-  100%    { transform: translateY(0); opacity: 1; }
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
-.pa-cite { animation: pa-cite 4.4s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+.pa-cite {
+  opacity: 1;
+  animation: pa-cite 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
 
 
 /* Stage 4 — the trend line climbing across the bar tops toward the verdict.

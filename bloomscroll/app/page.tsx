@@ -193,7 +193,7 @@ function Nav({
       {/* 3-column: logo left, links dead-center, controls right. */}
       <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-8">
         <Link href="/" onClick={onWordmarkClick} className="focus-ring rounded-md">
-          <Wordmark className="text-[22px]" />
+          <Wordmark className="text-[27px]" />
         </Link>
         <div className="hidden items-center justify-center gap-8 md:flex">
           {links.map((l) => (
@@ -903,25 +903,36 @@ export default function LandingPage() {
               always the honest picture of how much the literature actually says.
             </p>
           </div>
-          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Six-column grid where each tile spans 2 — that's 3 per row, and
+              the 4th tile starting at column 2 centers the final pair. Using
+              a grid (not flex-wrap) with auto-rows-fr is what makes every
+              tile the SAME height: rows share one track size, so the tallest
+              card sets the height for all of them. */}
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-6">
             {VERDICT_ORDER.map((verdict, i) => (
               <div
                 key={verdict}
                 data-reveal
                 data-d={String((i % 3) + 1)}
-                className="reveal surface card-lift h-full p-6 text-ink"
+                className={`reveal surface card-lift flex h-full flex-col p-6 text-ink lg:col-span-2 ${
+                  i === 3 ? "lg:col-start-2" : ""
+                }`}
               >
                 <VerdictChip verdict={verdict} label={t.verdictLabels[verdict]} />
                 <p className="mt-4 text-[16px] font-semibold leading-snug text-ink">
                   {t.verdictMeanings[verdict]}
                 </p>
-                <p className="mt-4 text-[14px] leading-relaxed text-bark">
+                <p className="mt-3 text-[14px] leading-relaxed text-bark">
                   <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-forest">
                     {t.verdictExtra.looksLike} ·{" "}
                   </span>
                   {t.verdictDetails[verdict].evidence}
                 </p>
-                <p className="mt-4 border-t border-ink/8 pt-4 text-[13px] italic leading-relaxed text-bark">
+                {/* mt-auto pins the example to the card's bottom edge. Since
+                    every card shares one row height, the slack now falls in
+                    the gap above this rule instead of pooling as dead space
+                    under the last line of text. */}
+                <p className="mt-auto border-t border-ink/8 pt-4 text-[13px] italic leading-relaxed text-bark">
                   {t.verdictExtra.forExample}: {t.verdictDetails[verdict].example}
                 </p>
               </div>
