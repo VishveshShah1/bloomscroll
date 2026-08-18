@@ -97,17 +97,29 @@ function useRevealOnScroll() {
       { rootMargin: "0px 0px -8% 0px", threshold: 0.01 },
     );
 
-    const observeAll = () => pending().forEach((el) => io.observe(el));
-    observeAll();
+    // Once the backstop has fired, the entrance animation has had its moment.
+    // Anything mounted after that — a language switch swapping every string,
+    // for instance — is shown instantly instead of being handed to the
+    // observer, which would leave it invisible until it happened to be
+    // scrolled past again.
+    let settled = false;
 
-    // Catches anything React mounts later — e.g. new nodes after a language
-    // switch, which the old captured-once list could never have seen.
-    const rescan = window.setInterval(observeAll, 500);
+    const sweep = () => {
+      const next = pending();
+      if (settled) next.forEach(show);
+      else next.forEach((el) => io.observe(el));
+    };
+    sweep();
+
+    // Runs for the component's whole life. Killing this on a timer was the
+    // bug: React remounts these nodes on a language switch, and with no
+    // rescan left running they were never observed and never revealed.
+    const rescan = window.setInterval(sweep, 400);
 
     // Backstop: whatever happened, nothing stays hidden.
     const backstop = window.setTimeout(() => {
+      settled = true;
       pending().forEach(show);
-      window.clearInterval(rescan);
     }, 2500);
 
     return () => {
