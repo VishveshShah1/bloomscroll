@@ -40,13 +40,20 @@ const config: Config = {
         dopamine: "#B04A44",
       },
       fontFamily: {
-        // Single-family stack: real San Francisco on Apple, Inter elsewhere.
-        // Weight + size do the work; no display / body / mono split.
+        // Single-family stack: real San Francisco on Apple, Source Sans 3
+        // everywhere else. Weight + size do the work; no display/body split.
+        //
+        // `Inter` used to sit in slot 3 but was never loaded — no next/font,
+        // no @font-face — so it only applied to the rare visitor who had Inter
+        // installed locally, and everyone else silently got Segoe UI or Roboto.
+        // --font-fallback-sans is a real self-hosted webfont (see app/layout.tsx),
+        // so the non-Apple half of the audience now gets a chosen typeface.
         sans: [
           "-apple-system",
           "BlinkMacSystemFont",
-          "Inter",
+          "var(--font-fallback-sans)",
           "Segoe UI",
+          "Roboto",
           "Helvetica Neue",
           "Arial",
           "sans-serif",
@@ -54,8 +61,9 @@ const config: Config = {
         display: [
           "-apple-system",
           "BlinkMacSystemFont",
-          "Inter",
+          "var(--font-fallback-sans)",
           "Segoe UI",
+          "Roboto",
           "Helvetica Neue",
           "Arial",
           "sans-serif",
@@ -63,8 +71,9 @@ const config: Config = {
         body: [
           "-apple-system",
           "BlinkMacSystemFont",
-          "Inter",
+          "var(--font-fallback-sans)",
           "Segoe UI",
+          "Roboto",
           "Helvetica Neue",
           "Arial",
           "sans-serif",

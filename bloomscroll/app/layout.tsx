@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Source_Sans_3 } from "next/font/google";
 import SwRegister from "@/components/SwRegister";
 import Splash from "@/components/Splash";
 import AuthProvider from "@/components/AuthProvider";
@@ -7,6 +8,29 @@ import ConsentSync from "@/components/ConsentSync";
 import "./globals.css";
 
 import { SITE_URL } from "@/lib/site";
+
+/**
+ * The non-Apple half of the type stack.
+ *
+ * Apple devices resolve `-apple-system` to San Francisco and never reach this.
+ * Everyone else previously fell through `Inter` — which was listed in the
+ * stack but never actually loaded — and landed on Segoe UI or Roboto. So the
+ * brand had no considered typography off Apple at all.
+ *
+ * Source Sans 3 is humanist, like SF: open apertures, generous x-height, warm.
+ * That matters more than it sounds — a neo-grotesque fallback (Inter, Geist)
+ * makes Windows visitors see a visibly colder, more corporate site than Mac
+ * visitors, which is the mismatch this stack has always had.
+ *
+ * next/font self-hosts at build time: no request to Google at runtime, no
+ * layout shift, no third-party privacy surface.
+ */
+const fallbackSans = Source_Sans_3({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-fallback-sans",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -55,7 +79,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    // The font variable goes on <html>, not <body>: Tailwind's preflight sets
+    // font-family on html too, and a var defined only on body wouldn't
+    // resolve there.
+    <html lang="en" className={`${fallbackSans.variable} scroll-smooth`}>
       {/* No bg-canvas here — the body background is driven by
           ScrollBackground via the `--bg-color` CSS var (see globals.css).
           A hardcoded class would win by specificity and freeze the tint. */}

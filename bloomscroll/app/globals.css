@@ -7,7 +7,11 @@
 html,
 body {
   color: #12201a;
-  font-feature-settings: "ss01", "cv11";
+  /* `font-feature-settings: "ss01", "cv11"` used to sit here. Those are
+     Inter's stylistic-set / character-variant tags, carried over from a setup
+     that loaded Inter. Inter was never actually loaded, so they were no-ops —
+     and applying another family's feature tags to San Francisco or Source
+     Sans 3 would enable whatever those slots happen to mean there. */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

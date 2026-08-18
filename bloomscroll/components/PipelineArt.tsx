@@ -29,6 +29,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { B_MARK_PATH } from "./Wordmark";
+import { FONT_STACK } from "@/lib/fontStack";
 
 const CANVAS = "#F6F3EA";
 const MOSS = "#E8EDDE";
@@ -38,7 +39,7 @@ const INK = "#12201A";
 const BARK = "#5B6B5E";
 const OK_BG = "#DDE7DA";
 
-const FONT = "-apple-system, Inter, sans-serif";
+const FONT = FONT_STACK;
 
 const W = 1200;
 const H = 480;
@@ -642,10 +643,33 @@ export function PipeGradeArt() {
       citeNote: "no search runs, so there are no sources",
     },
   ];
-  // Which tier the marker rests on. Defaults to weak (the mewing claim), and
-  // stays wherever the visitor last clicked instead of replaying an entrance.
-  const [sel, setSel] = useState(2);
+  // Which tier the marker rests on. Starts at the top and walks down on its
+  // own, so the diagram demonstrates itself — requiring a tap meant most
+  // visitors never saw that the panels change at all.
+  const [sel, setSel] = useState(0);
+  // The moment anyone clicks or keys a tier, the auto-walk stops for good and
+  // the selection is theirs. Auto-advancing under someone who just chose a
+  // tier would read as the page fighting them.
+  const [taken, setTaken] = useState(false);
   const ROW = 56;
+
+  useEffect(() => {
+    if (taken) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return; // reduced motion: hold on the first tier, still fully tappable
+    }
+    const t = setTimeout(() => setSel((s) => (s + 1) % tiers.length), 2600);
+    return () => clearTimeout(t);
+    // `sel` drives the chain: each landing schedules the next step.
+  }, [sel, taken, tiers.length]);
+
+  const choose = (i: number) => {
+    setTaken(true);
+    setSel(i);
+  };
 
   return (
     <Plate
@@ -670,11 +694,11 @@ export function PipeGradeArt() {
               tabIndex={0}
               aria-pressed={on}
               aria-label={`${t.label}: ${t.lines.join(" ")}`}
-              onClick={() => setSel(i)}
+              onClick={() => choose(i)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  setSel(i);
+                  choose(i);
                 }
               }}
               className="pa-tier"

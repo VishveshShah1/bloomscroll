@@ -12,7 +12,19 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/dashboard", "/admin", "/api/", "/signin", "/success", "/canceled"],
+        // /welcome and /comeback are the extension's install and uninstall
+        // landing tabs — real pages, but destinations only for someone
+        // arriving from Chrome, and they'd compete with the real pages.
+        disallow: [
+          "/dashboard",
+          "/admin",
+          "/api/",
+          "/signin",
+          "/success",
+          "/canceled",
+          "/welcome",
+          "/comeback",
+        ],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

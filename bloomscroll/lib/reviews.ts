@@ -119,7 +119,10 @@ export async function submitReview(input: {
   };
   const store = kv();
   await store.set(reviewKey(input.email), JSON.stringify(payload));
-  await store.set(bonusKey(input.email), String(REVIEW_BONUS_CHECKS));
+  // incrBy, not set: the uninstall-retention flow (lib/comeback.ts) writes to
+  // this same counter, and a plain set here would silently wipe a grant made
+  // there. Both sides are guarded one-time, so adding is the correct merge.
+  await store.incrBy(bonusKey(input.email), REVIEW_BONUS_CHECKS);
   await appendIndex(input.email);
   return { ok: true, bonus: REVIEW_BONUS_CHECKS };
 }

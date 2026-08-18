@@ -10,6 +10,8 @@
  * real platforms or brands.
  */
 
+import { FONT_STACK } from "@/lib/fontStack";
+
 const CANVAS = "#F6F3EA";
 const MOSS = "#E8EDDE";
 const FOREST = "#1E4D2B";
@@ -62,7 +64,7 @@ function VerdictBadge({
         x={w / 2}
         y="17.5"
         textAnchor="middle"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="10.5"
         fontWeight="700"
         letterSpacing="0.6"
@@ -206,7 +208,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
           x="40"
           y="60"
           textAnchor="middle"
-          fontFamily="-apple-system, Inter, sans-serif"
+          fontFamily={FONT_STACK}
           fontSize="12"
           fontWeight="700"
           fill={FOREST}
@@ -238,7 +240,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
         <text
           x="36"
           y="42"
-          fontFamily="-apple-system, Inter, sans-serif"
+          fontFamily={FONT_STACK}
           fontSize="9"
           fontWeight="700"
           letterSpacing="1.4"
@@ -296,14 +298,14 @@ export function UseCaseArt({ kind }: { kind: string }) {
           strokeLinecap="round"
           transform="rotate(-90 68 76)"
         />
-        <text x="68" y="80" textAnchor="middle" fontFamily="-apple-system, Inter, sans-serif" fontSize="13" fontWeight="700" fill={INK}>
+        <text x="68" y="80" textAnchor="middle" fontFamily={FONT_STACK} fontSize="13" fontWeight="700" fill={INK}>
           73%
         </text>
-        <text x="68" y="118" textAnchor="middle" fontFamily="-apple-system, Inter, sans-serif" fontSize="9" fontWeight="600" letterSpacing="0.8" fill={BARK}>
+        <text x="68" y="118" textAnchor="middle" fontFamily={FONT_STACK} fontSize="9" fontWeight="600" letterSpacing="0.8" fill={BARK}>
           KCAL
         </text>
         {/* right-side macro table */}
-        <g fontFamily="-apple-system, Inter, sans-serif" fontSize="10">
+        <g fontFamily={FONT_STACK} fontSize="10">
           <text x="118" y="46" fontWeight="700" fill={INK}>Protein</text>
           <rect x="180" y="38" width="70" height="6" rx="3" fill={MOSS} />
           <rect x="180" y="38" width="52" height="6" rx="3" fill={FOREST} />
@@ -361,7 +363,7 @@ export function UseCaseArt({ kind }: { kind: string }) {
       <rect x="68" y="112" width="22" height="3" rx="1.5" fill={BARK} />
       <rect x="68" y="119" width="16" height="3" rx="1.5" fill={BARK} />
       {/* ingredient list on the right */}
-      <g fontFamily="-apple-system, Inter, sans-serif" fontSize="10.5">
+      <g fontFamily={FONT_STACK} fontSize="10.5">
         <text x="158" y="42" fontWeight="700" fill={INK}>Ingredients</text>
         {[
           { name: "Niacinamide", pct: "5%" },
@@ -399,7 +401,7 @@ export function PhoneHeroArt() {
       <text
         x="46"
         y="80"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="12"
         fontWeight="600"
         fill={INK}
@@ -419,7 +421,7 @@ export function PhoneHeroArt() {
       <text
         x="40"
         y="122"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="11"
         fontWeight="700"
         letterSpacing="1.5"
@@ -430,7 +432,7 @@ export function PhoneHeroArt() {
       <text
         x="40"
         y="160"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="26"
         fontWeight="600"
         fill={INK}
@@ -440,7 +442,7 @@ export function PhoneHeroArt() {
       <text
         x="40"
         y="192"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="26"
         fontWeight="600"
         fill={INK}
@@ -453,7 +455,7 @@ export function PhoneHeroArt() {
       <text
         x="56"
         y="248"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="13"
         fill={INK}
       >
@@ -464,7 +466,7 @@ export function PhoneHeroArt() {
         x="318"
         y="247"
         textAnchor="middle"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="12"
         fontWeight="600"
         fill={CANVAS}
@@ -478,7 +480,7 @@ export function PhoneHeroArt() {
       <text
         x="60"
         y="316"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="10"
         fontWeight="600"
         letterSpacing="1.4"
@@ -489,7 +491,7 @@ export function PhoneHeroArt() {
       <text
         x="60"
         y="344"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="17"
         fontWeight="600"
         fontStyle="italic"
@@ -500,7 +502,7 @@ export function PhoneHeroArt() {
       <text
         x="60"
         y="368"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="17"
         fontWeight="600"
         fontStyle="italic"
@@ -521,7 +523,7 @@ export function PhoneHeroArt() {
       <text
         x="60"
         y="498"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="10"
         fontWeight="600"
         letterSpacing="1.4"
@@ -533,7 +535,7 @@ export function PhoneHeroArt() {
       <text
         x="150"
         y="536"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="11"
         fontWeight="600"
         fill={INK}
@@ -543,7 +545,7 @@ export function PhoneHeroArt() {
       <text
         x="150"
         y="550"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="10"
         fill={BARK}
       >
@@ -554,7 +556,7 @@ export function PhoneHeroArt() {
       <text
         x="60"
         y="588"
-        fontFamily="-apple-system, Inter, sans-serif"
+        fontFamily={FONT_STACK}
         fontSize="10"
         fontWeight="600"
         letterSpacing="1.4"
@@ -581,7 +583,7 @@ export function PhoneHeroArt() {
             x="18"
             y="22"
             textAnchor="middle"
-            fontFamily="-apple-system, Inter, sans-serif"
+            fontFamily={FONT_STACK}
             fontSize="11"
             fontWeight="700"
             fill={CANVAS}
@@ -666,7 +668,7 @@ export function HeroArt() {
         <text
           x="24"
           y="34"
-          fontFamily="-apple-system, Inter, sans-serif"
+          fontFamily={FONT_STACK}
           fontSize="10"
           fontWeight="600"
           letterSpacing="1.4"
@@ -674,37 +676,37 @@ export function HeroArt() {
         >
           THE CLAIM
         </text>
-        <text x="24" y="64" fontFamily="-apple-system, Inter, sans-serif" fontSize="20" fontWeight="600" fontStyle="italic" fill={INK}>
+        <text x="24" y="64" fontFamily={FONT_STACK} fontSize="20" fontWeight="600" fontStyle="italic" fill={INK}>
           &ldquo;Daily sunscreen use reduces
         </text>
-        <text x="24" y="92" fontFamily="-apple-system, Inter, sans-serif" fontSize="20" fontWeight="600" fontStyle="italic" fill={INK}>
+        <text x="24" y="92" fontFamily={FONT_STACK} fontSize="20" fontWeight="600" fontStyle="italic" fill={INK}>
           long-term skin cancer risk.&rdquo;
         </text>
         <VerdictBadge x={24} y={116} pulse />
         <text
           x="152"
           y="134"
-          fontFamily="-apple-system, Inter, sans-serif"
+          fontFamily={FONT_STACK}
           fontSize="12.5"
           fontWeight="500"
           fill={BARK}
         >
           Multiple decent studies point the same way.
         </text>
-        <text x="24" y="176" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
+        <text x="24" y="176" fontFamily={FONT_STACK} fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
           WHY THIS VERDICT
         </text>
         <rect x="24" y="188" width="512" height="8" rx="4" fill={INK} fillOpacity="0.1" />
         <rect x="24" y="204" width="480" height="8" rx="4" fill={INK} fillOpacity="0.1" />
         <rect x="24" y="220" width="360" height="8" rx="4" fill={INK} fillOpacity="0.1" />
-        <text x="24" y="256" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
+        <text x="24" y="256" fontFamily={FONT_STACK} fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
           CITED IN THE ANSWER
         </text>
         {[0, 1].map((i) => (
           <g key={i} transform={`translate(24 ${268 + i * 42})`}>
             <rect x="0" y="0" width="512" height="34" rx="10" fill="#DDE7DA" fillOpacity="0.55" stroke={FOREST} strokeOpacity="0.3" />
             <rect x="8" y="8" width="18" height="18" rx="4" fill={FOREST} />
-            <text x="17" y="20" textAnchor="middle" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="700" fill={CANVAS}>{i + 1}</text>
+            <text x="17" y="20" textAnchor="middle" fontFamily={FONT_STACK} fontSize="10" fontWeight="700" fill={CANVAS}>{i + 1}</text>
             <rect x="34" y="10" width={220 - i * 40} height="7" rx="3.5" fill={INK} fillOpacity="0.5" />
             <rect x="34" y="21" width={120 - i * 20} height="6" rx="3" fill={BARK} />
           </g>
@@ -719,14 +721,14 @@ export function StepInputArt() {
   return (
     <BrowserChrome>
       <g transform="translate(40 96)">
-        <text x="0" y="0" fontFamily="-apple-system, Inter, sans-serif" fontSize="11" fontWeight="600" letterSpacing="1.5" fill={FOREST}>
+        <text x="0" y="0" fontFamily={FONT_STACK} fontSize="11" fontWeight="600" letterSpacing="1.5" fill={FOREST}>
           THE ANTI-DOOMSCROLL
         </text>
-        <text x="0" y="34" fontFamily="-apple-system, Inter, sans-serif" fontSize="24" fontWeight="600" fill={INK}>
+        <text x="0" y="34" fontFamily={FONT_STACK} fontSize="24" fontWeight="600" fill={INK}>
           What are we checking?
         </text>
         <rect x="0" y="72" width="560" height="70" rx="16" fill="white" stroke={INK} strokeOpacity="0.08" />
-        <text x="20" y="112" fontFamily="-apple-system, Inter, sans-serif" fontSize="15" fill={INK}>
+        <text x="20" y="112" fontFamily={FONT_STACK} fontSize="15" fill={INK}>
           Daily sunscreen use reduces long-term skin cancer risk
         </text>
         {/* blinking cursor */}
@@ -734,13 +736,13 @@ export function StepInputArt() {
           <animate attributeName="opacity" values="1;0;1" dur="1.05s" repeatCount="indefinite" />
         </rect>
         <rect x="440" y="86" width="102" height="42" rx="21" fill={FOREST} />
-        <text x="491" y="112" textAnchor="middle" fontFamily="-apple-system, Inter, sans-serif" fontSize="13" fontWeight="600" fill={CANVAS}>
+        <text x="491" y="112" textAnchor="middle" fontFamily={FONT_STACK} fontSize="13" fontWeight="600" fill={CANVAS}>
           check
         </text>
 
         {/* try-one chips row */}
         <g transform="translate(0 168)">
-          <text x="0" y="10" fontFamily="-apple-system, Inter, sans-serif" fontSize="11" fontWeight="500" letterSpacing="1" fill={BARK}>
+          <text x="0" y="10" fontFamily={FONT_STACK} fontSize="11" fontWeight="500" letterSpacing="1" fill={BARK}>
             TRY ONE
           </text>
           {[
@@ -750,7 +752,7 @@ export function StepInputArt() {
           ].map((c) => (
             <g key={c.label}>
               <rect x={c.x} y="0" width={c.w} height="26" rx="13" fill="white" stroke={INK} strokeOpacity="0.1" />
-              <text x={c.x + c.w / 2} y="17" textAnchor="middle" fontFamily="-apple-system, Inter, sans-serif" fontSize="11" fill={INK}>
+              <text x={c.x + c.w / 2} y="17" textAnchor="middle" fontFamily={FONT_STACK} fontSize="11" fill={INK}>
                 {c.label}
               </text>
             </g>
@@ -760,7 +762,7 @@ export function StepInputArt() {
         {/* mini source-source hint */}
         <g transform="translate(0 210)">
           <circle cx="6" cy="8" r="4" fill={SPROUT} />
-          <text x="18" y="12" fontFamily="-apple-system, Inter, sans-serif" fontSize="11" fill={BARK}>
+          <text x="18" y="12" fontFamily={FONT_STACK} fontSize="11" fill={BARK}>
             we&apos;ll search Europe PMC — 45M+ peer reviewed papers.
           </text>
         </g>
@@ -786,10 +788,10 @@ export function StepScanArt() {
   return (
     <BrowserChrome>
       <g transform="translate(40 88)">
-        <text x="0" y="0" fontFamily="-apple-system, Inter, sans-serif" fontSize="11" fontWeight="600" letterSpacing="1.5" fill={FOREST}>
+        <text x="0" y="0" fontFamily={FONT_STACK} fontSize="11" fontWeight="600" letterSpacing="1.5" fill={FOREST}>
           RUNNING
         </text>
-        <text x="0" y="34" fontFamily="-apple-system, Inter, sans-serif" fontSize="24" fontWeight="600" fill={INK}>
+        <text x="0" y="34" fontFamily={FONT_STACK} fontSize="24" fontWeight="600" fill={INK}>
           Reading, searching, grading.
         </text>
 
@@ -811,7 +813,7 @@ export function StepScanArt() {
                   </circle>
                 </g>
               )}
-              <text x="32" y="22" fontFamily="-apple-system, Inter, sans-serif" fontSize="14" fontWeight="600" fill={INK}>
+              <text x="32" y="22" fontFamily={FONT_STACK} fontSize="14" fontWeight="600" fill={INK}>
                 {r.label}
               </text>
               <rect x="32" y="30" width="500" height="6" rx="3" fill={MOSS} />
@@ -826,7 +828,7 @@ export function StepScanArt() {
 
         {/* sources being scanned */}
         <g transform="translate(0 268)">
-          <text x="0" y="0" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
+          <text x="0" y="0" fontFamily={FONT_STACK} fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
             SOURCES SCANNED
           </text>
           {sources.map((s, i) => (
@@ -837,10 +839,10 @@ export function StepScanArt() {
                   <animate attributeName="opacity" values="0.35;0.85;0.35" dur="1.4s" repeatCount="indefinite" />
                 )}
               </circle>
-              <text x="28" y="20" fontFamily="-apple-system, Inter, sans-serif" fontSize="12" fontWeight="600" fill={INK}>
+              <text x="28" y="20" fontFamily={FONT_STACK} fontSize="12" fontWeight="600" fill={INK}>
                 {s.name}
               </text>
-              <text x="12" y="42" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fill={BARK}>
+              <text x="12" y="42" fontFamily={FONT_STACK} fontSize="10" fill={BARK}>
                 {s.count} matches
               </text>
             </g>
@@ -867,10 +869,10 @@ export function StepGradedArt() {
           stroke={INK}
           strokeOpacity="0.06"
         />
-        <text x="24" y="34" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
+        <text x="24" y="34" fontFamily={FONT_STACK} fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
           THE CLAIM
         </text>
-        <text x="24" y="62" fontFamily="-apple-system, Inter, sans-serif" fontSize="18" fontWeight="600" fontStyle="italic" fill={INK}>
+        <text x="24" y="62" fontFamily={FONT_STACK} fontSize="18" fontWeight="600" fontStyle="italic" fill={INK}>
           &ldquo;Mewing reshapes the adult jawline.&rdquo;
         </text>
 
@@ -882,23 +884,23 @@ export function StepGradedArt() {
         <rect x="24" y="164" width="340" height="8" rx="4" fill={INK} fillOpacity="0.1" />
 
         {/* evidence bars */}
-        <text x="24" y="200" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
+        <text x="24" y="200" fontFamily={FONT_STACK} fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
           EVIDENCE
         </text>
         <EvidenceBars x={24} y={212} />
-        <text x="118" y="232" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fill={BARK}>
+        <text x="118" y="232" fontFamily={FONT_STACK} fontSize="10" fill={BARK}>
           mostly small, none in adults
         </text>
 
         {/* citation list */}
-        <text x="24" y="266" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
+        <text x="24" y="266" fontFamily={FONT_STACK} fontSize="10" fontWeight="600" letterSpacing="1.4" fill={BARK}>
           CITED IN THE ANSWER
         </text>
         {[0, 1].map((i) => (
           <g key={i} transform={`translate(24 ${278 + i * 42})`}>
             <rect x="0" y="0" width="512" height="34" rx="10" fill="#DDE7DA" fillOpacity="0.55" stroke={FOREST} strokeOpacity="0.3" />
             <rect x="8" y="8" width="18" height="18" rx="4" fill={FOREST} />
-            <text x="17" y="20" textAnchor="middle" fontFamily="-apple-system, Inter, sans-serif" fontSize="10" fontWeight="700" fill={CANVAS}>{i + 1}</text>
+            <text x="17" y="20" textAnchor="middle" fontFamily={FONT_STACK} fontSize="10" fontWeight="700" fill={CANVAS}>{i + 1}</text>
             <rect x="34" y="10" width={200 + i * 30} height="7" rx="3.5" fill={INK} fillOpacity="0.5" />
             <rect x="34" y="21" width={110 + i * 20} height="6" rx="3" fill={BARK} />
           </g>

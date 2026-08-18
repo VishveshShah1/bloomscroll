@@ -719,34 +719,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Trust strip — compact stats band right under the hero so the pitch
-          lands before the "how it works" scroll. */}
-      <section aria-label="At a glance" className="py-8 sm:py-10">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
-          <div
-            data-reveal
-            className="reveal surface flex flex-col gap-6 rounded-[22px] px-6 py-6 sm:flex-row sm:items-stretch sm:justify-between sm:gap-2 sm:px-8"
-          >
-            {t.stats.map((s, i) => (
-              <div
-                key={s.label}
-                className={`flex-1 ${i > 0 ? "sm:border-l sm:border-ink/8 sm:pl-6" : ""}`}
-              >
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[30px] font-semibold leading-none tracking-display text-forest sm:text-[36px]">
-                    {s.value}
-                  </span>
-                  {i === 0 && <span className="trust-dot" aria-hidden="true" />}
-                </div>
-                <p className="mt-2 max-w-[24ch] text-[13px] leading-snug text-bark">
-                  {s.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Plain-language definition. Deliberately unstyled prose in a single
           paragraph under a real <h2>: this is the block a search engine or an
           AI assistant lifts when someone asks "what is Bloomscroll", and the
@@ -820,11 +792,13 @@ export default function LandingPage() {
                       {s.title}
                     </h3>
                   </div>
-                  <div
-                    data-reveal
-                    data-d="1"
-                    className="reveal mt-6 overflow-hidden rounded-[26px] bg-card ring-1 ring-ink/10 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_10px_22px_rgba(18,32,26,0.07),0_38px_70px_rgba(18,32,26,0.12)]"
-                  >
+                  {/* No card chrome around the illustration. It used to sit in
+                      a rounded bg-card panel with a ring and a big drop
+                      shadow — a graphic boxed inside a card inside a section,
+                      which reads as an image dropped into the page rather
+                      than part of it. The SVG already carries its own soft
+                      plate, so the outer frame was pure double-framing. */}
+                  <div data-reveal data-d="1" className="reveal mt-6">
                     {s.art}
                   </div>
                 </div>

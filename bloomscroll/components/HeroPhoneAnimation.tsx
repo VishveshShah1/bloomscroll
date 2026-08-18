@@ -468,82 +468,57 @@ function PostBody({
 }
 
 /**
- * Renders the "video" behind the phone content. Priority order:
- *   1. `/hero/reel-{scene}.mp4`   → silent looping video
- *   2. `/hero/reel-{scene}.webp`  → real photo (best size/quality)
- *   3. `/hero/reel-{scene}.jpg`   → real photo (fallback)
- *   4. `/hero/reel-{scene}.png`   → real photo (last resort)
- *   5. Hand-built SVG scene       → default until real assets land
+ * The photo behind the phone content, one per scene.
  *
- * To upgrade: drop any of the above into `public/hero/` for each of
- * `sunscreen`, `mewing`, `cold`. Vertical 9:16 assets look best.
- * Silent muted-loop is fine for MP4. See the answer alongside this
- * commit for licensing guidance on what photos are safe to use.
+ * This used to probe the network at runtime — HEAD `/hero/reel-{scene}.mp4`,
+ * then `.webp`, then `.jpg`, then `.png`, taking the first that answered 200,
+ * and rendering the hand-drawn SvgScene until one did. Two things went wrong
+ * with that:
+ *
+ *   1. Next answers HEAD for a MISSING file under /public with 500, not 404,
+ *      so every scene burned two failed round-trips before reaching its real
+ *      photo — and rendered the SVG placeholder in the meantime. Because the
+ *      scene changes as you scroll, the effect re-ran and re-flashed the
+ *      placeholder on every change.
+ *   2. The source photos were unprocessed camera originals (up to 5464x8192
+ *      at 8.9MB) served raw through <img>, so on any real connection the
+ *      placeholder was what you actually looked at. They're now centre-cropped
+ *      to 5:9 and re-encoded to 1000x1800 WebP — 14MB total down to 228KB.
+ *
+ * The filenames are known at build time, so there is nothing to discover.
+ * A static map renders the right photo on first paint, with no probe, no 500s,
+ * and no placeholder flash. SvgScene stays as the last-resort fallback for a
+ * scene with no photo (and as the decode-error fallback below).
  */
-type MediaKind = "video" | "image";
-interface FoundMedia {
-  url: string;
-  kind: MediaKind;
-}
-const MEDIA_CANDIDATES: { ext: string; kind: MediaKind }[] = [
-  { ext: "mp4", kind: "video" },
-  { ext: "webp", kind: "image" },
-  { ext: "jpg", kind: "image" },
-  { ext: "png", kind: "image" },
-];
+const SCENE_PHOTO: Record<Sample["scene"], string> = {
+  sunscreen: "/hero/reel-sunscreen-opt.webp",
+  mewing: "/hero/reel-mewing-opt.webp",
+  preworkout: "/hero/reel-preworkout-opt.webp",
+  cold: "/hero/reel-cold-opt.webp",
+  melatonin: "/hero/reel-melatonin-opt.webp",
+};
 
 function VideoBackground({ scene }: { scene: Sample["scene"] }) {
-  const [media, setMedia] = useState<FoundMedia | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      for (const c of MEDIA_CANDIDATES) {
-        try {
-          const url = `/hero/reel-${scene}.${c.ext}`;
-          const r = await fetch(url, { method: "HEAD" });
-          if (cancelled) return;
-          if (r.ok) {
-            setMedia({ url, kind: c.kind });
-            return;
-          }
-        } catch {
-          // network hiccup — keep probing the rest
-        }
-      }
-      if (!cancelled) setMedia(null);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [scene]);
+  const src = SCENE_PHOTO[scene];
+  // Only used if the file genuinely fails to decode — keyed by scene so a
+  // recovered scene isn't stuck on the fallback forever.
+  const [failed, setFailed] = useState<string | null>(null);
 
-  if (media?.kind === "video") {
-    return (
-      <video
-        key={media.url}
-        className="hp-video-bg"
-        src={media.url}
-        autoPlay
-        muted
-        loop
-        playsInline
-        aria-hidden="true"
-      />
-    );
-  }
-  if (media?.kind === "image") {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        key={media.url}
-        className="hp-video-bg"
-        src={media.url}
-        alt=""
-        aria-hidden="true"
-      />
-    );
-  }
-  return <SvgScene scene={scene} />;
+  if (!src || failed === scene) return <SvgScene scene={scene} />;
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      key={src}
+      className="hp-video-bg"
+      src={src}
+      alt=""
+      aria-hidden="true"
+      loading="eager"
+      decoding="async"
+      onError={() => setFailed(scene)}
+    />
+  );
 }
 
 function SvgScene({ scene }: { scene: Sample["scene"] }) {
