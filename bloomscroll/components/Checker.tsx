@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import Link from "next/link";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import ReportMistake from "@/components/ReportMistake";
+import CiteArrow from "@/components/CiteArrow";
 import { STRINGS, useLang, type Lang, type Strings } from "@/lib/i18n";
 import { EXAMPLES } from "@/lib/examples";
 import type { CheckResponse, UsageSnapshot, Verdict } from "@/lib/types";
@@ -562,14 +563,19 @@ export default function Checker({
                                 href={cit.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="focus-ring block rounded-xl border border-forest/25 bg-moss/50 px-4 py-3 transition hover:-translate-y-0.5 hover:border-forest/50"
+                                className="focus-ring flex items-center gap-3 rounded-xl border border-forest/25 bg-moss/50 px-4 py-3 transition hover:-translate-y-0.5 hover:border-forest/50"
                               >
-                                <span className="block text-[14.5px] font-semibold leading-snug text-ink">
-                                  {cit.title}
+                                <span className="min-w-0 flex-1">
+                                  <span className="block text-[14.5px] font-semibold leading-snug text-ink">
+                                    {cit.title}
+                                  </span>
+                                  <span className="mt-1 block text-[12px] text-bark">
+                                    {cit.journal} · {cit.year || "n.d."}
+                                  </span>
                                 </span>
-                                <span className="mt-1 block text-[12px] text-bark">
-                                  {cit.journal} · {cit.year || "n.d."}
-                                </span>
+                                {/* Marks the row as leaving the site, the same
+                                    way step 04's citation rows do. */}
+                                <CiteArrow className="shrink-0 text-forest" />
                               </a>
                             </li>
                           ))}

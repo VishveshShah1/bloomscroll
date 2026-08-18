@@ -14,6 +14,7 @@ import {
 } from "@/components/PipelineArt";
 import HeroPhoneAnimation from "@/components/HeroPhoneAnimation";
 import { BrandIcon, brandKindFor } from "@/components/BrandIcon";
+import CiteArrow from "@/components/CiteArrow";
 import { STRINGS, useLang, type Lang } from "@/lib/i18n";
 import type { Verdict } from "@/lib/types";
 import { VERDICT_TINT } from "@/lib/verdicts";
@@ -555,14 +556,18 @@ function TryDemo() {
                       <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-forest text-[11px] font-bold text-canvas">
                         {i + 1}
                       </span>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-[13.5px] font-semibold leading-snug text-ink">
                           {c.title}
                         </p>
                         <p className="mt-0.5 text-[12px] text-bark">
-                          {c.meta} · opens on PubMed ↗
+                          {c.meta} · opens on PubMed
                         </p>
                       </div>
+                      {/* The tick replaces the inline ↗ that used to sit at the
+                          end of the meta line — same meaning, and now it lines
+                          up with the real checker and step 04. */}
+                      <CiteArrow className="mt-0.5 shrink-0 self-center text-forest" />
                     </a>
                   </li>
                 ))}
