@@ -1,6 +1,19 @@
-import { DEFAULT_SITE, getSite, buildCheckUrl } from "./config.js";
+import {
+  DEFAULT_SITE,
+  getSite,
+  buildCheckUrl,
+  isStaleOrigin,
+  migrateStoredSite,
+} from "./config.js";
 
 const $ = (id) => document.getElementById(id);
+
+// Runs on every popup open, not just on install/update. chrome.storage.sync
+// replicates across a user's machines, so a stale origin saved on another
+// device can arrive here long after install — at which point no install or
+// update event will ever fire again to correct it, and every check would keep
+// opening a retired deploy whose 404 is Next's default rather than ours.
+const migrated = migrateStoredSite();
 
 async function openCheck(query) {
   const trimmed = (query ?? "").trim();
@@ -8,6 +21,7 @@ async function openCheck(query) {
     setStatus("Paste something first.", true);
     return;
   }
+  await migrated;
   const origin = await getSite();
   await chrome.tabs.create({ url: buildCheckUrl(origin, trimmed) });
   window.close();
@@ -37,6 +51,7 @@ const settingsPanel = $("settings");
 $("settings-toggle").addEventListener("click", async () => {
   settingsPanel.hidden = !settingsPanel.hidden;
   if (!settingsPanel.hidden) {
+    await migrated;
     $("site").value = await getSite();
   }
 });
@@ -51,6 +66,13 @@ $("save-site").addEventListener("click", async () => {
     new URL(raw);
   } catch {
     setStatus("That doesn't look like a URL.", true);
+    return;
+  }
+  // getSite() refuses to navigate to a retired origin, so storing one here
+  // would leave this field advertising a URL that checks never actually use.
+  // Refuse it at entry and say what to use instead.
+  if (isStaleOrigin(raw)) {
+    setStatus(`That origin is retired. Use ${DEFAULT_SITE}.`, true);
     return;
   }
   await chrome.storage.sync.set({ site: raw });
