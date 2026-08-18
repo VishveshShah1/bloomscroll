@@ -43,6 +43,7 @@ const SECTIONS = [
       "Session cookies are JWTs held in an HttpOnly cookie in your browser. We can't read them from any other site.",
       "Usage counts and plan flags live in a hosted key value store (Upstash Redis).",
       "Payments are handled entirely by Stripe. We never see or store card details.",
+      "The text you submit is sent to Anthropic's API, which pulls out the checkable claims and grades the evidence. It goes without your email or any account identifier, and Anthropic's API terms don't use it to train models.",
       "The scientific paper searches happen through Europe PMC's free public API, using only the search terms extracted from your claim.",
     ],
   },
@@ -50,7 +51,7 @@ const SECTIONS = [
     heading: "Deleting your data",
     items: [
       "Sign out and stop using the app. Your monthly counter clears at the end of the month on its own.",
-      "For a full erase (counter, plan record, cached sessions), email the address at the bottom of this page and we'll wipe your record within a few days.",
+      "For a full erase (counter, plan record, cached sessions), email getbloomscroll@gmail.com and we'll wipe your record within a few days.",
     ],
   },
   {
@@ -122,13 +123,25 @@ export default function PrivacyPage() {
             Questions or a deletion request
           </p>
           <p className="mt-2 text-[15px] leading-relaxed">
-            A dedicated support inbox is coming soon. Until then, reach out
-            through the same channel you were invited to the beta on and your
-            request will land with the right person.
+            Email{" "}
+            <a
+              href="mailto:getbloomscroll@gmail.com"
+              className="focus-ring font-semibold underline underline-offset-[3px]"
+            >
+              getbloomscroll@gmail.com
+            </a>
+            , or use the{" "}
+            <Link
+              href="/support"
+              className="focus-ring font-semibold underline underline-offset-[3px]"
+            >
+              support page
+            </Link>
+            . Deletion requests are handled within a few days.
           </p>
         </div>
 
-        <p className="mt-8 text-[12.5px]">Last updated: 2026-07-24.</p>
+        <p className="mt-8 text-[12.5px]">Last updated: 2026-08-18.</p>
       </main>
     </div>
   );

@@ -7,7 +7,7 @@ Copy these fields verbatim into the Chrome Web Store developer console when subm
 - **Name**: bloomscroll
 - **Short description** (max 132 chars): Click the toolbar icon to check the page you're on against real peer-reviewed research, or right-click any selected text.
 - **Category**: Productivity (secondary: Accessibility)
-- **Language**: English (primary), French (secondary)
+- **Language**: English. (The site shipped English-only in Aug 2026 — do not claim French here until the toggle is back and the remaining strings are translated.)
 
 ## Detailed description (max 16,000 chars — we're using ~700)
 
