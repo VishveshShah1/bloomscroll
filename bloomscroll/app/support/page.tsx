@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
-import LangToggle from "@/components/LangToggle";
 import CopyEmail from "@/components/CopyEmail";
 
 export const metadata = {
@@ -69,7 +68,6 @@ export default function SupportPage() {
             <Wordmark className="text-[22px]" />
           </Link>
           <div className="flex items-center gap-3">
-            <LangToggle />
             <Link
               href="/"
               className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"

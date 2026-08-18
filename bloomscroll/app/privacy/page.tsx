@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
-import LangToggle from "@/components/LangToggle";
 
 export const metadata = {
   title: "Privacy — bloomscroll",
@@ -71,7 +70,6 @@ export default function PrivacyPage() {
             <Wordmark className="text-[22px]" />
           </Link>
           <div className="flex items-center gap-3">
-            <LangToggle />
             <Link
               href="/"
               className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"

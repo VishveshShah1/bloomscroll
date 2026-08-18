@@ -14,7 +14,6 @@ import {
 } from "@/components/PipelineArt";
 import HeroPhoneAnimation from "@/components/HeroPhoneAnimation";
 import { BrandIcon, brandKindFor } from "@/components/BrandIcon";
-import LangToggle from "@/components/LangToggle";
 import { STRINGS, useLang, type Lang } from "@/lib/i18n";
 import type { Verdict } from "@/lib/types";
 import { VERDICT_TINT } from "@/lib/verdicts";
@@ -246,7 +245,6 @@ function Nav({
           ))}
         </div>
         <div className="flex items-center justify-end gap-2 sm:gap-3">
-          <LangToggle className="hidden sm:inline-flex" />
           {signedIn ? (
             <Link
               href="/dashboard"

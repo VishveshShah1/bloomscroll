@@ -650,24 +650,25 @@ export function PipeGradeArt() {
   // The moment anyone clicks or keys a tier, the auto-walk stops for good and
   // the selection is theirs. Auto-advancing under someone who just chose a
   // tier would read as the page fighting them.
-  const [taken, setTaken] = useState(false);
   const ROW = 56;
 
   useEffect(() => {
-    if (taken) return;
+    // No early return: the walk must never stop. It used to bail once a
+    // visitor clicked a tier, which froze the diagram on whatever they
+    // tapped and never demonstrated the other four again.
     if (
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
-      return; // reduced motion: hold on the first tier, still fully tappable
+      return; // reduced motion: hold on the first tier
     }
     const t = setTimeout(() => setSel((s) => (s + 1) % tiers.length), 2600);
     return () => clearTimeout(t);
     // `sel` drives the chain: each landing schedules the next step.
-  }, [sel, taken, tiers.length]);
+  }, [sel, tiers.length]);
 
   const choose = (i: number) => {
-    setTaken(true);
+    // deliberately does not stop the auto-walk
     setSel(i);
   };
 
@@ -682,7 +683,10 @@ export function PipeGradeArt() {
         tap to change evidence
       </text>
 
-      {/* ① the five-tier scale — each row is a real control */}
+      {/* ① the five-tier scale. Display-only: it walks the tiers on a timer
+             forever. It used to be clickable, but a click permanently stopped
+             the walk, so the diagram froze on whatever a visitor happened to
+             tap and never demonstrated the other four tiers again. */}
       <g transform="translate(72 82)">
         {tiers.map((t, i) => {
           const on = i === sel;
