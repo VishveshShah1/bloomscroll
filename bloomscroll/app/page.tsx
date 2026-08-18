@@ -1304,6 +1304,37 @@ export default function LandingPage() {
 
       {/* Footer — the scroll tint is at the forest endpoint here, so the
           whole footer switches to a cream palette to stay legible. */}
+      {/* FAQ — sits directly above the footer's legal row, which is where
+          people look once they've decided they're interested but not yet
+          convinced. Native <details> so it works with no JS, is keyboard
+          operable for free, and each answer is still in the DOM for search
+          engines and for anyone reading with assistive tech. */}
+      <section id="faq" className="scroll-mt-20 border-t border-canvas/15 py-16 sm:py-20">
+        <div className="mx-auto w-full max-w-3xl px-4 sm:px-8">
+          <h2 className="text-[26px] font-semibold leading-tight tracking-display text-canvas sm:text-[34px]">
+            {t.faq.title}
+          </h2>
+          <div className="mt-8 divide-y divide-canvas/15 border-y border-canvas/15">
+            {t.faq.items.map((f) => (
+              <details key={f.q} className="group py-4">
+                <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 rounded-md text-[16px] font-semibold text-canvas marker:content-none">
+                  <span>{f.q}</span>
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 text-[20px] font-normal leading-none text-canvas/60 transition-transform group-open:rotate-45"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-canvas/80">
+                  {f.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-canvas/15 py-14 text-canvas">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
           <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
@@ -1338,12 +1369,6 @@ export default function LandingPage() {
                 </Link>
                 <Link href="/support" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
                   support
-                </Link>
-                <Link href="/privacy" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
-                  privacy
-                </Link>
-                <Link href="/terms" className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas">
-                  terms of service
                 </Link>
               </div>
             </div>
@@ -1390,14 +1415,27 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="mt-10 flex flex-col justify-between gap-2 border-t border-canvas/15 pt-6 sm:flex-row">
-            <p className="text-[12.5px] text-canvas/65">
-              {session?.user?.email ? `${t.signin.signedInAs} ${session.user.email}` : ""}
-            </p>
+          <div className="mt-10 flex flex-col gap-4 border-t border-canvas/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <Link href="/terms" className="focus-ring text-[13px] font-semibold text-canvas/80 transition hover:text-canvas">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="focus-ring text-[13px] font-semibold text-canvas/80 transition hover:text-canvas">
+                Privacy Policy
+              </Link>
+              <a href="#faq" className="focus-ring text-[13px] font-semibold text-canvas/80 transition hover:text-canvas">
+                FAQ
+              </a>
+            </div>
             <p className="text-[12px] font-medium text-canvas/70">
               © 2026 Bloomscroll. All rights reserved.
             </p>
           </div>
+          {session?.user?.email && (
+            <p className="mt-3 text-[12.5px] text-canvas/60">
+              {t.signin.signedInAs} {session.user.email}
+            </p>
+          )}
         </div>
       </footer>
     </div>

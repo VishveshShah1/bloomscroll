@@ -282,12 +282,22 @@ const EN = {
       {
         q: "Does it store what I check?",
         a:
-          "Not right now. The free tier needs no account, and we cache results in memory only. Paid plans will add a private history you can turn off at any time.",
+          "Checks run against your account, so we store your monthly check count and the claims you've run — that's what makes your allowance and history work across the web app, the extension, and your phone. The browser extension itself does nothing until you invoke it: no background page reading, no cross-site tracking, no analytics pixels. Full detail on the privacy page.",
       },
       {
         q: "Is this medical advice?",
         a:
           "No. Bloomscroll explains what published research says about a claim and how strong that research is. It doesn't diagnose, treat, or replace a clinician. If you're deciding on a treatment, talk to an actual professional.",
+      },
+      {
+        q: "Why five verdicts instead of true or false?",
+        a:
+          "Because most claims of this kind are neither. They're under-researched, contested, or not empirical at all. The scale runs from supported through mixed, weak, and no evidence found, to not a testable claim — so thin evidence reads as thin instead of being rounded up to a verdict it hasn't earned.",
+      },
+      {
+        q: "Is the free tier really free?",
+        a:
+          "Yes, and it needs no card. The built-in example claims don't count against your monthly allowance either, so you can see what a real graded result looks like before spending any of it.",
       },
       {
         q: "What platforms does it work on right now?",
@@ -658,12 +668,22 @@ const FR: Strings = {
       {
         q: "Est-ce qu'il stocke ce que je vérifie ?",
         a:
-          "Non, pas pour l'instant. Le forfait gratuit n'exige pas de compte, et les résultats sont mis en cache en mémoire seulement. Les forfaits payants ajouteront un historique privé, que tu peux désactiver à tout moment.",
+          "Les vérifications sont liées à ton compte : on stocke donc ton nombre de vérifications mensuelles et les affirmations que tu as lancées — c'est ce qui fait fonctionner ton quota et ton historique sur l'app web, l'extension et ton téléphone. L'extension, elle, ne fait rien tant que tu ne l'actives pas : aucune lecture de page en arrière-plan, aucun suivi inter-sites, aucun pixel d'analyse. Détail complet sur la page confidentialité.",
       },
       {
         q: "Est-ce un avis médical ?",
         a:
           "Non. Bloomscroll explique ce que dit la recherche publiée et la force de cette recherche. Il ne diagnostique pas, ne traite pas, et ne remplace pas un professionnel. Pour décider d'un traitement, parle à un vrai professionnel.",
+      },
+      {
+        q: "Pourquoi cinq verdicts plutôt que vrai ou faux ?",
+        a:
+          "Parce que la plupart de ces affirmations ne sont ni l'un ni l'autre : peu étudiées, contestées, ou pas empiriques du tout. L'échelle va d'« appuyé » à « pas une affirmation testable », en passant par mitigé, faible et aucune preuve trouvée — une preuve mince reste donc mince.",
+      },
+      {
+        q: "Le forfait gratuit est-il vraiment gratuit ?",
+        a:
+          "Oui, et sans carte bancaire. Les exemples intégrés ne comptent pas dans ton quota mensuel : tu peux voir un vrai résultat noté avant d'en dépenser la moindre part.",
       },
       {
         q: "Ça marche sur quelles plateformes aujourd'hui ?",
