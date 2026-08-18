@@ -54,51 +54,66 @@ function usePlatform(): PlatformKind | null {
  *  and every embedded/headless context — and does an initial pass so
  *  above-the-fold content is visible on first paint. Respects
  *  prefers-reduced-motion via the CSS override. */
+/**
+ * Reveal `[data-reveal]` elements as they scroll into view.
+ *
+ * THE RULE THIS ENFORCES: content must never be permanently invisible because
+ * a piece of JS didn't get to run. The previous version broke that. It captured
+ * the element list once on mount and only re-checked inside a
+ * requestAnimationFrame driven by scroll events, so anything below the fold
+ * stayed at opacity 0 until a scroll fired AND rAF ticked. Any hiccup — a
+ * throttled tab, a language switch remounting nodes that were never in the
+ * captured list, rAF paused — and half the page was simply gone.
+ *
+ * Three independent things now guarantee visibility, so all of them have to
+ * fail before a user loses content:
+ *   1. IntersectionObserver, which fires on its own and does not depend on
+ *      scroll handlers or rAF.
+ *   2. A re-scan on an interval, which catches nodes added after mount.
+ *   3. A hard backstop that reveals everything after 2.5s no matter what.
+ */
 function useRevealOnScroll() {
   useEffect(() => {
-    const collect = () =>
+    const show = (el: Element) => el.classList.add("in");
+    const pending = () =>
       Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]:not(.in)"));
-    let els = collect();
-    if (!els.length) return;
 
-    let ticking = false;
-    const reveal = () => {
-      ticking = false;
-      const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-      const trigger = vh * 0.92;
-      els = els.filter((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.top < trigger && r.bottom > 0) {
-          el.classList.add("in");
-          return false;
-        }
-        return true;
-      });
-    };
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(reveal);
-    };
+    // No IntersectionObserver (very old browser): show everything immediately
+    // rather than leave it hidden.
+    if (typeof IntersectionObserver === "undefined") {
+      pending().forEach(show);
+      return;
+    }
 
-    // Initial pass runs SYNCHRONOUSLY, not inside requestAnimationFrame.
-    // rAF is fully paused in a backgrounded or throttled tab, so an rAF-gated
-    // first pass means nothing ever gets `.in` and every [data-reveal] element
-    // stays at opacity 0 — i.e. most of the page is invisible. A second pass
-    // on the next frame still catches anything whose layout hadn't settled.
-    reveal();
-    requestAnimationFrame(reveal);
-    // Timers are throttled in background tabs but, unlike rAF, still fire.
-    const settle = window.setTimeout(reveal, 120);
-    // Second pass after Splash finishes to catch anything that just came in.
-    const late = window.setTimeout(reveal, 1700);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            show(e.target);
+            io.unobserve(e.target);
+          }
+        }),
+      // Fire slightly before the element reaches the viewport edge.
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.01 },
+    );
+
+    const observeAll = () => pending().forEach((el) => io.observe(el));
+    observeAll();
+
+    // Catches anything React mounts later — e.g. new nodes after a language
+    // switch, which the old captured-once list could never have seen.
+    const rescan = window.setInterval(observeAll, 500);
+
+    // Backstop: whatever happened, nothing stays hidden.
+    const backstop = window.setTimeout(() => {
+      pending().forEach(show);
+      window.clearInterval(rescan);
+    }, 2500);
+
     return () => {
-      window.clearTimeout(late);
-      window.clearTimeout(settle);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      io.disconnect();
+      window.clearInterval(rescan);
+      window.clearTimeout(backstop);
     };
   }, []);
 }
