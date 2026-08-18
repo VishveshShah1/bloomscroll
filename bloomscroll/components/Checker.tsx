@@ -383,19 +383,26 @@ export default function Checker({
             <label htmlFor="check-input" className="sr-only">
               {t.hero.placeholder}
             </label>
-            <div className="surface flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:p-2 sm:pl-5">
+            {/* Field and button are separate boxes, matching the demo card on
+                the landing page. They used to share one .surface pill, which
+                made the real checker read as a different control from the one
+                the marketing page promises. */}
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
               <input
                 id="check-input"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t.hero.placeholder}
                 autoComplete="off"
-                className="focus-ring min-w-0 flex-1 bg-transparent px-2 py-3 text-[16.5px] text-ink placeholder:text-bark/85 focus:outline-none"
+                // 16px, not the landing card's 15px: below 16 iOS Safari zooms
+                // the viewport on focus. The card there is static text, so it
+                // can go smaller; a real input cannot.
+                className="focus-ring min-w-0 flex-1 rounded-2xl border border-ink/10 bg-white px-4 py-3 text-[16px] text-ink placeholder:text-bark/85"
               />
               <button
                 type="submit"
                 disabled={status === "checking"}
-                className="btn-primary shrink-0"
+                className="btn-primary focus-ring shrink-0"
               >
                 {status === "checking" ? t.status.checking : t.hero.check}
               </button>
