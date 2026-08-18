@@ -139,11 +139,13 @@ Bash with `export PATH="/c/Users/vishv/tools/node:$PATH"`.
   returns 403 for logs/env. Arhaan has said Upstash is connected on the real
   project. Confirm behaviourally (leave a review, hard-refresh, check the limit
   stays at 8) rather than inferring from the repo.
-- **French is only half-wired.** `components/LangToggle.tsx` now exists and is
-  in the nav on `/`, `/access`, `/terms`, `/privacy`, `/support`; `useLang`
-  broadcasts a `bloom:lang` window event so every instance stays in sync.
-  BUT ~48 visible strings are still hardcoded English, so a French visitor sees
-  a mixed page. Remaining work, in order of visibility:
+- **The site is English-only on purpose.** The EN/FR toggle was removed from
+  every page in Aug 2026 — a French visitor was seeing a half-translated page,
+  and shipping English-only beat shipping mixed. **The French infrastructure is
+  deliberately still here**: `lib/i18n.ts` keeps both dictionaries, `useLang`
+  still broadcasts a `bloom:lang` window event, and `components/LangToggle.tsx`
+  is intact but unimported. Re-enabling is putting `<LangToggle />` back in the
+  navs. Before doing that, these still render hardcoded English:
     1. `components/HeroPhoneAnimation.tsx` (851 lines) — the phone vignette.
        5 samples x ~9 fields (handle, caption, claim, verdictLabel, meaning,
        summary, 3 citations) plus UI chrome (THE CLAIM, EVIDENCE STRENGTH,
@@ -157,14 +159,28 @@ Bash with `export PATH="/c/Users/vishv/tools/node:$PATH"`.
        title "It searches the literature" (~line 609), and the four
        "See the … install guide" strings (~line 988).
   Add keys to BOTH dictionaries in `lib/i18n.ts` — the `Strings` type makes a
-  missing FR key a build error, which is the safety net.
+  missing FR key a build error, which is the safety net. Note `PipelineArt.tsx`
+  resisted two scripted translation passes: a blanket `"literal"` -> `{T.key}`
+  replacement is wrong for object-literal property values (which need bare
+  `T.key`) and both attempts were reverted. Translate it by hand.
 - Legal copy on `/terms` and `/privacy` is hardcoded English in `SECTIONS`
   arrays, not i18n. The toggle switches those pages' chrome but not the body.
   Either translate it or hide the toggle there.
-- The real checker (`components/Checker.tsx`) doesn't match the landing page's
-  input styling.
-- Step 04 citation numbers should slide up and stay, replaying only on tier
-  change (partially done; verify after the recent rebase).
+- **`NEXTAUTH_URL` on the production Vercel project is wrong.** It is set to
+  `https://bloomscroll-fawn.vercel.app`, which is why Google's consent screen
+  says "vercel" when signing in. Proof, against the live site:
+  `curl -s https://getbloomscroll.com/api/auth/providers` returns
+  `"signinUrl":"https://bloomscroll-fawn.vercel.app/api/auth/signin/google"`.
+  Fix is one env var — set `NEXTAUTH_URL=https://getbloomscroll.com` in the
+  Vercel project that serves the domain (Arhaan's), redeploy, and add
+  `https://getbloomscroll.com/api/auth/callback/google` to the OAuth client's
+  authorized redirect URIs in Google Cloud Console. **Do not try to force the
+  origin in code**: the OAuth cookie is set on whatever host NEXTAUTH_URL names,
+  so redirecting to the canonical domain afterwards lands the user with no
+  session. Fix the env var, not `authOptions`.
+- `lib/authOptions.ts` still has `debug: true` and verbose `console.log`s from
+  diagnosing an OAuthCallback failure, marked TEMP. Sign-in works now; that
+  logging is noise in production and should come out.
 - Preview-pane caveat: the browser tab runs `document.hidden = true`, which
   **freezes CSS animation clocks**. Entrance animations always read opacity 0
   there. Verify via the Web Animations API (`getAnimations()`, set
@@ -176,18 +192,26 @@ Done: domain (getbloomscroll.com), dev account + $5 fee, listing copy in
 `extension/STORE_LISTING.md`, single-purpose statement, permission
 justifications, data-disclosure answers (**Website content + Web history only** —
 not the nine boxes originally ticked), privacy policy URL, extension origin
-migration (stale `*.vercel.app` origins are dropped on update — an existing
-install must be reloaded at `chrome://extensions`).
+migration (stale `*.vercel.app` origins are dropped on install/update AND on
+every popup open, so a stale value synced from another device self-corrects;
+an existing install still has to pick up the new build via a reload at
+`chrome://extensions`).
 
 Open: screenshots at 1280×800 (most common rejection cause), final submit.
 
 ## Next steps
 
-1. Set up Upstash and add the two env vars in Vercel — the only real launch
-   blocker.
-2. Finish the three open UI items above (EN/FR everywhere, checker styling,
-   citation slide).
-3. Capture Web Store screenshots and submit.
+1. Set `NEXTAUTH_URL=https://getbloomscroll.com` on the production Vercel
+   project — this is the "it says vercel when I sign in" bug, and it is one
+   env var. See the TODO entry above for the exact proof and the Google Cloud
+   Console follow-up.
+2. Confirm Upstash behaviourally (see the TODO entry — do not assume it is
+   broken from this repo alone).
+3. Capture Web Store screenshots at 1280x800 and submit.
+
+Done Aug 2026 and not to be re-opened: the checker input now matches the
+landing demo card; step 04 cycles permanently and is no longer clickable; the
+extension self-heals a stale stored origin on every popup open.
 
 **Workflow:** commit at the end of any turn that changes working code; push only
 when Vishvesh says "push it live." Arhaan works in the same repo — `git pull
