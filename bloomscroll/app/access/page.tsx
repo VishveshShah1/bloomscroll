@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import Wordmark from "@/components/Wordmark";
 import { SITE_URL, SITE_HOST } from "@/lib/site";
 import { STRINGS, useLang } from "@/lib/i18n";
+import LangToggle from "@/components/LangToggle";
 
 // Three platform tiles get equal visual weight — Android, iPhone, Desktop.
 // The bookmarklet is a small extra card underneath, honest about being the
@@ -96,6 +97,7 @@ export default function AccessPage() {
             <Wordmark className="text-[22px]" />
           </Link>
           <div className="flex items-center gap-3">
+            <LangToggle />
             <Link
               href="/"
               className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"

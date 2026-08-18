@@ -761,18 +761,57 @@ const FR: Strings = {
 
 export const STRINGS: Record<Lang, Strings> = { en: EN, fr: FR };
 
+const LANG_KEY = "bloomscroll-lang";
+/** Fired on the window whenever any component changes the language. */
+const LANG_EVENT = "bloom:lang";
+
+/**
+ * Language state, shared across every component that calls this.
+ *
+ * Each call has its own useState, so without a broadcast a toggle in the nav
+ * would change the nav's copy and nothing else on the page. Rather than wrap
+ * the app in a context provider, `setLang` writes localStorage and dispatches
+ * a window event that every live instance listens for — same effect, no
+ * provider threading, and it also picks up changes made in another tab via
+ * the native `storage` event.
+ *
+ * Always starts at "en" and reads storage in an effect: reading localStorage
+ * during render would produce different HTML on server and client and trip
+ * hydration.
+ */
 export function useLang(): [Lang, (l: Lang) => void] {
   const [lang, setLangState] = useState<Lang>("en");
+
   useEffect(() => {
-    const stored = localStorage.getItem("bloomscroll-lang");
-    if (stored === "fr" || stored === "en") setLangState(stored);
+    const read = () => {
+      const stored = localStorage.getItem(LANG_KEY);
+      if (stored === "fr" || stored === "en") setLangState(stored);
+    };
+    read();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === null || e.key === LANG_KEY) read();
+    };
+    window.addEventListener(LANG_EVENT, read);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(LANG_EVENT, read);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
+
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
+
   function setLang(l: Lang) {
     setLangState(l);
-    localStorage.setItem("bloomscroll-lang", l);
+    try {
+      localStorage.setItem(LANG_KEY, l);
+    } catch {
+      /* private mode — the toggle still works for this page view */
+    }
+    window.dispatchEvent(new Event(LANG_EVENT));
   }
+
   return [lang, setLang];
 }

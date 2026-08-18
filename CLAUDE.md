@@ -139,8 +139,28 @@ Bash with `export PATH="/c/Users/vishv/tools/node:$PATH"`.
   returns 403 for logs/env. Arhaan has said Upstash is connected on the real
   project. Confirm behaviourally (leave a review, hard-refresh, check the limit
   stays at 8) rather than inferring from the repo.
-- EN/FR toggle only on `/`, `/access`, `/signin`, `404` — missing on terms,
-  privacy, support, dashboard.
+- **French is only half-wired.** `components/LangToggle.tsx` now exists and is
+  in the nav on `/`, `/access`, `/terms`, `/privacy`, `/support`; `useLang`
+  broadcasts a `bloom:lang` window event so every instance stays in sync.
+  BUT ~48 visible strings are still hardcoded English, so a French visitor sees
+  a mixed page. Remaining work, in order of visibility:
+    1. `components/HeroPhoneAnimation.tsx` (851 lines) — the phone vignette.
+       5 samples x ~9 fields (handle, caption, claim, verdictLabel, meaning,
+       summary, 3 citations) plus UI chrome (THE CLAIM, EVIDENCE STRENGTH,
+       CITED IN THE ANSWER, SHARE TO, "papers weighed"). Does not import i18n
+       at all yet — it is a client component, so it can call `useLang()`
+       directly rather than threading a prop.
+    2. `components/PipelineArt.tsx` — SVG labels: SHARE TO, SOURCE READ,
+       THE CAPTION, the Beat captions, claim chips, "matches"/"opens" flow
+       labels.
+    3. `app/page.tsx` — `DEMO_CLAIM`/`DEMO_SUMMARY` (~line 403), the step
+       title "It searches the literature" (~line 609), and the four
+       "See the … install guide" strings (~line 988).
+  Add keys to BOTH dictionaries in `lib/i18n.ts` — the `Strings` type makes a
+  missing FR key a build error, which is the safety net.
+- Legal copy on `/terms` and `/privacy` is hardcoded English in `SECTIONS`
+  arrays, not i18n. The toggle switches those pages' chrome but not the body.
+  Either translate it or hide the toggle there.
 - The real checker (`components/Checker.tsx`) doesn't match the landing page's
   input styling.
 - Step 04 citation numbers should slide up and stay, replaying only on tier

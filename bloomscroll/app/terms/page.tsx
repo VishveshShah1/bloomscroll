@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
+import LangToggle from "@/components/LangToggle";
 
 export const metadata = {
   title: "Terms of Service — bloomscroll",
@@ -110,12 +111,15 @@ export default function TermsPage() {
           <Link href="/" className="focus-ring rounded-md">
             <Wordmark className="text-[22px]" />
           </Link>
-          <Link
-            href="/"
-            className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"
-          >
-            ← back to bloomscroll
-          </Link>
+          <div className="flex items-center gap-3">
+            <LangToggle />
+            <Link
+              href="/"
+              className="focus-ring text-[14px] font-semibold text-bark transition hover:text-ink"
+            >
+              ← back to bloomscroll
+            </Link>
+          </div>
         </div>
       </nav>
 

@@ -14,6 +14,7 @@ import {
 } from "@/components/PipelineArt";
 import HeroPhoneAnimation from "@/components/HeroPhoneAnimation";
 import { BrandIcon, brandKindFor } from "@/components/BrandIcon";
+import LangToggle from "@/components/LangToggle";
 import { STRINGS, useLang, type Lang } from "@/lib/i18n";
 import type { Verdict } from "@/lib/types";
 import { VERDICT_TINT } from "@/lib/verdicts";
@@ -80,14 +81,22 @@ function useRevealOnScroll() {
       requestAnimationFrame(reveal);
     };
 
-    // Initial pass (rAF so layout has settled).
+    // Initial pass runs SYNCHRONOUSLY, not inside requestAnimationFrame.
+    // rAF is fully paused in a backgrounded or throttled tab, so an rAF-gated
+    // first pass means nothing ever gets `.in` and every [data-reveal] element
+    // stays at opacity 0 — i.e. most of the page is invisible. A second pass
+    // on the next frame still catches anything whose layout hadn't settled.
+    reveal();
     requestAnimationFrame(reveal);
+    // Timers are throttled in background tabs but, unlike rAF, still fire.
+    const settle = window.setTimeout(reveal, 120);
     // Second pass after Splash finishes to catch anything that just came in.
     const late = window.setTimeout(reveal, 1700);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
       window.clearTimeout(late);
+      window.clearTimeout(settle);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -210,6 +219,7 @@ function Nav({
           ))}
         </div>
         <div className="flex items-center justify-end gap-2 sm:gap-3">
+          <LangToggle className="hidden sm:inline-flex" />
           {signedIn ? (
             <Link
               href="/dashboard"
