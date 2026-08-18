@@ -129,12 +129,16 @@ Bash with `export PATH="/c/Users/vishv/tools/node:$PATH"`.
 
 ## Known bugs / TODO
 
-- **BLOCKER: Upstash not configured.** `lib/kv.ts` falls back to an in-process
-  Map when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset. On
-  serverless each instance has its own empty Map, so the **review +3 bonus and
-  the monthly usage counter don't persist** — users can refresh past the free
-  limit. Fix is config, not code: create a free Upstash Redis DB, add both vars
-  in Vercel, redeploy.
+- **Upstash — verify before assuming it's broken.** `lib/kv.ts` falls back to an
+  in-process Map when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are
+  unset; on serverless each instance gets its own empty Map, so usage counters
+  and the review +3 bonus would silently reset. **Not reproducible from this
+  repo:** there is no local `.env` (so localhost always uses the fallback), and
+  the Vercel project that actually serves getbloomscroll.com belongs to Arhaan —
+  a different project from `prj_vdS7...`, which is a stale early deploy and
+  returns 403 for logs/env. Arhaan has said Upstash is connected on the real
+  project. Confirm behaviourally (leave a review, hard-refresh, check the limit
+  stays at 8) rather than inferring from the repo.
 - EN/FR toggle only on `/`, `/access`, `/signin`, `404` — missing on terms,
   privacy, support, dashboard.
 - The real checker (`components/Checker.tsx`) doesn't match the landing page's
