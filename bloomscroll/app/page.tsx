@@ -579,11 +579,14 @@ export default function LandingPage() {
     }
   }
 
-  // Real inbox coming later; for now the footer shows a placeholder note
-  // rather than exposing a personal address. `mailto` stays typed so the
-  // switch is a one-line change when CONTACT_EMAIL becomes non-null.
+  // Gmail's web compose rather than a mailto: on Windows a mailto hands off to
+  // whatever is registered as the default mail client — usually the Mail or
+  // Outlook app the person has never signed into — so the link looks broken.
+  // Opening Gmail in a new tab works for the majority who already have it.
   const mailto: string | null = CONTACT_EMAIL
-    ? `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.contact.subject)}`
+    ? "https://mail.google.com/mail/?view=cm&fs=1" +
+      `&to=${encodeURIComponent(CONTACT_EMAIL)}` +
+      `&su=${encodeURIComponent(t.contact.subject)}`
     : null;
 
   // The four stages the checker actually streams. lib/i18n.ts carries three
@@ -1312,6 +1315,8 @@ export default function LandingPage() {
                 {mailto ? (
                   <a
                     href={mailto}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="focus-ring w-fit text-[14px] font-semibold text-canvas/85 transition hover:text-canvas"
                   >
                     {t.footer.contactLink}

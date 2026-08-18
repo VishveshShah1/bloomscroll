@@ -49,11 +49,20 @@ const WHAT_TO_SEND = [
 ];
 
 export default function SupportPage() {
-  const mailto = `mailto:${CONTACT}?subject=${encodeURIComponent("Bloomscroll support")}`;
+  // Gmail's web compose rather than a mailto: on Windows a mailto hands off
+  // to whatever is registered as the default mail client, which for most
+  // people is the Mail/Outlook app they've never signed into — so the link
+  // appears to do nothing useful. Opening Gmail in a new tab works for the
+  // majority who already have it, and the copy button plus the plain address
+  // beside it cover everyone who doesn't.
+  const gmailCompose =
+    "https://mail.google.com/mail/?view=cm&fs=1" +
+    `&to=${encodeURIComponent(CONTACT)}` +
+    `&su=${encodeURIComponent("Bloomscroll support")}`;
 
   return (
     <div className="min-h-screen">
-      <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
+      <nav className="relative z-20 border-b border-ink/5 bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="focus-ring rounded-md">
             <Wordmark className="text-[22px]" />
@@ -93,7 +102,7 @@ export default function SupportPage() {
         </p>
 
         <div className="relative mt-9 flex flex-wrap items-center gap-4">
-          <a href={mailto} className="btn-primary focus-ring">
+          <a href={gmailCompose} target="_blank" rel="noopener noreferrer" className="btn-primary focus-ring !text-canvas">
             Email {CONTACT}
           </a>
           <CopyEmail email={CONTACT} />

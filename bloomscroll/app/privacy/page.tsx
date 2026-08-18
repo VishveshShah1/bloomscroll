@@ -64,7 +64,7 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen">
-      <nav className="border-b border-ink/5 bg-canvas/85 backdrop-blur">
+      <nav className="relative z-20 border-b border-ink/5 bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="focus-ring rounded-md">
             <Wordmark className="text-[22px]" />
