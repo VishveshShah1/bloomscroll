@@ -9,6 +9,13 @@ export const metadata = {
 // Plain-language privacy page. Required for the Chrome Web Store listing.
 // No lawyer-speak; if you can't explain a policy in short sentences, the
 // policy is probably too broad.
+const CONTACT = "getbloomscroll@gmail.com";
+
+const GMAIL_COMPOSE =
+  "https://mail.google.com/mail/?view=cm&fs=1" +
+  `&to=${encodeURIComponent(CONTACT)}` +
+  `&su=${encodeURIComponent("Bloomscroll privacy request")}`;
+
 const SECTIONS = [
   {
     heading: "What we collect",
@@ -124,8 +131,14 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-2 text-[15px] leading-relaxed">
             Email{" "}
+            {/* Gmail web compose, not a mailto: — on Windows a mailto hands
+                off to whatever mail client is registered, usually one the
+                person has never signed into, so the link looks broken. Same
+                treatment as the landing footer and /support. */}
             <a
-              href="mailto:getbloomscroll@gmail.com"
+              href={GMAIL_COMPOSE}
+              target="_blank"
+              rel="noopener noreferrer"
               className="focus-ring font-semibold underline underline-offset-[3px]"
             >
               getbloomscroll@gmail.com
