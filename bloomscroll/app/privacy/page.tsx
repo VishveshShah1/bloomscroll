@@ -78,17 +78,21 @@ export default function PrivacyPage() {
         </div>
       </nav>
 
-      <main className="relative mx-auto w-full max-w-3xl overflow-hidden px-5 pb-24 pt-16 sm:px-8">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-20 -left-24 h-[380px] w-[380px] rounded-full opacity-40 blur-3xl"
-          style={{ background: "radial-gradient(circle, #DDE7DA 0%, transparent 70%)" }}
-        />
-        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em] text-forest">privacy</p>
-        <h1 className="relative mt-3 text-[42px] font-semibold leading-[1.02] tracking-display text-ink sm:text-[60px]">
+      {/* Same treatment as /terms: a fixed cream veil softens the shared
+          scroll tint so it never reaches the deep-forest end, where black body
+          copy measures ~1.8:1. Page-scoped, so the homepage's dark bands —
+          which use cream text — are untouched. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 bg-[rgba(246,243,234,0.58)]"
+      />
+
+      <main className="relative z-10 mx-auto w-full max-w-3xl px-5 pb-24 pt-16 sm:px-8 [&_*]:text-black">
+        <p className="text-[13px] font-semibold uppercase tracking-[0.14em]">privacy</p>
+        <h1 className="mt-3 text-[42px] font-semibold leading-[1.02] tracking-display sm:text-[60px]">
           What we keep, what we don&apos;t.
         </h1>
-        <p className="relative mt-5 max-w-[62ch] text-[17px] leading-relaxed text-bark">
+        <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed">
           Short version: your email, your monthly check count, your plan status. That&apos;s it.
           No page tracking. No data sold. Detailed version below.
         </p>
@@ -96,11 +100,11 @@ export default function PrivacyPage() {
         <div className="mt-12 flex flex-col gap-10">
           {SECTIONS.map((s) => (
             <section key={s.heading}>
-              <h2 className="text-[22px] font-semibold text-ink">{s.heading}</h2>
+              <h2 className="text-[22px] font-semibold">{s.heading}</h2>
               <ul className="mt-4 flex flex-col gap-2.5">
                 {s.items.map((i) => (
-                  <li key={i} className="flex gap-3 text-[15.5px] leading-relaxed text-bark">
-                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-forest" />
+                  <li key={i} className="flex gap-3 text-[15.5px] leading-relaxed">
+                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
                     <span>{i}</span>
                   </li>
                 ))}
@@ -111,18 +115,18 @@ export default function PrivacyPage() {
 
         {/* TODO: wire the real support inbox here once the mailbox exists
             Contact now lives on /support. Never expose a personal address. */}
-        <div className="surface mt-14 p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-forest">
+        <div className="mt-14 rounded-[20px] border border-black/10 bg-[rgba(251,250,243,0.75)] p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em]">
             Questions or a deletion request
           </p>
-          <p className="mt-2 text-[15px] leading-relaxed text-ink">
+          <p className="mt-2 text-[15px] leading-relaxed">
             A dedicated support inbox is coming soon. Until then, reach out
             through the same channel you were invited to the beta on and your
             request will land with the right person.
           </p>
         </div>
 
-        <p className="mt-8 text-[12.5px] text-bark">Last updated: 2026-07-24.</p>
+        <p className="mt-8 text-[12.5px]">Last updated: 2026-07-24.</p>
       </main>
     </div>
   );

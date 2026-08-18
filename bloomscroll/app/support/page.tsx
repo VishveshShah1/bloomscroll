@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
+import CopyEmail from "@/components/CopyEmail";
 
 export const metadata = {
   title: "Support — bloomscroll",
@@ -66,20 +67,27 @@ export default function SupportPage() {
         </div>
       </nav>
 
-      <main className="relative mx-auto w-full max-w-3xl overflow-hidden px-5 pb-24 pt-16 sm:px-8">
+      {/* Same veil as /terms and /privacy so the shared scroll tint never
+          darkens far enough to swallow black body copy. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 bg-[rgba(246,243,234,0.58)]"
+      />
+
+      <main className="relative z-10 mx-auto w-full max-w-3xl px-5 pb-24 pt-16 sm:px-8 [&_*]:text-black">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-20 -left-24 h-[380px] w-[380px] rounded-full opacity-40 blur-3xl"
           style={{ background: "radial-gradient(circle, #DDE7DA 0%, transparent 70%)" }}
         />
 
-        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em] text-adaptive-soft">
+        <p className="relative text-[13px] font-semibold uppercase tracking-[0.14em]">
           support
         </p>
-        <h1 className="relative mt-3 text-[42px] font-semibold leading-[1.02] tracking-display text-adaptive sm:text-[56px]">
+        <h1 className="relative mt-3 text-[42px] font-semibold leading-[1.02] tracking-display  sm:text-[56px]">
           Questions, bugs, feedback.
         </h1>
-        <p className="relative mt-5 max-w-[60ch] text-[17px] leading-relaxed text-adaptive-soft">
+        <p className="relative mt-5 max-w-[60ch] text-[17px] leading-relaxed">
           One person builds Bloomscroll, so mail goes straight to them. Expect a
           reply within a couple of days — sooner if something is actually broken.
         </p>
@@ -88,13 +96,12 @@ export default function SupportPage() {
           <a href={mailto} className="btn-primary focus-ring">
             Email {CONTACT}
           </a>
-          <span className="text-[13.5px] text-adaptive-soft">
-            or copy it: <span className="font-semibold">{CONTACT}</span>
-          </span>
+          <CopyEmail email={CONTACT} />
+          <span className="text-[13.5px] font-semibold">{CONTACT}</span>
         </div>
 
         <div className="mt-14 flex flex-col gap-8">
-          <h2 className="text-[22px] font-semibold text-adaptive">
+          <h2 className="text-[22px] font-semibold">
             What&apos;s worth sending
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -113,7 +120,7 @@ export default function SupportPage() {
         </div>
 
         <div className="mt-14">
-          <h2 className="text-[22px] font-semibold text-adaptive">
+          <h2 className="text-[22px] font-semibold">
             Before you write
           </h2>
           <ul className="mt-4 flex flex-col gap-2.5">
@@ -147,7 +154,7 @@ export default function SupportPage() {
             ].map((node, i) => (
               <li
                 key={i}
-                className="flex gap-3 text-[15.5px] leading-relaxed text-adaptive-soft"
+                className="flex gap-3 text-[15.5px] leading-relaxed"
               >
                 <span aria-hidden="true" className="mt-[2px] font-bold text-forest">
                   ·
@@ -158,7 +165,7 @@ export default function SupportPage() {
           </ul>
         </div>
 
-        <div className="mt-14 flex flex-wrap gap-x-6 gap-y-2 border-t border-ink/10 pt-6 text-[13.5px] text-adaptive-soft">
+        <div className="mt-14 flex flex-wrap gap-x-6 gap-y-2 border-t border-ink/10 pt-6 text-[13.5px]">
           <Link href="/privacy" className="focus-ring font-semibold hover:text-ink">
             privacy
           </Link>
@@ -170,7 +177,7 @@ export default function SupportPage() {
           </Link>
         </div>
 
-        <p className="mt-10 text-[12px] text-adaptive-soft">
+        <p className="mt-10 text-[12px]">
           © 2026 Bloomscroll. All rights reserved.
         </p>
       </main>

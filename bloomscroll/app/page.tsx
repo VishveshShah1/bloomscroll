@@ -176,6 +176,7 @@ function Nav({
     { href: "#verdicts", label: t.nav.verdicts },
     { href: "#access", label: t.nav.getApp },
     { href: "#pricing", label: t.nav.pricing },
+    { href: "#faq", label: t.nav.faq },
   ];
   // Clicking the wordmark always returns home; if already on '/', asks the
   // Splash to replay (throttled inside Splash so mashing it doesn't loop).
@@ -1213,6 +1214,47 @@ export default function LandingPage() {
             <p className="mt-6 text-[13px] text-canvas/65">
               No credit card. Free tier stays free.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ — last section before the footer. Sits at the forest end of the
+          scroll tint, so it uses the cream palette like the other deep
+          sections. <details>/<summary> rather than JS accordions: it works
+          with no JavaScript, is keyboard operable for free, and browser
+          find-in-page can still reach collapsed answers. */}
+      <section id="faq" className="scroll-mt-20 py-20 text-canvas sm:py-28">
+        <div className="mx-auto w-full max-w-3xl px-4 sm:px-8">
+          <div data-reveal className="reveal">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-canvas/75">
+              {t.nav.faq}
+            </p>
+            <h2 className="mt-3 text-[34px] font-semibold leading-[1.04] tracking-display sm:text-[46px]">
+              {t.faq.title}
+            </h2>
+          </div>
+          <div className="mt-10 flex flex-col gap-3">
+            {t.faq.items.map((item, i) => (
+              <details
+                key={item.q}
+                data-reveal
+                data-d={String((i % 3) + 1)}
+                className="reveal group rounded-[18px] border border-canvas/20 bg-canvas/[0.06] px-5 py-4 backdrop-blur-sm transition hover:border-canvas/35 sm:px-6"
+              >
+                <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold leading-snug [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 text-[22px] font-normal leading-none text-canvas/70 transition-transform duration-200 group-open:rotate-45"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 max-w-[68ch] text-[15px] leading-relaxed text-canvas/80">
+                  {item.a}
+                </p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
