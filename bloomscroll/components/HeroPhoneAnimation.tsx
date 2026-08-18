@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLang } from "@/lib/i18n";
 
 /**
  * The hero phone. What it shows, in order, is exactly the real-world use
@@ -193,9 +194,126 @@ const TIMING: Record<Phase, number> = {
  *  sync with the `hp-post-enter` / `hp-post-exit` keyframes in globals.css.
  *  The outgoing post is unmounted this many ms after the sample changes. */
 const SWIPE_MS = 520;
+
+// French sample set. Kept beside the English one rather than pushed into
+// lib/i18n.ts: these are structured records (verdict enum, evidence bars,
+// scene keys), not loose UI copy, and splitting one record across two files
+// makes it easy to translate a title and forget its meta line. Journal names
+// stay in English — they are proper nouns.
+const SAMPLES_FR: Sample[] = [
+  {
+    handle: "@holistic.md",
+    caption: "ta dermato te le dira pas mais un SPF quotidien > n'importe quel sérum 🌞",
+    scene: "sunscreen",
+    claim: "Mettre de la crème solaire tous les jours réduit le risque de cancer de la peau.",
+    verdict: "supported",
+    verdictLabel: "ÉTAYÉ",
+    meaning: "Plusieurs études sérieuses vont dans le même sens.",
+    summary:
+      "Des essais randomisés et de grandes cohortes montrent qu'une crème solaire à large spectre appliquée chaque jour réduit le risque de mélanome et de carcinome épidermoïde.",
+    citations: [
+      { title: "Moins de mélanomes après un usage régulier de crème solaire", meta: "J Clin Oncol · 5000+ citations" },
+      { title: "Prévention prolongée du carcinome épidermoïde", meta: "Cancer Epidemiol · suivi long" },
+      { title: "Crème solaire et vieillissement cutané : essai randomisé", meta: "Ann Intern Med · 903 adultes, ECR sur 4 ans" },
+      { title: "Usage de crème solaire et incidence du mélanome", meta: "JAMA Dermatol · revue de cohorte" },
+    ],
+    evidence: { bars: [1, 0.85, 0.55, 0.35, 0.15], papersFound: 48, checkSeconds: 8 },
+  },
+  {
+    handle: "@gua.sha.glow",
+    caption: "mewing + gua sha chaque matin — le remodelage osseux c'est RÉEL les filles ✨",
+    scene: "mewing",
+    claim: "Le mewing quotidien avec du gua sha remodèle le visage adulte.",
+    verdict: "weak",
+    verdictLabel: "PREUVES FAIBLES",
+    meaning: "Il existe quelque chose, mais c'est mince.",
+    summary:
+      "Quelques petites études sur la posture linguale et l'acupression faciale. Le gua sha provoque une rougeur passagère et une légère baisse de l'inflammation — aucun essai contrôlé ne montre de changement durable de l'os ou de la mâchoire chez l'adulte.",
+    citations: [
+      { title: "Posture linguale et morphologie craniofaciale", meta: "Angle Orthod · 42 sujets" },
+      { title: "Gua sha : effets sur la microcirculation et l'inflammation", meta: "J Altern Complement Med · croisé à 12 bras" },
+      { title: "Thérapie myofonctionnelle orofaciale chez l'adulte : revue systématique", meta: "Sleep Breath · 12 études regroupées" },
+      { title: "Acupression faciale et drainage lymphatique : ECR pilote", meta: "Complement Ther Med · n=28" },
+    ],
+    evidence: { bars: [0.2, 0.4, 0.7, 0.85, 0.5], papersFound: 18, checkSeconds: 6 },
+  },
+  {
+    handle: "@bulk.szn",
+    caption: "3 doses de pre-workout = la congestion de ta vie, le café c'est pour les DÉBUTANTS ⚡",
+    scene: "preworkout",
+    claim: "Les pre-workout à forte dose augmentent énormément la prise de muscle.",
+    verdict: "mixed",
+    verdictLabel: "PREUVES MITIGÉES",
+    meaning: "De vraies études existent, et elles se contredisent.",
+    summary:
+      "La caféine et la citrulline améliorent modestement la performance à court terme aux doses étudiées. La plupart des doses commerciales dépassent largement ces quantités, les données de sécurité s'amenuisent, et aucun essai ne montre qu'augmenter la dose augmente les gains d'autant.",
+    citations: [
+      { title: "Caféine et performance en musculation : méta-analyse", meta: "Br J Sports Med · 21 ECR regroupés" },
+      { title: "Citrulline malate et effort de haute intensité", meta: "J Strength Cond Res · 25 adultes entraînés" },
+      { title: "Pre-workout multi-ingrédients : revue systématique", meta: "J Int Soc Sports Nutr · 34 études" },
+      { title: "Effets indésirables des pre-workout très caféinés", meta: "Ann Intern Med · série de cas" },
+    ],
+    evidence: { bars: [0.55, 0.7, 0.65, 0.5, 0.35], papersFound: 29, checkSeconds: 6 },
+  },
+  {
+    handle: "@wellness.rn",
+    caption: "3 min de bain glacé c'est un brûleur de graisse, pas besoin de salle 🥶",
+    scene: "cold",
+    claim: "Les bains glacés accélèrent la perte de graisse.",
+    verdict: "mixed",
+    verdictLabel: "PREUVES MITIGÉES",
+    meaning: "De vraies études existent, et elles se contredisent.",
+    summary:
+      "L'exposition au froid augmente modestement l'activité de la graisse brune. Les résultats sur la masse grasse totale restent incohérents d'un essai à l'autre.",
+    citations: [
+      { title: "Exposition au froid et activation de la graisse brune", meta: "J Clin Endocrinol Metab" },
+      { title: "Immersion en eau froide et composition corporelle", meta: "Sports Med · revue systématique" },
+      { title: "Immersion froide après l'effort et adaptation musculaire", meta: "J Physiol · hommes entraînés" },
+      { title: "Thermogenèse par le froid et adiposité : méta-analyse", meta: "Int J Obes · 11 essais regroupés" },
+    ],
+    evidence: { bars: [0.55, 0.75, 0.7, 0.55, 0.4], papersFound: 31, checkSeconds: 7 },
+  },
+  {
+    handle: "@night.gummies",
+    caption: "10 mg de gummies de mélatonine chaque soir = le hack sommeil parfait 🌙",
+    scene: "melatonin",
+    claim: "Les gummies de mélatonine à forte dose règlent les problèmes de sommeil sur le long terme.",
+    verdict: "mixed",
+    verdictLabel: "PREUVES MITIGÉES",
+    meaning: "De vraies études existent, et elles se contredisent.",
+    summary:
+      "De petites doses (0,3 à 1 mg) aident pour le décalage horaire et le travail de nuit. La plupart des gummies vendus en dosent 10 à 100 fois plus que ce qui est efficace, et rien de solide n'appuie un bénéfice durable contre l'insomnie.",
+    citations: [
+      { title: "Mélatonine et décalage horaire : revue systématique", meta: "Cochrane Database Syst Rev · 10 ECR" },
+      { title: "Relation dose-effet de la mélatonine sur l'endormissement", meta: "Sleep Med Rev · analyse groupée" },
+      { title: "Variabilité de la teneur en mélatonine des gummies du commerce", meta: "JAMA · analyse de 30 produits" },
+      { title: "Usage prolongé de mélatonine chez l'adulte : revue de sécurité", meta: "J Clin Sleep Med · prise de position" },
+    ],
+    evidence: { bars: [0.55, 0.7, 0.65, 0.55, 0.4], papersFound: 42, checkSeconds: 7 },
+  },
+];
+
+/** Fixed chrome inside the phone — labels that aren't part of a sample. */
+const PHONE_CHROME = {
+  en: {
+    shareTo: "Share to", messages: "Messages", mail: "Mail", copy: "Copy",
+    checking: "Checking the literature…", theClaim: "THE CLAIM",
+    evidenceStrength: "EVIDENCE STRENGTH", cited: "CITED IN THE ANSWER",
+    papersWeighed: "papers weighed", follow: "Follow",
+  },
+  fr: {
+    shareTo: "Partager avec", messages: "Messages", mail: "Mail", copy: "Copier",
+    checking: "Recherche dans la littérature…", theClaim: "L'AFFIRMATION",
+    evidenceStrength: "FORCE DES PREUVES", cited: "CITÉ DANS LA RÉPONSE",
+    papersWeighed: "articles pesés", follow: "Suivre",
+  },
+} as const;
 const PHASE_ORDER: Phase[] = ["post", "share", "checking", "verdict", "hold"];
 
 export default function HeroPhoneAnimation() {
+  const [lang] = useLang();
+  const SAMPLE_SET = lang === "fr" ? SAMPLES_FR : SAMPLES;
+  const C = PHONE_CHROME[lang === "fr" ? "fr" : "en"];
   const [reduced, setReduced] = useState(false);
   const [sampleIndex, setSampleIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("post");
@@ -244,14 +362,14 @@ export default function HeroPhoneAnimation() {
     acc += TIMING.hold;
     timers.push(
       window.setTimeout(
-        () => setSampleIndex((n) => (n + 1) % SAMPLES.length),
+        () => setSampleIndex((n) => (n + 1) % SAMPLE_SET.length),
         acc,
       ),
     );
     return () => timers.forEach((t) => clearTimeout(t));
   }, [reduced, sampleIndex]);
 
-  const sample = SAMPLES[sampleIndex];
+  const sample = SAMPLE_SET[sampleIndex];
   const tone = VERDICT_TONE[sample.verdict];
 
   const showShareSheet = phase === "share";
@@ -286,7 +404,7 @@ export default function HeroPhoneAnimation() {
               — the way TikTok's between-post transition actually feels. */}
           {outgoingIndex !== null && outgoingIndex !== sampleIndex && (
             <div className="hp-post hp-post-exit" key={`out-${outgoingIndex}`}>
-              <PostBody sample={SAMPLES[outgoingIndex]} showTapOnShare={false} />
+              <PostBody sample={SAMPLE_SET[outgoingIndex]} showTapOnShare={false} />
             </div>
           )}
           <div className="hp-post hp-post-enter" key={`in-${sampleIndex}`}>
@@ -297,7 +415,7 @@ export default function HeroPhoneAnimation() {
           <div className={`hp-sheet-scrim ${showShareSheet ? "on" : ""}`} />
           <div className={`hp-sheet ${showShareSheet ? "on" : ""}`}>
             <div className="hp-sheet-handle" />
-            <p className="hp-sheet-title">Share to</p>
+            <p className="hp-sheet-title">{C.shareTo}</p>
             <div className="hp-sheet-row">
               <SheetIcon kind="msg" />
               <SheetIcon kind="mail" />
@@ -305,10 +423,10 @@ export default function HeroPhoneAnimation() {
               <SheetIcon kind="copy" />
             </div>
             <div className="hp-sheet-labels">
-              <span>Messages</span>
-              <span>Mail</span>
+              <span>{C.messages}</span>
+              <span>{C.mail}</span>
               <span className="is-active">Bloomscroll</span>
-              <span>Copy</span>
+              <span>{C.copy}</span>
             </div>
           </div>
 
@@ -324,7 +442,7 @@ export default function HeroPhoneAnimation() {
               <div className="hp-checking">
                 <div className="hp-checking-head">
                   <span className="hp-spinner" />
-                  <span className="hp-checking-title">Checking the literature…</span>
+                  <span className="hp-checking-title">{C.checking}</span>
                 </div>
                 <div className="hp-checking-rows">
                   <span>reading the caption</span>
@@ -334,7 +452,7 @@ export default function HeroPhoneAnimation() {
               </div>
             ) : (
               <div className="hp-verdict">
-                <p className="hp-verdict-label">THE CLAIM</p>
+                <p className="hp-verdict-label">{C.theClaim}</p>
                 <p className="hp-verdict-claim">&ldquo;{sample.claim}&rdquo;</p>
                 <div className="hp-verdict-row">
                   <span
@@ -362,7 +480,7 @@ export default function HeroPhoneAnimation() {
                     breaks down (supporting → refuting), so the card
                     doesn't fall to empty space with short citation
                     lists. */}
-                <p className="hp-evidence-label">EVIDENCE STRENGTH</p>
+                <p className="hp-evidence-label">{C.evidenceStrength}</p>
                 <div className="hp-evidence-row">
                   <span className="hp-bars" aria-hidden="true">
                     {sample.evidence.bars.map((h, i) => (
@@ -377,11 +495,11 @@ export default function HeroPhoneAnimation() {
                     ))}
                   </span>
                   <span className="hp-evidence-copy">
-                    {sample.evidence.papersFound} papers weighed
+                    {sample.evidence.papersFound} {C.papersWeighed}
                   </span>
                 </div>
 
-                <p className="hp-cited-label">CITED IN THE ANSWER</p>
+                <p className="hp-cited-label">{C.cited}</p>
                 <ul className="hp-cited-list">
                   {sample.citations.map((c, i) => (
                     <li key={c.title} className="hp-cited-item">
@@ -435,6 +553,11 @@ function PostBody({
   sample: Sample;
   showTapOnShare: boolean;
 }) {
+  // Reads the language itself rather than taking it as a prop — useLang is
+  // synced across components via the bloom:lang event, so this stays in step
+  // with the parent without threading chrome through two render paths.
+  const [lang] = useLang();
+  const C = PHONE_CHROME[lang === "fr" ? "fr" : "en"];
   return (
     <>
       <VideoBackground scene={sample.scene} />
@@ -459,7 +582,7 @@ function PostBody({
             <i />
             <i />
           </span>
-          <span className="hp-follow">Follow</span>
+          <span className="hp-follow">{C.follow}</span>
         </div>
         <p className="hp-caption-text">{sample.caption}</p>
       </div>
