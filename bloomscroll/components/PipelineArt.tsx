@@ -680,7 +680,6 @@ export function PipeGradeArt() {
       {/* Affordance hint. The rows below are real buttons, but nothing about a
           static scale says so — same problem the 404 badge had, same fix. */}
       <text x="72" y="70" fontFamily={FONT} fontSize="11.5" fill={BARK}>
-        tap to change evidence
       </text>
 
       {/* ① the five-tier scale. Display-only: it walks the tiers on a timer
@@ -739,13 +738,13 @@ export function PipeGradeArt() {
             (10, 21), which is where the circle sits. */}
         <g
           style={{
-            transform: `translate(300px, ${sel * ROW}px)`,
+            transform: `translate(-46px, ${sel * ROW}px)`,
             transition: "transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
           <circle cx="10" cy="21" r="22" fill={FOREST} fillOpacity="0.14" />
           <path
-            d="M1 10 L21 21 L1 32 Z"
+            d="M4 10 L24 21 L4 32 Z"
             fill={FOREST}
             strokeLinejoin="round"
             strokeLinecap="round"
