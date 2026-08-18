@@ -766,6 +766,22 @@ const LANG_KEY = "bloomscroll-lang";
 const LANG_EVENT = "bloom:lang";
 
 /**
+ * Master switch for the EN/FR feature. False since Aug 2026: the site ships
+ * English-only until the remaining hardcoded strings are translated.
+ *
+ * Everything else is deliberately left standing — both dictionaries, setLang,
+ * the broadcast, and components/LangToggle.tsx. Re-enabling is flipping this
+ * to true and putting <LangToggle /> back in the navs.
+ *
+ * While it is false, useLang MUST ignore any stored preference. This is not a
+ * tidiness rule, it is the bug it was written for: the toggle was removed while
+ * "fr" was still persisted in localStorage for anyone who had tried French, and
+ * with no toggle left on the page there was no way for them to get back to
+ * English. They just saw a French site forever.
+ */
+const LANG_ENABLED = false;
+
+/**
  * Language state, shared across every component that calls this.
  *
  * Each call has its own useState, so without a broadcast a toggle in the nav
@@ -783,6 +799,17 @@ export function useLang(): [Lang, (l: Lang) => void] {
   const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
+    if (!LANG_ENABLED) {
+      // Purge the orphaned preference. Leaving it would be harmless now, but
+      // re-enabling the toggle later would silently drop these users back into
+      // French because of a choice they made months earlier.
+      try {
+        localStorage.removeItem(LANG_KEY);
+      } catch {
+        /* private mode — nothing persisted, nothing to purge */
+      }
+      return;
+    }
     const read = () => {
       const stored = localStorage.getItem(LANG_KEY);
       if (stored === "fr" || stored === "en") setLangState(stored);
@@ -804,6 +831,7 @@ export function useLang(): [Lang, (l: Lang) => void] {
   }, [lang]);
 
   function setLang(l: Lang) {
+    if (!LANG_ENABLED) return;
     setLangState(l);
     try {
       localStorage.setItem(LANG_KEY, l);
